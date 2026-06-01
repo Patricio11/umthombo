@@ -1,26 +1,150 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ------------------------------------------------------------------ */
+/*  Umthombo Creations — design tokens (Tailwind v4 CSS-first @theme)  */
+/* ------------------------------------------------------------------ */
+@theme {
+  /* Core palette (extracted from the deck) */
+  --color-clay: #a6402c; /* terracotta / rust — primary brand, the "U" mark */
+  --color-clay-soft: #c1593f;
+  --color-olive: #6e8c3c; /* sage-olive — Home category, growth */
+  --color-mist: #91aeca; /* dusty blue — Hampers, calm */
+  --color-taupe: #97897a; /* warm mushroom — Candle surfaces */
+  --color-cream: #faf6ed; /* warm paper — default background */
+  --color-cream-2: #f0e9da; /* deeper paper for cards/sections */
+  --color-cream-3: #e7ddc9;
+  --color-ink: #2a2420; /* near-black warm charcoal — body text */
+  --color-ink-soft: #5a5048;
+
+  /* Fonts (wired to next/font CSS variables in layout.tsx) */
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+
+  /* Soft, slow editorial easing */
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Fluid type scale */
+  --text-display: clamp(2.75rem, 7vw, 7rem);
+  --text-h1: clamp(2.25rem, 5vw, 4.25rem);
+  --text-h2: clamp(1.75rem, 3.5vw, 2.85rem);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ------------------------------------------------------------------ */
+/*  Base                                                               */
+/* ------------------------------------------------------------------ */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "kern", "liga", "calt";
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-clay) 22%, transparent);
+    color: var(--color-ink);
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+  }
+
+  /* Quiet, branded scrollbar */
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--color-cream-2); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-taupe);
+    border-radius: 99px;
+    border: 2px solid var(--color-cream-2);
+  }
+
+  /* Lenis smooth scroll */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-stopped { overflow: hidden; }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ------------------------------------------------------------------ */
+/*  Utilities & components                                             */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .eyebrow {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .editorial-italic {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* Organic blob mask shapes */
+  .blob-1 { border-radius: 64% 36% 57% 43% / 47% 56% 44% 53%; }
+  .blob-2 { border-radius: 41% 59% 38% 62% / 58% 41% 59% 42%; }
+  .blob-3 { border-radius: 56% 44% 47% 53% / 38% 62% 38% 62%; }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.5s var(--ease-spring);
+  }
+  .link-underline:hover { background-size: 100% 1px; }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Keyframes — restrained motion language (slow, subtle, purposeful)  */
+/* ------------------------------------------------------------------ */
+@keyframes candle-glow {
+  /* a single soft, slow breath of warmth — deliberately gentle */
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.72; transform: scale(1.04); }
+}
+@keyframes reed-sway {
+  0%, 100% { transform: rotate(-0.8deg); }
+  50% { transform: rotate(0.8deg); }
+}
+@keyframes rise {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 0.45; }
+  100% { transform: translateY(-90px) scale(0.5); opacity: 0; }
+}
+
+.animate-glow { animation: candle-glow 7s var(--ease-spring) infinite; }
+.animate-sway { animation: reed-sway 8s ease-in-out infinite; transform-origin: bottom center; }
+
+/* Paper grain overlay — faint, printed feel */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Respect prefers-reduced-motion globally                            */
+/* ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .grain { display: none; }
 }
