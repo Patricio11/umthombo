@@ -74,7 +74,7 @@ export default function CustomPage() {
       <section className="px-5 py-16 sm:px-8 lg:py-24">
         <div className="mx-auto max-w-7xl">
           <Reveal className="mb-12 max-w-2xl">
-            <p className="eyebrow text-clay">How it works</p>
+            <p className="eyebrow text-olive">How it works</p>
             <h2 className="mt-4 font-display text-4xl font-light tracking-tight lg:text-5xl">
               Three gentle steps
             </h2>
@@ -98,7 +98,7 @@ export default function CustomPage() {
               },
             ].map((step, i) => (
               <Reveal key={step.n} delay={i * 0.06}>
-                <span className="font-display text-2xl text-clay/40">{step.n}</span>
+                <span className="font-display text-2xl text-olive/40">{step.n}</span>
                 <h3 className="mt-2 font-display text-2xl">{step.t}</h3>
                 <p className="mt-2 leading-relaxed text-ink-soft">{step.d}</p>
               </Reveal>
@@ -110,7 +110,7 @@ export default function CustomPage() {
               href={whatsappCustom}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-12 inline-flex items-center gap-2.5 rounded-full bg-clay px-8 py-4 text-base font-medium text-cream transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+              className="mt-12 inline-flex items-center gap-2.5 rounded-full bg-olive px-8 py-4 text-base font-medium text-cream transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
             >
               <WhatsAppIcon size={20} />
               Request a custom piece

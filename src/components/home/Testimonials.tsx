@@ -44,7 +44,7 @@ export function Testimonials() {
                   <blockquote className="text-center">
                     <span
                       aria-hidden
-                      className="font-display text-6xl leading-none text-clay/30"
+                      className="font-display text-6xl leading-none text-olive/30"
                     >
                       &ldquo;
                     </span>
@@ -67,7 +67,7 @@ export function Testimonials() {
             type="button"
             onClick={() => embla?.scrollPrev()}
             aria-label="Previous testimonial"
-            className="rounded-full border border-cream-3 p-2.5 text-ink-soft transition-colors hover:border-clay hover:text-clay"
+            className="rounded-full border border-cream-3 p-2.5 text-ink-soft transition-colors hover:border-olive hover:text-olive"
           >
             <ArrowLeft size={18} />
           </button>
@@ -79,7 +79,7 @@ export function Testimonials() {
                 onClick={() => embla?.scrollTo(i)}
                 aria-label={`Go to testimonial ${i + 1}`}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  selected === i ? "w-6 bg-clay" : "w-2 bg-cream-3"
+                  selected === i ? "w-6 bg-olive" : "w-2 bg-cream-3"
                 }`}
               />
             ))}
@@ -88,7 +88,7 @@ export function Testimonials() {
             type="button"
             onClick={() => embla?.scrollNext()}
             aria-label="Next testimonial"
-            className="rounded-full border border-cream-3 p-2.5 text-ink-soft transition-colors hover:border-clay hover:text-clay"
+            className="rounded-full border border-cream-3 p-2.5 text-ink-soft transition-colors hover:border-olive hover:text-olive"
           >
             <ArrowRight size={18} />
           </button>

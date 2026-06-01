@@ -4,12 +4,13 @@
 /*  Umthombo Creations — design tokens (Tailwind v4 CSS-first @theme)  */
 /* ------------------------------------------------------------------ */
 @theme {
-  /* Core palette (extracted from the deck) */
-  --color-clay: #a6402c; /* terracotta / rust — primary brand, the "U" mark */
+  /* Core palette */
+  --color-olive: #4b5a30; /* deep forest-olive — PRIMARY brand, the "U" mark */
+  --color-olive-soft: #5e7140; /* lighter olive for hovers */
+  --color-clay: #a6402c; /* terracotta — warm secondary, Body/Skin category */
   --color-clay-soft: #c1593f;
-  --color-olive: #6e8c3c; /* sage-olive — Home category, growth */
   --color-mist: #91aeca; /* dusty blue — Hampers, calm */
-  --color-taupe: #97897a; /* warm mushroom — Candle surfaces */
+  --color-taupe: #97897a; /* warm mushroom — surfaces */
   --color-cream: #faf6ed; /* warm paper — default background */
   --color-cream-2: #f0e9da; /* deeper paper for cards/sections */
   --color-cream-3: #e7ddc9;
@@ -17,7 +18,7 @@
   --color-ink-soft: #5a5048;
 
   /* Fonts (wired to next/font CSS variables in layout.tsx) */
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-bricolage), "Hanken Grotesk", ui-sans-serif, sans-serif;
   --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
 
   /* Soft, slow editorial easing */
@@ -47,7 +48,7 @@
   }
 
   ::selection {
-    background-color: color-mix(in srgb, var(--color-clay) 22%, transparent);
+    background-color: color-mix(in srgb, var(--color-olive) 24%, transparent);
     color: var(--color-ink);
   }
 
@@ -84,10 +85,12 @@
     font-weight: 600;
   }
 
+  /* Bricolage has no true italic — use a humanist sans italic for accents */
   .editorial-italic {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     font-style: italic;
     font-weight: 400;
+    letter-spacing: 0.01em;
   }
 
   /* Organic blob mask shapes */

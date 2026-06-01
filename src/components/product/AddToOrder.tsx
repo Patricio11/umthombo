@@ -69,7 +69,7 @@ export function AddToOrder({ product }: { product: Product }) {
             type="checkbox"
             checked={pack}
             onChange={(e) => setPack(e.target.checked)}
-            className="h-4 w-4 accent-clay"
+            className="h-4 w-4 accent-olive"
           />
           <span>
             Make it a <span className="font-medium">pack of two</span> — better
@@ -85,7 +85,7 @@ export function AddToOrder({ product }: { product: Product }) {
             type="button"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             aria-label="Decrease quantity"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-clay"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-olive"
           >
             <Minus size={16} />
           </button>
@@ -94,7 +94,7 @@ export function AddToOrder({ product }: { product: Product }) {
             type="button"
             onClick={() => setQty((q) => q + 1)}
             aria-label="Increase quantity"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-clay"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-olive"
           >
             <Plus size={16} />
           </button>

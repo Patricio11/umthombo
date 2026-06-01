@@ -45,7 +45,7 @@ export function ShopExplorer({ initial = "all" }: { initial?: Filter }) {
                 {filter === t.key && (
                   <motion.span
                     layoutId="shop-tab"
-                    className="absolute inset-0 -z-10 rounded-full bg-clay"
+                    className="absolute inset-0 -z-10 rounded-full bg-olive"
                     transition={{ type: "spring", stiffness: 380, damping: 32 }}
                   />
                 )}

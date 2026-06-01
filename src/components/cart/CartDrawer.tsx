@@ -75,7 +75,7 @@ export function CartDrawer() {
                       </span>
                       <Dialog.Close
                         aria-label="Close selection"
-                        className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-cream-2 hover:text-clay"
+                        className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-cream-2 hover:text-olive"
                       >
                         <X size={20} />
                       </Dialog.Close>
@@ -208,7 +208,7 @@ function EmptyState() {
       <Dialog.Close asChild>
         <Link
           href="/shop"
-          className="mt-7 inline-flex items-center justify-center rounded-full border border-ink/25 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-clay hover:text-clay"
+          className="mt-7 inline-flex items-center justify-center rounded-full border border-ink/25 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-olive hover:text-olive"
         >
           Explore the shop
         </Link>

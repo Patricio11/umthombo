@@ -66,7 +66,7 @@ export default function AboutPage() {
       <section className="px-5 py-16 sm:px-8 lg:py-24">
         <div className="mx-auto max-w-7xl">
           <Reveal className="mb-12 max-w-2xl">
-            <p className="eyebrow text-clay">Our commitment to you</p>
+            <p className="eyebrow text-olive">Our commitment to you</p>
             <h2 className="mt-4 font-display text-4xl font-light tracking-tight lg:text-5xl">
               How we like to work
             </h2>
@@ -74,7 +74,7 @@ export default function AboutPage() {
           <div className="grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {commitments.map((c, i) => (
               <Reveal key={c.title} delay={(i % 3) * 0.06}>
-                <span className="font-display text-2xl text-clay/40">
+                <span className="font-display text-2xl text-olive/40">
                   0{i + 1}
                 </span>
                 <h3 className="mt-2 font-display text-2xl">{c.title}</h3>

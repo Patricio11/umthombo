@@ -16,7 +16,7 @@ export function Featured() {
     <section className="px-5 py-20 sm:px-8 lg:py-28">
       <div className="mx-auto max-w-7xl">
         <Reveal className="mb-14 max-w-2xl">
-          <p className="eyebrow text-clay">Hand-picked</p>
+          <p className="eyebrow text-olive">Hand-picked</p>
           <h2 className="mt-4 font-display text-4xl font-light tracking-tight lg:text-5xl">
             A few we&rsquo;d reach for first
           </h2>
@@ -98,7 +98,7 @@ export function Featured() {
                     </span>
                     <Link
                       href={`/product/${p.slug}`}
-                      className="link-underline text-base text-clay"
+                      className="link-underline text-base text-olive"
                     >
                       View &amp; order
                     </Link>

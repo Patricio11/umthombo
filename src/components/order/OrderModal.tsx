@@ -100,7 +100,7 @@ export function OrderModal({
                     >
                       <header className="flex items-start justify-between px-7 pt-7">
                         <div>
-                          <p className="eyebrow text-clay">Almost there</p>
+                          <p className="eyebrow text-olive">Almost there</p>
                           <Dialog.Title className="mt-2 font-display text-3xl">
                             Place your order
                           </Dialog.Title>
@@ -111,7 +111,7 @@ export function OrderModal({
                         </div>
                         <Dialog.Close
                           aria-label="Close"
-                          className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-cream-2 hover:text-clay"
+                          className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-cream-2 hover:text-olive"
                         >
                           <X size={20} />
                         </Dialog.Close>
@@ -211,7 +211,7 @@ export function OrderModal({
 }
 
 const inputCls =
-  "w-full rounded-xl border border-cream-3 bg-cream px-4 py-3 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-clay focus:outline-none";
+  "w-full rounded-xl border border-cream-3 bg-cream px-4 py-3 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-olive focus:outline-none";
 
 function Field({
   label,
@@ -226,7 +226,7 @@ function Field({
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-ink">{label}</span>
       {children}
-      {error && <span className="mt-1 block text-xs text-clay">{error}</span>}
+      {error && <span className="mt-1 block text-xs text-olive">{error}</span>}
     </label>
   );
 }
@@ -238,7 +238,7 @@ const RadioCard = forwardRef<
 >(({ title, sub, ...props }, ref) => (
   <label className="relative cursor-pointer">
     <input ref={ref} type="radio" className="peer sr-only" {...props} />
-    <div className="rounded-2xl border border-cream-3 bg-cream px-4 py-3 transition-all peer-checked:border-clay peer-checked:bg-clay/5 peer-focus-visible:outline-2 peer-focus-visible:outline-clay">
+    <div className="rounded-2xl border border-cream-3 bg-cream px-4 py-3 transition-all peer-checked:border-olive peer-checked:bg-olive/5 peer-focus-visible:outline-2 peer-focus-visible:outline-olive">
       <p className="font-medium text-ink">{title}</p>
       <p className="text-xs text-ink-soft">{sub}</p>
     </div>

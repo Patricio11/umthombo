@@ -44,7 +44,7 @@ export function Gallery({
               aria-label={`View image ${i + 1}`}
               className={cn(
                 "relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-cream-2 ring-2 ring-offset-2 ring-offset-cream transition-all",
-                active === i ? "ring-clay" : "ring-transparent hover:ring-cream-3"
+                active === i ? "ring-olive" : "ring-transparent hover:ring-cream-3"
               )}
             >
               <Image

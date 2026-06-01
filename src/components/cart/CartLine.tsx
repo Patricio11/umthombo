@@ -35,7 +35,7 @@ export function CartLine({ item }: { item: CartItem }) {
             type="button"
             onClick={() => removeItem(item.slug, item.variant)}
             aria-label={`Remove ${item.name}`}
-            className="-mr-1 shrink-0 rounded-full p-1 text-ink-soft transition-colors hover:text-clay"
+            className="-mr-1 shrink-0 rounded-full p-1 text-ink-soft transition-colors hover:text-olive"
           >
             <X size={16} />
           </button>
@@ -47,7 +47,7 @@ export function CartLine({ item }: { item: CartItem }) {
               type="button"
               onClick={() => setQty(item.slug, item.variant, item.qty - 1)}
               aria-label="Decrease quantity"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-clay"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-olive"
             >
               <Minus size={14} />
             </button>
@@ -58,7 +58,7 @@ export function CartLine({ item }: { item: CartItem }) {
               type="button"
               onClick={() => setQty(item.slug, item.variant, item.qty + 1)}
               aria-label="Increase quantity"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-clay"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-soft transition-colors hover:text-olive"
             >
               <Plus size={14} />
             </button>

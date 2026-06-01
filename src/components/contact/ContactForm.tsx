@@ -8,7 +8,7 @@ import { WhatsAppIcon } from "@/components/brand/SocialIcons";
 import { site } from "@/data/site";
 
 const inputCls =
-  "w-full rounded-xl border border-cream-3 bg-cream px-4 py-3 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-clay focus:outline-none";
+  "w-full rounded-xl border border-cream-3 bg-cream px-4 py-3 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-olive focus:outline-none";
 
 export function ContactForm() {
   const [name, setName] = useState("");

@@ -40,7 +40,7 @@ export function Philosophy() {
     <section className="bg-cream-2 px-5 py-20 sm:px-8 lg:py-28">
       <div className="mx-auto max-w-7xl">
         <Reveal className="mb-14 max-w-2xl">
-          <p className="eyebrow text-clay">Our commitment to you</p>
+          <p className="eyebrow text-olive">Our commitment to you</p>
           <h2 className="mt-4 font-display text-4xl font-light tracking-tight lg:text-5xl">
             The things we won&rsquo;t compromise
           </h2>

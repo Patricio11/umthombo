@@ -22,7 +22,7 @@ const tiles = [
     title: "Body & Skin",
     blurb: "Balms, soaps, scrubs your skin knows.",
     image: "/products/buttertastic-mega.jpg",
-    accent: "clay" as const,
+    accent: "olive" as const,
     span: "lg:col-span-5",
   },
   {
@@ -55,7 +55,7 @@ export function CategoryTiles() {
           <h2 className="font-display text-4xl font-light tracking-tight lg:text-5xl">
             Three ways to begin
           </h2>
-          <Link href="/shop" className="link-underline text-clay">
+          <Link href="/shop" className="link-underline text-olive">
             See everything
           </Link>
         </Reveal>

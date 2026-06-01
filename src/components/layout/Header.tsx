@@ -45,7 +45,7 @@ export function Header() {
         <Link
           href="/"
           aria-label="Umthombo Creations — home"
-          className="text-clay transition-opacity hover:opacity-80"
+          className="text-olive transition-opacity hover:opacity-80"
         >
           <Logo showWord animate={!reduce} />
         </Link>
@@ -60,8 +60,8 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "link-underline text-sm tracking-wide text-ink-soft transition-colors hover:text-clay",
-                  active && "text-clay"
+                  "link-underline text-sm tracking-wide text-ink-soft transition-colors hover:text-olive",
+                  active && "text-olive"
                 )}
               >
                 {item.label}
@@ -77,7 +77,7 @@ export function Header() {
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
-            className="ml-1 inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:text-clay md:hidden"
+            className="ml-1 inline-flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:text-olive md:hidden"
           >
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -105,7 +105,7 @@ export function Header() {
                 >
                   <Link
                     href={item.href}
-                    className="block border-b border-cream-2 py-4 font-display text-2xl text-ink transition-colors hover:text-clay"
+                    className="block border-b border-cream-2 py-4 font-display text-2xl text-ink transition-colors hover:text-olive"
                   >
                     {item.label}
                   </Link>

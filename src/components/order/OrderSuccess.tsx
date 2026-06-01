@@ -52,7 +52,7 @@ export function OrderSuccess({ onDone }: { onDone: () => void }) {
       </Button>
       <p className="mt-4 text-xs text-ink-soft">
         Didn&rsquo;t open? Check that pop-ups are allowed, or message us on{" "}
-        <span className="text-clay">+27 63 705 3286</span>.
+        <span className="text-olive">+27 63 705 3286</span>.
       </p>
     </motion.div>
   );

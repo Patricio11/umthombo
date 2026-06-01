@@ -12,7 +12,7 @@ import { site } from "@/data/site";
 export function ContactBlock() {
   return (
     <section className="px-5 py-20 sm:px-8 lg:py-28">
-      <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-clay px-6 py-16 text-cream sm:px-12 lg:py-24">
+      <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-olive px-6 py-16 text-cream sm:px-12 lg:py-24">
         <RisingBubbles count={8} color="var(--color-cream)" />
 
         <div className="relative mx-auto max-w-2xl text-center">
@@ -35,7 +35,7 @@ export function ContactBlock() {
               href={site.whatsapp.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 rounded-full bg-cream px-8 py-4 text-base font-medium text-clay transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.98]"
+              className="inline-flex items-center gap-2.5 rounded-full bg-cream px-8 py-4 text-base font-medium text-olive transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.98]"
             >
               <WhatsAppIcon size={20} />
               Chat on WhatsApp

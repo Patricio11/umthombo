@@ -20,7 +20,7 @@ export function CartButton({ className }: { className?: string }) {
       onClick={openCart}
       aria-label={`Open your selection${mounted && count ? `, ${count} item${count === 1 ? "" : "s"}` : ""}`}
       className={cn(
-        "group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-ink transition-colors hover:text-clay focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay",
+        "group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-ink transition-colors hover:text-olive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive",
         className
       )}
     >
@@ -44,7 +44,7 @@ export function CartButton({ className }: { className?: string }) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.4, opacity: 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 18 }}
-            className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-clay px-1 text-[11px] font-semibold text-cream"
+            className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-olive px-1 text-[11px] font-semibold text-cream"
           >
             {count}
           </motion.span>

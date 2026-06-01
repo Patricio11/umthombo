@@ -33,7 +33,7 @@ export default function ContactPage() {
               href={site.whatsapp.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center justify-between rounded-3xl bg-clay px-6 py-6 text-cream transition-transform duration-300 hover:scale-[1.02]"
+              className="group flex items-center justify-between rounded-3xl bg-olive px-6 py-6 text-cream transition-transform duration-300 hover:scale-[1.02]"
             >
               <div className="flex items-center gap-4">
                 <WhatsAppIcon size={28} />
@@ -54,7 +54,7 @@ export default function ContactPage() {
                 rel="noopener noreferrer"
                 className="flex flex-col gap-2 rounded-3xl bg-cream-2 px-5 py-5 transition-colors hover:bg-cream-3"
               >
-                <InstagramIcon size={24} className="text-clay" />
+                <InstagramIcon size={24} className="text-olive" />
                 <span className="font-medium">Instagram</span>
                 <span className="text-sm text-ink-soft">
                   {site.instagram.handle}
@@ -66,7 +66,7 @@ export default function ContactPage() {
                 rel="noopener noreferrer"
                 className="flex flex-col gap-2 rounded-3xl bg-cream-2 px-5 py-5 transition-colors hover:bg-cream-3"
               >
-                <FacebookIcon size={24} className="text-clay" />
+                <FacebookIcon size={24} className="text-olive" />
                 <span className="font-medium">Facebook</span>
                 <span className="text-sm text-ink-soft">
                   {site.facebook.handle}

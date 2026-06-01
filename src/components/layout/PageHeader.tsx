@@ -4,7 +4,7 @@ export function PageHeader({
   eyebrow,
   title,
   blurb,
-  accentClass = "text-clay",
+  accentClass = "text-olive",
 }: {
   eyebrow: string;
   title: string;

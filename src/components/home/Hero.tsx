@@ -39,7 +39,7 @@ export function Hero() {
         >
           <motion.p
             variants={riseItem}
-            className="eyebrow text-clay"
+            className="eyebrow text-olive"
           >
             Cape Town · Handcrafted since {site.since}
           </motion.p>
@@ -51,7 +51,7 @@ export function Hero() {
           >
             Warmth,
             <br />
-            <span className="text-clay">drawn from</span>
+            <span className="text-olive">drawn from</span>
             <br />
             <span className="editorial-italic font-normal">the source.</span>
           </motion.h1>
@@ -70,7 +70,7 @@ export function Hero() {
           >
             <Link
               href="/shop"
-              className="inline-flex items-center justify-center rounded-full bg-clay px-8 py-4 text-base font-medium text-cream transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-clay-soft hover:shadow-[0_12px_34px_-12px_rgba(166,64,44,0.7)] active:scale-[0.98]"
+              className="inline-flex items-center justify-center rounded-full bg-olive px-8 py-4 text-base font-medium text-cream transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-olive-soft hover:shadow-[0_12px_34px_-12px_rgba(75,90,48,0.7)] active:scale-[0.98]"
             >
               Explore the shop
             </Link>
@@ -84,7 +84,7 @@ export function Hero() {
 
           <motion.div
             variants={riseItem}
-            className="mt-10 flex items-center gap-3 text-clay"
+            className="mt-10 flex items-center gap-3 text-olive"
           >
             <Logo animate={!reduce} />
             <span className="editorial-italic text-ink-soft">

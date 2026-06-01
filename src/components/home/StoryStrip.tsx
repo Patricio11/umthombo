@@ -17,7 +17,7 @@ export function StoryStrip() {
         <Reveal delay={0.1}>
           <Link
             href="/about"
-            className="link-underline mt-8 inline-block text-base text-clay"
+            className="link-underline mt-8 inline-block text-base text-olive"
           >
             Read our story
           </Link>

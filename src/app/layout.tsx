@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { fraunces, hanken } from "@/lib/fonts";
+import { bricolage, hanken } from "@/lib/fonts";
 import { site } from "@/data/site";
 import { GrainOverlay } from "@/components/layout/GrainOverlay";
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
@@ -64,7 +64,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${hanken.variable}`}>
+    <html lang="en" className={`${bricolage.variable} ${hanken.variable}`}>
       <body className="min-h-dvh antialiased">
         <script
           type="application/ld+json"
