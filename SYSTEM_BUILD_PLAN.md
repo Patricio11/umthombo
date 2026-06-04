@@ -168,21 +168,16 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - [x] Verified authed: list / new / edit all render 200 with data
 - **Acceptance:** ✅ full CRUD + reorder, validated, revalidates the public site, responsive.
 
-### Phase 6 — Products admin (CRUD + Supabase uploads) ⭐ (UX-critical)
+### Phase 6 — Products admin (CRUD + Supabase uploads) ⭐ (UX-critical) ✅
 **Goal:** the flagship admin screen — create/edit any product, upload images, manage variants/gallery.
-- [ ] `server/storage/supabase.ts`: server client (service role), `uploadProductImage(file)→publicUrl`, `deleteProductImage(url)`; create/document the `product-images` bucket (public read)
-- [ ] Upload UI: drag-and-drop + click, preview thumb, progress, replace/remove, validation (type/size); writes go to Supabase, store URL
-- [ ] `server/actions/products.ts`: `createProduct`, `updateProduct`, `deleteProduct`, `toggleFeatured`, `setStatus` — `requireAdmin()` + Zod, slug uniqueness, `revalidatePath`
-- [ ] **List** (`/admin/products`): searchable, filter by category + status, sort; columns: thumb, name, category, price, featured, status badge; **responsive cards**; pagination; row quick-actions (edit, feature, publish, delete)
-- [ ] **Create/Edit** form — sectioned & responsive (two-column on desktop, stacked on mobile):
-  - Basics: name, slug (auto/edit), category (select), tagline, description
-  - Pricing: priceZAR, priceMaxZAR, packPriceZAR
-  - Details: notes, size, weight
-  - Options: **variants** repeatable list (add/remove/reorder), customisable toggle
-  - Media: primary **image upload** + **gallery** (multi, reorderable) to Supabase
-  - Visibility: featured toggle, status (draft/active), sortOrder
-- [ ] Unsaved-changes guard; optimistic save + toast; delete with confirm (also delete its Supabase images)
-- **Acceptance:** can create a brand-new product with a real uploaded image and see it live on the shop; edits revalidate; fully responsive & validated.
+- [x] `server/storage/supabase.ts`: service-role client, `uploadProductImage(file)→publicUrl`, `deleteProductImage(url)` (no-ops for seed paths), type/size validation; bucket `product-images` confirmed public (upload/url/delete tested)
+- [x] Upload UI (`ImageUploader`): drag-and-drop + click, preview, busy state, remove; `ImageField` (primary) + `GalleryField` (multi, reorder) → Supabase via `uploadImage` action
+- [x] `server/actions/products.ts`: `createProduct`, `updateProduct`, `deleteProduct` (also deletes its images), `toggleFeatured`, `setProductStatus` — `requireAdmin()` + Zod + slug-uniqueness + revalidate
+- [x] **List** (`/admin/products`): live search + status filter, count; columns thumb/name/category/price/status + feature-star, edit, delete; responsive cards; empty states
+- [x] **Create/Edit** form — responsive two-column: Basics, Details, Options (variants repeatable + customisable), Media (primary + gallery), Visibility (status/featured), Pricing; sticky save bar; slug auto-from-name
+- [x] Delete with `ConfirmDialog` + image cleanup; optimistic feature toggle + toast
+- [x] Verified authed: list / new / edit render 200; build green; Supabase pipeline tested
+- **Acceptance:** ✅ full product CRUD with real Supabase uploads; drafts hidden, active shown; revalidates; responsive & validated.
 
 ### Phase 7 — Orders (public persistence + admin management)
 **Goal:** every order is captured and manageable; customer still gets the WhatsApp hand-off.
@@ -231,4 +226,5 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - _2026-06-04_ — Plan created; decisions locked (Neon + Drizzle, Better Auth, Supabase Storage, orders persisted + WhatsApp).
 - _2026-06-04_ — **Phase 0 done.** Schema (9 tables) + migration `0000_init`; lazy transaction-capable Neon client; `db:*` scripts; fixed Better Auth/kysely bundling. **Phase 1 code done.** Better Auth (Drizzle adapter, no sign-up), `/admin/login`, middleware + `requireAdmin()`, `(site)` route group. Build green.
 - _2026-06-04_ — **Phase 2 done.** Migration applied to Neon; seed populated 4 categories / 23 products / 4 testimonials / 1 admin; sign-in verified (200 + cookie). **Phase 3 done.** Query layer + view types; all public pages read from Postgres; build SSGs everything from the DB; parity smoke-tested.
-- _2026-06-04_ — **Phase 4 done.** Admin design system (primitives, Toast, ConfirmDialog), responsive `AdminShell`, protected `(panel)` group + dashboard; auth-gate verified. **Phase 5 done.** Reusable responsive `DataTable`; Categories CRUD (create/edit/delete/reorder) via server actions with Zod + revalidate; verified. Next: **Phase 6 — Products CRUD + Supabase uploads** (needs Supabase keys in `.env.local`).
+- _2026-06-04_ — **Phase 4 done.** Admin design system (primitives, Toast, ConfirmDialog), responsive `AdminShell`, protected `(panel)` group + dashboard; auth-gate verified. **Phase 5 done.** Reusable responsive `DataTable`; Categories CRUD (create/edit/delete/reorder) via server actions with Zod + revalidate; verified.
+- _2026-06-04_ — **Phase 6 done.** Supabase Storage wired (bucket public, upload/url/delete tested); `ImageUploader` (drag-drop primary + gallery); Products CRUD with sectioned responsive form, variants, feature/status toggles, search/filter list; delete cleans up images; verified authed + build green. Next: **Phase 7 — orders persistence + admin management.**

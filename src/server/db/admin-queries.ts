@@ -92,6 +92,51 @@ export async function getAdminCategory(
   return list.find((c) => c.id === id) ?? null;
 }
 
+export interface AdminProductRow {
+  id: string;
+  slug: string;
+  name: string;
+  categoryLabel: string;
+  priceZAR: number;
+  priceMaxZAR: number | null;
+  featured: boolean;
+  status: "draft" | "active";
+  image: string;
+}
+
+export async function getAdminProducts(): Promise<AdminProductRow[]> {
+  const rows = await db
+    .select({
+      id: products.id,
+      slug: products.slug,
+      name: products.name,
+      categoryLabel: categories.label,
+      priceZAR: products.priceZAR,
+      priceMaxZAR: products.priceMaxZAR,
+      featured: products.featured,
+      status: products.status,
+      image: products.image,
+      sortOrder: products.sortOrder,
+    })
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .orderBy(asc(products.sortOrder), asc(products.name));
+  return rows.map((r) => ({ ...r, categoryLabel: r.categoryLabel ?? "—" }));
+}
+
+export type AdminProductDetail = typeof products.$inferSelect;
+
+export async function getAdminProduct(
+  id: string
+): Promise<AdminProductDetail | null> {
+  const [row] = await db
+    .select()
+    .from(products)
+    .where(eq(products.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
 export interface RecentOrder {
   id: string;
   orderNumber: string;
