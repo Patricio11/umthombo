@@ -7,6 +7,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { featured } from "@/data/products";
 import { formatZAR } from "@/lib/format";
 import { accentFor, accentClasses } from "@/lib/accents";
+import { QuickAddButton } from "@/components/shop/QuickAddButton";
 
 export function Featured() {
   const reduce = useReducedMotion();
@@ -86,16 +87,18 @@ export function Featured() {
                     )}
                   </dl>
 
-                  <div className="mt-7 flex items-center gap-6">
-                    <span className="font-display text-2xl">
-                      {formatZAR(p.priceZAR)}
-                      {p.priceMaxZAR && (
-                        <span className="text-ink-soft">
-                          {" "}
-                          – {formatZAR(p.priceMaxZAR)}
-                        </span>
-                      )}
-                    </span>
+                  <div className="mt-5 font-display text-2xl">
+                    {formatZAR(p.priceZAR)}
+                    {p.priceMaxZAR && (
+                      <span className="text-ink-soft">
+                        {" "}
+                        – {formatZAR(p.priceMaxZAR)}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-5">
+                    <QuickAddButton product={p} />
                     <Link
                       href={`/product/${p.slug}`}
                       className="link-underline text-base text-olive"

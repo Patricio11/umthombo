@@ -38,7 +38,7 @@ export function ShopExplorer({ initial = "all" }: { initial?: Filter }) {
                 type="button"
                 onClick={() => setFilter(t.key)}
                 className={cn(
-                  "relative whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium transition-colors",
+                  "relative cursor-pointer whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium transition-colors",
                   filter === t.key ? "text-cream" : "text-ink-soft hover:text-ink"
                 )}
               >

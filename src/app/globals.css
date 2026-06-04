@@ -58,6 +58,33 @@
     letter-spacing: -0.02em;
   }
 
+  /* Pointer cursor on everything interactive (Tailwind v4 no longer sets it).
+     Kept as a self-contained list so it's never invalidated by a newer
+     selector the browser may not understand. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  summary,
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="submit"],
+  input[type="button"] {
+    cursor: pointer;
+  }
+
+  /* Labels that wrap a checkbox/radio — separate so :has() can't drop the
+     rule above in older browsers. */
+  label:has(> input[type="checkbox"]),
+  label:has(> input[type="radio"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
   /* Quiet, branded scrollbar */
   ::-webkit-scrollbar { width: 10px; }
   ::-webkit-scrollbar-track { background: var(--color-cream-2); }

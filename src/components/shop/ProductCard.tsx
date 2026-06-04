@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
@@ -8,7 +7,7 @@ import { Plus, Check } from "lucide-react";
 import type { Product } from "@/data/products";
 import { formatZAR } from "@/lib/format";
 import { accentFor, accentClasses } from "@/lib/accents";
-import { useCart } from "@/store/cart";
+import { useQuickAdd } from "@/components/shop/useQuickAdd";
 import { cn } from "@/lib/utils";
 
 const blobs = ["blob-1", "blob-2", "blob-3"];
@@ -24,25 +23,7 @@ export function ProductCard({
   const accent = accentClasses[accentFor[product.category]];
   const blob = blobs[index % blobs.length];
 
-  const addItem = useCart((s) => s.addItem);
-  const openCart = useCart((s) => s.openCart);
-  const [added, setAdded] = useState(false);
-
-  const quickAdd = () => {
-    addItem(
-      {
-        slug: product.slug,
-        name: product.name,
-        variant: product.variants?.[0],
-        unitPriceZAR: product.priceZAR,
-        image: product.image,
-      },
-      1,
-      { open: false } // don't yank the drawer open while browsing
-    );
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1600);
-  };
+  const { added, quickAdd } = useQuickAdd(product);
 
   return (
     <motion.article
