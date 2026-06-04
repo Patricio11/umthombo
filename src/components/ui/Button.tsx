@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "outline" | "ghost" | "quiet";
+type Variant = "primary" | "outline" | "ghost" | "quiet" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const base =
@@ -15,6 +15,8 @@ const variants: Record<Variant, string> = {
   ghost: "text-ink hover:text-olive",
   quiet:
     "bg-cream-2 text-ink hover:bg-cream-3 active:scale-[0.98]",
+  danger:
+    "bg-clay text-cream hover:bg-clay-soft active:scale-[0.98]",
 };
 
 const sizes: Record<Size, string> = {

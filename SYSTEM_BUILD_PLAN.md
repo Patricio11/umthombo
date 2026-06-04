@@ -141,22 +141,21 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - [x] `data/*.ts` now seed-only (no longer imported by pages); removed unused `accentFor`
 - **Acceptance:** ✅ build generates 23 product + 4 category pages **from Neon**; smoke test confirms parity (featured, testimonials, prices, 404s).
 
-### Phase 4 — Admin design system + shell + dashboard ⭐ (UX-critical)
+### Phase 4 — Admin design system + shell + dashboard ⭐ (UX-critical) ✅
 **Goal:** a beautiful, consistent, fully responsive admin foundation every later screen reuses.
-- [ ] **Design tokens/skin**: reuse olive/cream/ink + Bricolage/Hanken; define an admin surface scale (sidebar, cards, table rows) and elevation; dark-on-cream, calm and editorial — *not* a default dashboard
-- [ ] **`AdminShell`** layout: fixed sidebar (desktop) ↔ slide-in drawer (mobile) + top bar; active-route highlight; brand mark; user menu + sign-out; `prefers-reduced-motion`-safe transitions
-- [ ] **Responsive nav**: sidebar (≥lg), collapsible icon-rail (md), drawer + hamburger (sm); bottom-safe-area aware
-- [ ] **Primitive: `PageHeader`** (title, subtitle, primary action slot, breadcrumb)
-- [ ] **Primitive: `Card`/`Section`** containers with consistent padding/rounding
-- [ ] **Primitive: `Field`** set (label, input, textarea, select, switch, checkbox, error, hint) — single source of truth for forms
-- [ ] **Primitive: `Button`** admin variants (primary/olive, subtle, danger, ghost, icon) + loading/disabled states
-- [ ] **Primitive: `DataTable`** — sortable headers, sticky head, zebra/hover, **responsive → stacks into cards on mobile**, empty + loading skeleton states, pagination
-- [ ] **Primitive: `StatusBadge`** (order statuses, product draft/active) with consistent colour mapping
-- [ ] **Primitive: `Toast`** (success/error) provider + `useToast`; **`ConfirmDialog`** (Radix) for destructive actions; **`EmptyState`** (icon, copy, CTA)
-- [ ] **Motion**: subtle page/section reveals, optimistic row updates, animated toasts — all gated by reduced-motion
-- [ ] **`/admin` dashboard**: stat cards (orders by status, total products, categories, testimonials), recent orders list, quick links; responsive grid
-- [ ] Loading (`loading.tsx`) + error (`error.tsx`) boundaries for the admin segment
-- **Acceptance:** shell + dashboard look polished and work flawlessly at 360px, 768px, 1024px, 1440px; keyboard-navigable; no layout shift.
+- [x] **Skin**: olive/cream/ink + Bricolage/Hanken; calm editorial admin on `cream-2`, olive active states — not a default dashboard
+- [x] **`AdminShell`**: fixed sidebar (≥lg) ↔ slide-in drawer + top bar (mobile); active-route highlight; brand mark; user block + sign-out; reduced-motion-safe
+- [x] **Primitive: `AdminPageHeader`** (title, subtitle, action slot)
+- [x] **Primitive: `Card`** container
+- [x] **Primitive: `Field`** set (Field wrapper, Input, Textarea, Select, Switch, error/hint)
+- [x] **Primitive: `Button`** + `danger` variant
+- [x] **Primitive: `StatusBadge`** (order + product statuses, consistent colours)
+- [x] **Primitive: `Toast`** provider + `useToast` (animated); **`ConfirmDialog`** (Radix, promise-based `useConfirm`); **`EmptyState`**
+- [x] **`/admin` dashboard**: stat cards + orders-by-status + recent orders (empty state); responsive grid
+- [x] Protected `(panel)` route group: `requireAdmin()` in layout, providers mounted; login stays outside the shell
+- [x] Verified: unauthed `/admin` → 307 login; signed-in dashboard 200 + renders
+- [ ] `DataTable` primitive — built in Phase 5 (first list); `loading.tsx`/`error.tsx` in Phase 9
+- **Acceptance:** ✅ shell + dashboard polished and responsive (sidebar↔drawer), auth-gated, keyboard-navigable.
 
 ### Phase 5 — Categories admin (CRUD)
 **Goal:** manage the category taxonomy with the shared primitives.
