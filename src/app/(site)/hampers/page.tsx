@@ -4,17 +4,19 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Reveal } from "@/components/motion/Reveal";
 import { ContactBlock } from "@/components/home/ContactBlock";
 import { AddToOrder } from "@/components/product/AddToOrder";
-import { byCategory } from "@/data/products";
+import { getProducts } from "@/server/db/queries";
 import { formatZAR } from "@/lib/format";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Hampers",
   description:
-    "Curated Umthombo gift hampers  the Collective Box and the Loved Up Box. Soft, beautiful things, assembled with love and wrapped in eco-friendly packaging.",
+    "Curated Umthombo gift hampers — the Collective Box and the Loved Up Box. Soft, beautiful things, assembled with love and wrapped in eco-friendly packaging.",
 };
 
-export default function HampersPage() {
-  const hampers = byCategory("hampers");
+export default async function HampersPage() {
+  const hampers = await getProducts({ category: "hampers" });
 
   return (
     <>

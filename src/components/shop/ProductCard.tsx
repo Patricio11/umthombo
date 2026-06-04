@@ -4,9 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { Plus, Check } from "lucide-react";
-import type { Product } from "@/data/products";
+import type { ProductView } from "@/lib/view-types";
 import { formatZAR } from "@/lib/format";
-import { accentFor, accentClasses } from "@/lib/accents";
+import { accentClasses } from "@/lib/accents";
 import { useQuickAdd } from "@/components/shop/useQuickAdd";
 import { cn } from "@/lib/utils";
 
@@ -16,11 +16,11 @@ export function ProductCard({
   product,
   index = 0,
 }: {
-  product: Product;
+  product: ProductView;
   index?: number;
 }) {
   const reduce = useReducedMotion();
-  const accent = accentClasses[accentFor[product.category]];
+  const accent = accentClasses[product.accent];
   const blob = blobs[index % blobs.length];
 
   const { added, quickAdd } = useQuickAdd(product);

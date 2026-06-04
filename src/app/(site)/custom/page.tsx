@@ -3,14 +3,16 @@ import Image from "next/image";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { products } from "@/data/products";
+import { getCustomisableProducts } from "@/server/db/queries";
 import { site } from "@/data/site";
 import { WhatsAppIcon } from "@/components/brand/SocialIcons";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Made for you",
   description:
-    "Custom candles and care from Umthombo Creations  your scent, your colour, your vessel, your moment. Sculptural forms, intention candles and bespoke gifts, made to order in Cape Town.",
+    "Custom candles and care from Umthombo Creations — your scent, your colour, your vessel, your moment. Sculptural forms, intention candles and bespoke gifts, made to order in Cape Town.",
 };
 
 const showcase = [
@@ -31,8 +33,8 @@ const showcase = [
   },
 ];
 
-export default function CustomPage() {
-  const customisable = products.filter((p) => p.customisable);
+export default async function CustomPage() {
+  const customisable = await getCustomisableProducts();
 
   const whatsappCustom = `${site.whatsapp.href}?text=${encodeURIComponent(
     "Hi Umthombo 🌱 I'd love to talk about a custom piece. Here's what I have in mind:"

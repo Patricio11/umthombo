@@ -2,17 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { products, getProduct, byCategory, categoryMeta } from "@/data/products";
 import { formatZAR } from "@/lib/format";
 import { site } from "@/data/site";
-import { accentFor, accentClasses } from "@/lib/accents";
+import { accentClasses } from "@/lib/accents";
 import { Gallery } from "@/components/product/Gallery";
 import { AddToOrder } from "@/components/product/AddToOrder";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Reveal } from "@/components/motion/Reveal";
+import {
+  getProductBySlug,
+  getRelatedProducts,
+  getActiveProductSlugs,
+} from "@/server/db/queries";
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  const slugs = await getActiveProductSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -21,7 +28,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProductBySlug(slug);
   if (!product) return {};
   return {
     title: product.name,
@@ -40,14 +47,12 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProduct(slug);
-  if (!product) notFound();
+  const product = await getProductBySlug(slug);
+  if (!product || product.status !== "active") notFound();
 
-  const accent = accentClasses[accentFor[product.category]];
-  const images = [product.image, ...(product.gallery ?? [])];
-  const related = byCategory(product.category)
-    .filter((p) => p.slug !== product.slug)
-    .slice(0, 3);
+  const accent = accentClasses[product.accent];
+  const images = [product.image, ...product.gallery];
+  const related = await getRelatedProducts(product, 3);
 
   const priceRange = product.priceMaxZAR
     ? `${formatZAR(product.priceZAR)} – ${formatZAR(product.priceMaxZAR)}`
@@ -58,8 +63,10 @@ export default async function ProductPage({
     "@type": "Product",
     name: product.name,
     description: product.description,
-    image: `${site.url}${product.image}`,
-    category: categoryMeta[product.category].label,
+    image: product.image.startsWith("http")
+      ? product.image
+      : `${site.url}${product.image}`,
+    category: product.categoryLabel,
     brand: { "@type": "Brand", name: site.name },
     offers: {
       "@type": "Offer",
@@ -83,7 +90,7 @@ export default async function ProductPage({
           className="link-underline inline-flex items-center gap-2 text-sm text-ink-soft"
         >
           <ArrowLeft size={16} />
-          {categoryMeta[product.category].label}
+          {product.categoryLabel}
         </Link>
 
         <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
@@ -94,7 +101,7 @@ export default async function ProductPage({
           <div className="lg:py-4">
             <Reveal>
               <p className={`eyebrow ${accent.text}`}>
-                {categoryMeta[product.category].eyebrow}
+                {product.categoryEyebrow}
                 {product.customisable && " · Customisable"}
               </p>
               <h1 className="mt-4 font-display text-5xl font-light leading-[0.95] tracking-tight lg:text-7xl">

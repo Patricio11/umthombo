@@ -2,28 +2,53 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { products, categoryMeta, type Category } from "@/data/products";
+import type { ProductView, CategoryView } from "@/lib/view-types";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { cn } from "@/lib/utils";
 
-type Filter = "all" | Category;
+type Filter = "all" | string;
 
-const tabs: { key: Filter; label: string }[] = [
-  { key: "all", label: "Everything" },
-  { key: "candles", label: "Candles" },
-  { key: "skin", label: "Body & Skin" },
-  { key: "home", label: "Diffusers & Mists" },
-  { key: "hampers", label: "Hampers" },
-];
+const tabLabels: Record<string, string> = {
+  candles: "Candles",
+  skin: "Body & Skin",
+  home: "Diffusers & Mists",
+  hampers: "Hampers",
+};
 
-export function ShopExplorer({ initial = "all" }: { initial?: Filter }) {
+export function ShopExplorer({
+  products,
+  categories,
+  initial = "all",
+}: {
+  products: ProductView[];
+  categories: CategoryView[];
+  initial?: Filter;
+}) {
   const reduce = useReducedMotion();
   const [filter, setFilter] = useState<Filter>(initial);
 
+  const tabs = useMemo(
+    () => [
+      { key: "all", label: "Everything" },
+      ...categories.map((c) => ({
+        key: c.slug,
+        label: tabLabels[c.slug] ?? c.label,
+      })),
+    ],
+    [categories]
+  );
+
+  const blurbBySlug = useMemo(
+    () => Object.fromEntries(categories.map((c) => [c.slug, c.blurb])),
+    [categories]
+  );
+
   const list = useMemo(
     () =>
-      filter === "all" ? products : products.filter((p) => p.category === filter),
-    [filter]
+      filter === "all"
+        ? products
+        : products.filter((p) => p.category === filter),
+    [filter, products]
   );
 
   return (
@@ -60,9 +85,9 @@ export function ShopExplorer({ initial = "all" }: { initial?: Filter }) {
           <p className="text-sm text-ink-soft">
             {list.length} {list.length === 1 ? "piece" : "pieces"}
           </p>
-          {filter !== "all" && (
+          {filter !== "all" && blurbBySlug[filter] && (
             <p className="editorial-italic hidden text-ink-soft sm:block">
-              {categoryMeta[filter].blurb}
+              {blurbBySlug[filter]}
             </p>
           )}
         </div>

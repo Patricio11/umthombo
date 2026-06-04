@@ -1,12 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Reveal } from "@/components/motion/Reveal";
-import { getProduct } from "@/data/products";
+import type { ProductView } from "@/lib/view-types";
 import { formatZAR } from "@/lib/format";
 
-export function HampersFeature() {
-  const collective = getProduct("collective-box");
-  const loved = getProduct("loved-up-box");
+export function HampersFeature({ hampers }: { hampers: ProductView[] }) {
+  const collective =
+    hampers.find((h) => h.slug === "collective-box") ?? hampers[0];
+  const loved = hampers.find((h) => h.slug === "loved-up-box") ?? hampers[1];
 
   return (
     <section className="relative overflow-hidden bg-mist/15 px-5 py-20 sm:px-8 lg:py-28">

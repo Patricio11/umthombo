@@ -118,29 +118,28 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 
 > Legend: each phase lists **Goal → Tasks → Acceptance**. Tick tasks as they land; tick **Acceptance** only when the whole phase is verifiably done. Keep the Progress log current.
 
-### Phase 2 — Seed & first migration
+### Phase 2 — Seed & first migration ✅
 **Goal:** the Neon DB has all schema + all existing content as real rows, and an admin can log in.
-- [ ] Add `DATABASE_URL` etc. to `.env.local`; `npm run db:migrate` (apply `0000_init`) and confirm 9 tables exist
-- [ ] `scripts/seed.ts` scaffold: load env, connect, wrap in idempotent upserts (safe to re-run)
-- [ ] Seed **categories** from `categoryMeta` (slug, label, eyebrow, accent, blurb, sortOrder)
-- [ ] Seed **products** from `data/products.ts` → map `category` string → `categoryId`; keep `image`/`gallery` as current `/public/products/*` paths; carry `variants`, `featured`, `customisable`, prices, specs
-- [ ] Seed **testimonials** from `data/testimonials.ts` (sortOrder, published=true)
-- [ ] Seed the **admin user** via Better Auth's server API (`auth.api.signUpEmail` / admin create) from `ADMIN_EMAIL`/`ADMIN_PASSWORD` (hashed), role=`admin`; skip if it exists
-- [ ] `npm run db:seed`; verify counts (23 products, 4 categories, 4 testimonials, 1 admin) via `drizzle-studio`
-- [ ] Log in at `/admin/login` end-to-end (session cookie set, middleware lets `/admin` through)
-- **Acceptance:** fresh `db:migrate && db:seed` populates everything; admin can sign in and out.
+- [x] Add `DATABASE_URL` etc. to `.env.local`; `npm run db:migrate` (applied `0000_init`) — 9 tables live
+- [x] `scripts/seed.ts`: idempotent (categories/products upsert by slug; testimonials/admin only if absent)
+- [x] Seed **categories** (4) from `categoryMeta`
+- [x] Seed **products** (23) from `data/products.ts` → `categoryId` join; images = current `/public` paths; variants/gallery/featured/prices carried
+- [x] Seed **testimonials** (4) from `data/testimonials.ts`
+- [x] Seed the **admin user** — hashed via Better Auth's own hasher (`ctx.password.hash`), user + `credential` account rows, role=`admin`, skip-if-exists
+- [x] `npm run db:seed` → 4 / 23 / 4 / 1 confirmed
+- [x] Verified sign-in end-to-end: `POST /api/auth/sign-in/email` → 200 + session cookie
+- **Acceptance:** ✅ fresh `db:migrate && db:seed` populates everything; admin signs in.
 
-### Phase 3 — Point the public site at the DB
+### Phase 3 — Point the public site at the DB ✅
 **Goal:** every public page renders identically, now from Postgres (no visual change).
-- [ ] `server/db/queries.ts`: `getCategories()`, `getCategoryBySlug()`, `getProducts({category?,status:'active'})`, `getFeaturedProducts()`, `getProductBySlug()`, `getRelatedProducts()`, `getTestimonials()` — all typed, `active`-only for public
-- [ ] Map DB rows → the existing `Product`/`Category` view types (keep components untouched where possible)
-- [ ] Refactor **home**: `Featured`, `CategoryTiles`, `Testimonials` read from DB (server components; pass data down to client bits)
-- [ ] Refactor **/shop** + **ShopExplorer**: categories + products from DB (filter UI stays); **/shop/[category]** via `getCategoryBySlug`
-- [ ] Refactor **/product/[slug]**: DB fetch + `generateStaticParams` from DB + `generateMetadata`; JSON-LD from row
-- [ ] Refactor **/hampers**, **/custom** (customisable filter) to DB
-- [ ] Caching strategy: `export const revalidate` / tagged fetches so admin edits show after revalidation; `next/image` `remotePatterns` already allows Supabase
-- [ ] Keep `data/*.ts` only as seed source (no longer imported by pages)
-- **Acceptance:** side-by-side parity with current site; all routes build; product pages still SSG.
+- [x] `server/db/queries.ts`: `getCategories/getCategoryBySlug/getProducts/getFeaturedProducts/getCustomisableProducts/getProductBySlug/getRelatedProducts/getActiveProductSlugs/getTestimonials` — typed, `server-only`, active-only for public
+- [x] Client-safe view types in `lib/view-types.ts`; components consume `product.accent` (from category) instead of the static `accentFor` map
+- [x] Home: `Featured`, `Testimonials`, `HampersFeature` fed from DB via the server page
+- [x] `/shop` + `ShopExplorer`: products + categories from DB (dynamic tabs); `/shop/[category]` via `getCategoryBySlug` + DB `generateStaticParams`
+- [x] `/product/[slug]`: DB fetch, `generateStaticParams` from DB slugs, `generateMetadata`, JSON-LD from row, drafts 404
+- [x] `/hampers`, `/custom` on DB; `sitemap.ts` async from DB; `next.config` allows Supabase image hosts
+- [x] `data/*.ts` now seed-only (no longer imported by pages); removed unused `accentFor`
+- **Acceptance:** ✅ build generates 23 product + 4 category pages **from Neon**; smoke test confirms parity (featured, testimonials, prices, 404s).
 
 ### Phase 4 — Admin design system + shell + dashboard ⭐ (UX-critical)
 **Goal:** a beautiful, consistent, fully responsive admin foundation every later screen reuses.
@@ -229,4 +228,5 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 ## Progress log
 
 - _2026-06-04_ — Plan created; decisions locked (Neon + Drizzle, Better Auth, Supabase Storage, orders persisted + WhatsApp).
-- _2026-06-04_ — **Phase 0 done.** Schema (9 tables) + migration `0000_init`; lazy transaction-capable Neon client; `db:*` scripts; fixed Better Auth/kysely bundling. **Phase 1 code done.** Better Auth (Drizzle adapter, no sign-up), `/admin/login`, middleware + `requireAdmin()`, `(site)` route group. Build green. _Awaiting env (`DATABASE_URL`, `BETTER_AUTH_SECRET`, Supabase keys, admin creds) to migrate + seed._
+- _2026-06-04_ — **Phase 0 done.** Schema (9 tables) + migration `0000_init`; lazy transaction-capable Neon client; `db:*` scripts; fixed Better Auth/kysely bundling. **Phase 1 code done.** Better Auth (Drizzle adapter, no sign-up), `/admin/login`, middleware + `requireAdmin()`, `(site)` route group. Build green.
+- _2026-06-04_ — **Phase 2 done.** Migration applied to Neon; seed populated 4 categories / 23 products / 4 testimonials / 1 admin; sign-in verified (200 + cookie). **Phase 3 done.** Query layer + view types; all public pages read from Postgres; build SSGs everything from the DB; parity smoke-tested. Next: **Phase 4 — admin shell + dashboard.**

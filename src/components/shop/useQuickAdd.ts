@@ -2,14 +2,22 @@
 
 import { useState } from "react";
 import { useCart } from "@/store/cart";
-import type { Product } from "@/data/products";
+
+/** The minimal product shape quick-add needs (satisfied by ProductView). */
+type QuickAddProduct = {
+  slug: string;
+  name: string;
+  variants?: string[] | null;
+  priceZAR: number;
+  image: string;
+};
 
 /**
  * Shared quick-add behaviour for product cards / featured blocks.
  * Adds qty 1 (with the first variant as a sensible default) without yanking
  * the drawer open, and exposes an `added` flag for the check confirmation.
  */
-export function useQuickAdd(product: Product) {
+export function useQuickAdd(product: QuickAddProduct) {
   const addItem = useCart((s) => s.addItem);
   const [added, setAdded] = useState(false);
 

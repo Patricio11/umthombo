@@ -2,27 +2,26 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ShopExplorer } from "@/components/shop/ShopExplorer";
-import { categoryMeta, type Category } from "@/data/products";
 import { accentClasses } from "@/lib/accents";
+import {
+  getCategories,
+  getCategoryBySlug,
+  getProducts,
+} from "@/server/db/queries";
 
-const valid: Category[] = ["candles", "skin", "home", "hampers"];
+export const revalidate = 60;
 
-const titles: Record<Category, string> = {
+// Curated headline per known category; unknown categories fall back to blurb.
+const titles: Record<string, string> = {
   candles: "Candles, hand-poured and slow to burn.",
   skin: "Care your skin already recognises.",
   home: "A scent that settles in softly.",
   hampers: "Soft, beautiful things, assembled with love.",
 };
 
-const accentByCat: Record<Category, keyof typeof accentClasses> = {
-  candles: "olive",
-  skin: "clay",
-  home: "olive",
-  hampers: "mist",
-};
-
-export function generateStaticParams() {
-  return valid.map((category) => ({ category }));
+export async function generateStaticParams() {
+  const cats = await getCategories();
+  return cats.map((c) => ({ category: c.slug }));
 }
 
 export async function generateMetadata({
@@ -31,12 +30,9 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category } = await params;
-  if (!valid.includes(category as Category)) return {};
-  const meta = categoryMeta[category as Category];
-  return {
-    title: meta.label,
-    description: meta.blurb,
-  };
+  const cat = await getCategoryBySlug(category);
+  if (!cat) return {};
+  return { title: cat.label, description: cat.blurb };
 }
 
 export default async function CategoryPage({
@@ -45,20 +41,28 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
 }) {
   const { category } = await params;
-  if (!valid.includes(category as Category)) notFound();
-  const cat = category as Category;
-  const meta = categoryMeta[cat];
-  const accent = accentClasses[accentByCat[cat]];
+  const cat = await getCategoryBySlug(category);
+  if (!cat) notFound();
+
+  const [products, categories] = await Promise.all([
+    getProducts(),
+    getCategories(),
+  ]);
+  const accent = accentClasses[cat.accent];
 
   return (
     <>
       <PageHeader
-        eyebrow={meta.eyebrow}
-        title={titles[cat]}
-        blurb={meta.blurb}
+        eyebrow={cat.eyebrow}
+        title={titles[cat.slug] ?? cat.blurb}
+        blurb={cat.blurb}
         accentClass={accent.text}
       />
-      <ShopExplorer initial={cat} />
+      <ShopExplorer
+        products={products}
+        categories={categories}
+        initial={cat.slug}
+      />
     </>
   );
 }

@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
-import { testimonials } from "@/data/testimonials";
+import type { TestimonialView } from "@/lib/view-types";
 
-export function Testimonials() {
+export function Testimonials({ items }: { items: TestimonialView[] }) {
+  const testimonials = items;
   const [emblaRef, embla] = useEmblaCarousel({ loop: true, align: "center" });
   const [selected, setSelected] = useState(0);
 

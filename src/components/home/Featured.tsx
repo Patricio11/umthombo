@@ -4,14 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 import { Reveal } from "@/components/motion/Reveal";
-import { featured } from "@/data/products";
+import type { ProductView } from "@/lib/view-types";
 import { formatZAR } from "@/lib/format";
-import { accentFor, accentClasses } from "@/lib/accents";
+import { accentClasses } from "@/lib/accents";
 import { QuickAddButton } from "@/components/shop/QuickAddButton";
 
-export function Featured() {
+export function Featured({ items }: { items: ProductView[] }) {
   const reduce = useReducedMotion();
-  const items = featured.slice(0, 4);
 
   return (
     <section className="px-5 py-20 sm:px-8 lg:py-28">
@@ -26,7 +25,7 @@ export function Featured() {
         <div className="space-y-20 lg:space-y-28">
           {items.map((p, i) => {
             const flip = i % 2 === 1;
-            const accent = accentClasses[accentFor[p.category]];
+            const accent = accentClasses[p.accent];
             return (
               <div
                 key={p.slug}

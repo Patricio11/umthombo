@@ -1,14 +1,4 @@
-import type { Category } from "@/data/products";
-
 export type Accent = "clay" | "olive" | "mist" | "taupe";
-
-/** Resolve a category to its accent colour + matching utility classes. */
-export const accentFor: Record<Category, Accent> = {
-  candles: "olive",
-  home: "olive",
-  skin: "clay",
-  hampers: "mist",
-};
 
 export const accentClasses: Record<
   Accent,

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Plus, Check } from "lucide-react";
-import type { Product } from "@/data/products";
+import type { ProductView } from "@/lib/view-types";
 import { useQuickAdd } from "@/components/shop/useQuickAdd";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +11,7 @@ export function QuickAddButton({
   product,
   className,
 }: {
-  product: Product;
+  product: ProductView;
   className?: string;
 }) {
   const reduce = useReducedMotion();

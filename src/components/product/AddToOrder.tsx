@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { Minus, Plus, Check } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import type { Product } from "@/data/products";
+import type { ProductView } from "@/lib/view-types";
 import { useCart } from "@/store/cart";
 import { Button } from "@/components/ui/Button";
-import { accentFor, accentClasses } from "@/lib/accents";
+import { accentClasses } from "@/lib/accents";
 
-export function AddToOrder({ product }: { product: Product }) {
+export function AddToOrder({ product }: { product: ProductView }) {
   const addItem = useCart((s) => s.addItem);
-  const accent = accentClasses[accentFor[product.category]];
+  const accent = accentClasses[product.accent];
 
   const hasVariants = !!product.variants?.length;
   const [variant, setVariant] = useState<string | undefined>(
