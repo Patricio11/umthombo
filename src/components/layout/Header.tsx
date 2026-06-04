@@ -44,13 +44,13 @@ export function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 sm:px-8">
         <Link
           href="/"
-          aria-label="Umthombo Creations — home"
+          aria-label="Umthombo Creations  home"
           className="text-olive transition-opacity hover:opacity-80"
         >
           <Logo showWord animate={!reduce} />
         </Link>
 
-        {/* Desktop nav — center-ish, quiet */}
+        {/* Desktop nav  center-ish, quiet */}
         <nav className="hidden items-center gap-7 md:flex">
           {nav.map((item) => {
             const active =

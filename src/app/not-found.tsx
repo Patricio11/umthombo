@@ -12,7 +12,7 @@ export default function NotFound() {
         This spring ran dry.
       </h1>
       <p className="mt-5 max-w-md text-lg leading-relaxed text-ink-soft">
-        The page you&rsquo;re after isn&rsquo;t here — but there&rsquo;s plenty
+        The page you&rsquo;re after isn&rsquo;t here  but there&rsquo;s plenty
         more to wander toward.
       </p>
       <div className="mt-9 flex flex-wrap items-center justify-center gap-4">

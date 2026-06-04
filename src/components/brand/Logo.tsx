@@ -29,7 +29,7 @@ export function Logo({
         aria-hidden
         role="img"
       >
-        {/* The serif U — chalice form */}
+        {/* The serif U  chalice form */}
         <path
           d="M14 10 v22 a18 18 0 0 0 36 0 V10 h-7 v22 a11 11 0 0 1 -22 0 V10 Z"
           fill="currentColor"

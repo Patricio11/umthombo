@@ -28,7 +28,7 @@ export function Footer() {
             {site.meaning}
           </p>
           <p className="mt-6 max-w-sm text-sm leading-relaxed text-cream/55">
-            Stay in flow — follow along on Instagram for new pours, small batches
+            Stay in flow  follow along on Instagram for new pours, small batches
             and the occasional behind-the-scenes.
           </p>
         </div>

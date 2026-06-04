@@ -42,13 +42,13 @@ export function OrderSuccess({ onDone }: { onDone: () => void }) {
 
       <h3 className="font-display text-3xl">We&rsquo;ve opened WhatsApp</h3>
       <p className="mt-3 max-w-sm text-ink-soft">
-        Your order is ready in a message — just hit send and we&rsquo;ll be in
+        Your order is ready in a message  just hit send and we&rsquo;ll be in
         touch to confirm the details. Thank you for choosing something
         handmade. 🌱
       </p>
 
       <Button size="lg" className="mt-8" onClick={onDone}>
-        Lovely — done
+        Lovely  done
       </Button>
       <p className="mt-4 text-xs text-ink-soft">
         Didn&rsquo;t open? Check that pop-ups are allowed, or message us on{" "}

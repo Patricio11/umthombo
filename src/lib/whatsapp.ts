@@ -26,14 +26,14 @@ export function buildWhatsAppOrder(
   for (const i of items) {
     const variant = i.variant ? ` (${i.variant})` : "";
     lines.push(
-      `• ${i.qty} × ${i.name}${variant} — ${formatZAR(i.unitPriceZAR * i.qty)}`
+      `• ${i.qty} × ${i.name}${variant}  ${formatZAR(i.unitPriceZAR * i.qty)}`
     );
   }
 
   lines.push("");
   if (details.ownContainer) {
     lines.push(`Subtotal: ${formatZAR(subtotal)}`);
-    lines.push(`Bringing my own container — 10% off applied`);
+    lines.push(`Bringing my own container  10% off applied`);
   }
   lines.push(`Total: ${formatZAR(total)}`);
   lines.push("");

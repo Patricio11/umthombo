@@ -13,7 +13,7 @@ export const orderSchema = z.object({
   method: z.enum(["delivery", "collection"]),
   note: z
     .string()
-    .max(500, "That's a little long — keep it under 500 characters.")
+    .max(500, "That's a little long  keep it under 500 characters.")
     .optional(),
 });
 

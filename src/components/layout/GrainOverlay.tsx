@@ -1,4 +1,4 @@
-/** Faint paper/linen grain across the whole site — printed, handmade feel. */
+/** Faint paper/linen grain across the whole site  printed, handmade feel. */
 export function GrainOverlay() {
   return (
     <div className="grain" aria-hidden>

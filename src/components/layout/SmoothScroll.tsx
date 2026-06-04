@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 
-/** Site-wide Lenis smooth scroll — disabled when the user prefers reduced motion. */
+/** Site-wide Lenis smooth scroll  disabled when the user prefers reduced motion. */
 export function SmoothScroll() {
   useEffect(() => {
     const prefersReduced = window.matchMedia(

@@ -13,7 +13,7 @@ import { site } from "@/data/site";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Talk to Umthombo Creations — WhatsApp, Instagram, Facebook, and collection in Observatory, Cape Town. Nationwide delivery available.",
+    "Talk to Umthombo Creations  WhatsApp, Instagram, Facebook, and collection in Observatory, Cape Town. Nationwide delivery available.",
 };
 
 export default function ContactPage() {
@@ -22,7 +22,7 @@ export default function ContactPage() {
       <PageHeader
         eyebrow="Talk to us"
         title="We'd love to hear from you."
-        blurb="The fastest way to reach us is a WhatsApp — but a note here works just as well. We read everything."
+        blurb="The fastest way to reach us is a WhatsApp  but a note here works just as well. We read everything."
       />
 
       <section className="px-5 py-12 sm:px-8 lg:py-16">
@@ -99,7 +99,7 @@ export default function ContactPage() {
                   <span className="font-medium">Made to order</span>
                   <br />
                   <span className="text-ink-soft">
-                    Small batches — we&rsquo;ll confirm timing when you order
+                    Small batches  we&rsquo;ll confirm timing when you order
                   </span>
                 </span>
               </li>

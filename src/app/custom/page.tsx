@@ -10,7 +10,7 @@ import { WhatsAppIcon } from "@/components/brand/SocialIcons";
 export const metadata: Metadata = {
   title: "Made for you",
   description:
-    "Custom candles and care from Umthombo Creations — your scent, your colour, your vessel, your moment. Sculptural forms, intention candles and bespoke gifts, made to order in Cape Town.",
+    "Custom candles and care from Umthombo Creations  your scent, your colour, your vessel, your moment. Sculptural forms, intention candles and bespoke gifts, made to order in Cape Town.",
 };
 
 const showcase = [
@@ -43,7 +43,7 @@ export default function CustomPage() {
       <PageHeader
         eyebrow="Made for you"
         title="Your scent. Your colour. Your moment."
-        blurb="Almost everything we make can be made yours. Tell us the occasion, the mood, the palette — and we'll pour something one-of-a-kind."
+        blurb="Almost everything we make can be made yours. Tell us the occasion, the mood, the palette  and we'll pour something one-of-a-kind."
       />
 
       {/* Showcase */}

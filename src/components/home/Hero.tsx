@@ -20,7 +20,7 @@ export function Hero() {
     target: ref,
     offset: ["start start", "end start"],
   });
-  // Gentle parallax — the blob drifts slower than the image.
+  // Gentle parallax  the blob drifts slower than the image.
   const blobY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 90]);
   const imgY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 40]);
 
@@ -30,7 +30,7 @@ export function Hero() {
       className="relative overflow-hidden px-5 pb-16 pt-32 sm:px-8 sm:pt-36 lg:pb-28 lg:pt-44"
     >
       <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-12 lg:gap-6">
-        {/* Copy — off-center left, allowed to bleed */}
+        {/* Copy  off-center left, allowed to bleed */}
         <motion.div
           variants={stagger}
           initial="hidden"
@@ -93,7 +93,7 @@ export function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* Image — organic blob mask, soft glow, parallax */}
+        {/* Image  organic blob mask, soft glow, parallax */}
         <div className="relative lg:col-span-5">
           <motion.div
             style={{ y: blobY }}

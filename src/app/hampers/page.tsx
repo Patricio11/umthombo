@@ -10,7 +10,7 @@ import { formatZAR } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Hampers",
   description:
-    "Curated Umthombo gift hampers — the Collective Box and the Loved Up Box. Soft, beautiful things, assembled with love and wrapped in eco-friendly packaging.",
+    "Curated Umthombo gift hampers  the Collective Box and the Loved Up Box. Soft, beautiful things, assembled with love and wrapped in eco-friendly packaging.",
 };
 
 export default function HampersPage() {
@@ -21,7 +21,7 @@ export default function HampersPage() {
       <PageHeader
         eyebrow="For giving"
         title="Gifts that feel poured into."
-        blurb="Our hampers gather candles, balms, soaps and small treasures into one generous box — wrapped the way you'd send something to someone you love."
+        blurb="Our hampers gather candles, balms, soaps and small treasures into one generous box  wrapped the way you'd send something to someone you love."
         accentClass="text-mist"
       />
 

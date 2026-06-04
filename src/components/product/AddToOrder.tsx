@@ -72,7 +72,7 @@ export function AddToOrder({ product }: { product: Product }) {
             className="h-4 w-4 accent-olive"
           />
           <span>
-            Make it a <span className="font-medium">pack of two</span> — better
+            Make it a <span className="font-medium">pack of two</span>  better
             value
           </span>
         </label>
@@ -127,7 +127,7 @@ export function AddToOrder({ product }: { product: Product }) {
       </div>
 
       <p className="text-xs text-ink-soft">
-        No payment now — add what you love, then send your order over WhatsApp.
+        No payment now  add what you love, then send your order over WhatsApp.
       </p>
     </div>
   );

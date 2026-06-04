@@ -24,8 +24,8 @@ export function ContactBlock() {
               <span className="editorial-italic">just for you.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-md text-cream/80">
-              The fastest way to reach us is a WhatsApp. Tell us what you love —
-              a scent, a colour, a moment to mark — and we&rsquo;ll take it from
+              The fastest way to reach us is a WhatsApp. Tell us what you love 
+              a scent, a colour, a moment to mark  and we&rsquo;ll take it from
               there.
             </p>
           </Reveal>

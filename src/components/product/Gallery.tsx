@@ -26,7 +26,7 @@ export function Gallery({
       >
         <Image
           src={images[active]}
-          alt={`${name} — view ${active + 1}`}
+          alt={`${name}  view ${active + 1}`}
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"

@@ -9,7 +9,7 @@ import { commitments, site } from "@/data/site";
 export const metadata: Metadata = {
   title: "Our Story",
   description:
-    "Umthombo means a spring — a source of renewal and flow. The story behind our Cape Town handcrafted candles and skincare, and our commitment to eco-conscious craft.",
+    "Umthombo means a spring  a source of renewal and flow. The story behind our Cape Town handcrafted candles and skincare, and our commitment to eco-conscious craft.",
 };
 
 export default function AboutPage() {
@@ -43,14 +43,14 @@ export default function AboutPage() {
             <div className="mt-6 space-y-4 leading-relaxed text-ink-soft">
               <p>
                 We began in {site.since} in Cape Town, pouring candles by hand
-                and following the scent wherever it led — into soaps, balms,
+                and following the scent wherever it led  into soaps, balms,
                 scrubs, diffusers and mists. Everything is made in small
                 batches, with ingredients we&rsquo;d happily use ourselves.
               </p>
               <p>
                 The name <span className="editorial-italic text-ink">Umthombo</span>{" "}
                 means a spring or fountain: a source of renewal and flow. It&rsquo;s
-                the idea behind everything we make — small rituals that bring
+                the idea behind everything we make  small rituals that bring
                 warmth and intention into your space.
               </p>
               <p>
@@ -97,7 +97,7 @@ export default function AboutPage() {
                   <span className="text-olive">10% off</span>.
                 </p>
                 <p className="mx-auto mt-6 max-w-xl leading-relaxed text-ink-soft">
-                  Eco-conscious isn&rsquo;t a slogan for us — it&rsquo;s recycled
+                  Eco-conscious isn&rsquo;t a slogan for us  it&rsquo;s recycled
                   packaging, refillable vessels, and a small thank-you for every
                   container you reuse. Less waste, the same care.
                 </p>

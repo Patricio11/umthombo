@@ -1,6 +1,6 @@
 import { Bricolage_Grotesque, Hanken_Grotesk } from "next/font/google";
 
-/** Display — a characterful modern grotesque with real personality (anti-template). */
+/** Display  a characterful modern grotesque with real personality (anti-template). */
 export const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   display: "swap",
@@ -8,7 +8,7 @@ export const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
 });
 
-/** Body / UI — warm humanist grotesk (not sterile like Inter). */
+/** Body / UI  warm humanist grotesk (not sterile like Inter). */
 export const hanken = Hanken_Grotesk({
   subsets: ["latin"],
   display: "swap",

@@ -116,7 +116,7 @@ export function CartDrawer() {
                         />
                         <span className="text-ink-soft">
                           Bringing your own jar?{" "}
-                          <span className="text-ink">Mention it — 10% off.</span>
+                          <span className="text-ink">Mention it  10% off.</span>
                         </span>
                       </label>
 
@@ -151,7 +151,7 @@ export function CartDrawer() {
                         Place your order
                       </Button>
                       <p className="mt-3 text-center text-xs text-ink-soft">
-                        No payment now — we&rsquo;ll confirm everything over
+                        No payment now  we&rsquo;ll confirm everything over
                         WhatsApp.
                       </p>
                     </footer>
@@ -202,7 +202,7 @@ function EmptyState() {
         Your selection is still a quiet spring.
       </p>
       <p className="mt-2 max-w-xs text-sm text-ink-soft">
-        Wander the shop and add a few things you love — they&rsquo;ll gather
+        Wander the shop and add a few things you love  they&rsquo;ll gather
         here.
       </p>
       <Dialog.Close asChild>

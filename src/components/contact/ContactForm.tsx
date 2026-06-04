@@ -18,7 +18,7 @@ export function ContactForm() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const text = encodeURIComponent(
-      `Hi Umthombo 🌱${name ? ` — I'm ${name}.` : ""}\n\n${message}`
+      `Hi Umthombo 🌱${name ? `  I'm ${name}.` : ""}\n\n${message}`
     );
     window.open(
       `${site.whatsapp.href}?text=${text}`,
@@ -61,7 +61,7 @@ export function ContactForm() {
               exit={{ opacity: 0, y: -6 }}
               className="inline-flex items-center gap-2"
             >
-              <Check size={18} /> Opened in WhatsApp — just hit send
+              <Check size={18} /> Opened in WhatsApp  just hit send
             </motion.span>
           ) : (
             <motion.span
@@ -77,7 +77,7 @@ export function ContactForm() {
         </AnimatePresence>
       </Button>
       <p className="text-center text-xs text-ink-soft">
-        We&rsquo;ll reply on WhatsApp — usually quickly, always warmly.
+        We&rsquo;ll reply on WhatsApp  usually quickly, always warmly.
       </p>
     </form>
   );

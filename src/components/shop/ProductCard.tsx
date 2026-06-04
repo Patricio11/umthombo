@@ -90,7 +90,7 @@ export function ProductCard({
         </div>
       </Link>
 
-      {/* Quick add — sibling of the Link (valid HTML), overlaid on the image.
+      {/* Quick add  sibling of the Link (valid HTML), overlaid on the image.
           Visible on touch; fades up on hover on desktop. */}
       <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-end opacity-100 transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] lg:translate-y-2 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100">
         <button

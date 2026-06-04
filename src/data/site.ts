@@ -1,6 +1,6 @@
 export const site = {
   name: "Umthombo Creations",
-  meaning: "Umthombo means a spring, a fountain — a source of renewal and flow.",
+  meaning: "Umthombo means a spring, a fountain  a source of renewal and flow.",
   tagline: "Eco-conscious essentials, handcrafted with care.",
   story:
     "What began as a creative outlet has grown into a soulful offering of handcrafted products that bring warmth and intention into your space.",
@@ -35,11 +35,11 @@ export const nav = [
   { label: "Contact", href: "/contact" },
 ] as const;
 
-/** The brand promises — "Our commitment to you". */
+/** The brand promises  "Our commitment to you". */
 export const commitments = [
   {
     title: "Diverse size range",
-    body: "From a quiet single candle to a generous gift box — a size for every space and budget.",
+    body: "From a quiet single candle to a generous gift box  a size for every space and budget.",
   },
   {
     title: "Ethically made",
@@ -47,7 +47,7 @@ export const commitments = [
   },
   {
     title: "Exceptional service",
-    body: "Wrapped with care and a personal word — the way you'd send something to a friend.",
+    body: "Wrapped with care and a personal word  the way you'd send something to a friend.",
   },
   {
     title: "Fully customisable",
@@ -55,6 +55,6 @@ export const commitments = [
   },
   {
     title: "A unique range",
-    body: "Sculptural pyramids, potjie-pots, gemstone intentions — small batches, never mass-made.",
+    body: "Sculptural pyramids, potjie-pots, gemstone intentions  small batches, never mass-made.",
   },
 ] as const;

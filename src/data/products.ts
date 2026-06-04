@@ -27,7 +27,7 @@ export const categoryMeta: Record<
     label: "Home",
     eyebrow: "For the room",
     accent: "olive",
-    blurb: "Hand-poured candles — sculptural, scented, and slow to burn.",
+    blurb: "Hand-poured candles  sculptural, scented, and slow to burn.",
   },
   home: {
     label: "Air",
@@ -45,21 +45,21 @@ export const categoryMeta: Record<
     label: "Hampers",
     eyebrow: "For giving",
     accent: "mist",
-    blurb: "Curated gift boxes — soft, beautiful things, assembled with love.",
+    blurb: "Curated gift boxes  soft, beautiful things, assembled with love.",
   },
 };
 
 const P = "/products";
 
 export const products: Product[] = [
-  // ——— CANDLES ———
+  //  CANDLES 
   {
     slug: "spiced-fruit",
     name: "Spiced Fruit",
     category: "candles",
     tagline: "A freshly-baked kind of warmth.",
     description:
-      "Full-bodied spicy cinnamon meets the sweet, fruity aroma of pears — an ideal mood enhancer that evokes freshly baked goods.",
+      "Full-bodied spicy cinnamon meets the sweet, fruity aroma of pears  an ideal mood enhancer that evokes freshly baked goods.",
     notes: "Cinnamon · Pear",
     size: "6cm x 6cm",
     weight: "165g",
@@ -72,7 +72,7 @@ export const products: Product[] = [
     category: "candles",
     tagline: "A comforting embrace.",
     description:
-      "Spicy richness of cinnamon with soft, sweet vanilla — a soothing ambiance for relaxing evenings or cosy gatherings.",
+      "Spicy richness of cinnamon with soft, sweet vanilla  a soothing ambiance for relaxing evenings or cosy gatherings.",
     notes: "Cinnamon · Vanilla",
     priceZAR: 150,
     image: `${P}/cinnamon-whisper.jpg`,
@@ -113,7 +113,7 @@ export const products: Product[] = [
     category: "candles",
     tagline: "Pure, unscented simplicity.",
     description:
-      "Crafted from 100% natural soy wax — a clean-burning, soot-free, long-lasting glow that is gentle on the environment and the senses.",
+      "Crafted from 100% natural soy wax  a clean-burning, soot-free, long-lasting glow that is gentle on the environment and the senses.",
     notes: "Unscented soy wax",
     priceZAR: 120,
     image: `${P}/luxewax.jpg`,
@@ -124,7 +124,7 @@ export const products: Product[] = [
     category: "candles",
     tagline: "Warmth and romance.",
     description:
-      "A lightly scented heart-shaped candle — a touch of warmth and romance for any space.",
+      "A lightly scented heart-shaped candle  a touch of warmth and romance for any space.",
     notes: "Fig · Jasmine · Crushed rose petals · Honeysuckle",
     size: "10cm x 7cm",
     weight: "310g",
@@ -138,7 +138,7 @@ export const products: Product[] = [
     category: "candles",
     tagline: "Frosted, from recycled moulds.",
     description:
-      "Frosted pillar candles cast in recycled material. Available in various scents and colours — made in any colour you choose, subject to dye stock.",
+      "Frosted pillar candles cast in recycled material. Available in various scents and colours  made in any colour you choose, subject to dye stock.",
     size: "11.5cm x 3.7cm",
     weight: "123g",
     priceZAR: 70,
@@ -167,7 +167,7 @@ export const products: Product[] = [
     category: "candles",
     tagline: "Purify and unwind.",
     description:
-      "Earthy, cleansing impepho meets calming clary sage to purify your space and promote relaxation — perfect for meditation or spiritual practice.",
+      "Earthy, cleansing impepho meets calming clary sage to purify your space and promote relaxation  perfect for meditation or spiritual practice.",
     notes: "Impepho · Clary sage",
     size: "14.5cm x 4.5cm",
     weight: "230g",
@@ -181,7 +181,7 @@ export const products: Product[] = [
     category: "candles",
     tagline: "Clear gel, real leaves.",
     description:
-      "A gel candle holding real leaves from our garden. Gel wax burns clear and lasts up to twice as long as paraffin. Customisable — add sea shells and more.",
+      "A gel candle holding real leaves from our garden. Gel wax burns clear and lasts up to twice as long as paraffin. Customisable  add sea shells and more.",
     notes: "Gel wax · Botanicals",
     priceZAR: 140,
     customisable: true,
@@ -189,10 +189,10 @@ export const products: Product[] = [
     gallery: [`${P}/gelzen-2.jpg`],
   },
 
-  // ——— SKIN / BODY ———
+  //  SKIN / BODY 
   {
     slug: "buttertastic-reloaded",
-    name: "Buttertastic — Reloaded",
+    name: "Buttertastic  Reloaded",
     category: "skin",
     tagline: "Head-to-toe hydration.",
     description:
@@ -204,7 +204,7 @@ export const products: Product[] = [
   },
   {
     slug: "buttertastic-mega",
-    name: "Buttertastic — Mega",
+    name: "Buttertastic  Mega",
     category: "skin",
     tagline: "The family size.",
     description: "Our favourite skin-loving body balm in a larger, shareable size.",
@@ -274,7 +274,7 @@ export const products: Product[] = [
     image: `${P}/hydrench.jpg`,
   },
 
-  // ——— HOME (diffusers / mists) ———
+  //  HOME (diffusers / mists) 
   {
     slug: "calmsie",
     name: "Calmsie",
@@ -339,7 +339,7 @@ export const products: Product[] = [
     image: `${P}/bloom-rising.jpg`,
   },
 
-  // ——— HAMPERS ———
+  //  HAMPERS 
   {
     slug: "collective-box",
     name: "Collective Box",

@@ -2,7 +2,7 @@
 
 import { useReducedMotion } from "motion/react";
 
-/** Soft rising-bubble particles — the fountain motif. Used sparingly. */
+/** Soft rising-bubble particles  the fountain motif. Used sparingly. */
 export function RisingBubbles({
   count = 7,
   color = "var(--color-olive)",

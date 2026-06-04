@@ -62,7 +62,7 @@ export function Philosophy() {
             <div className="flex h-full flex-col justify-center rounded-3xl bg-olive/10 p-7">
               <p className="font-display text-3xl text-olive">10% off</p>
               <p className="mt-2 leading-relaxed text-ink-soft">
-                Bring or reuse your own container and we&rsquo;ll take 10% off —
+                Bring or reuse your own container and we&rsquo;ll take 10% off 
                 a small thank-you for a smaller footprint.
               </p>
             </div>

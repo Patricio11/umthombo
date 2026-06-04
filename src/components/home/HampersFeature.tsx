@@ -25,7 +25,7 @@ export function HampersFeature() {
             <span className="editorial-italic">poured into.</span>
           </h2>
           <p className="mt-6 max-w-md leading-relaxed text-ink-soft">
-            Our hampers gather soft, beautiful things into one generous box —
+            Our hampers gather soft, beautiful things into one generous box 
             candles, balms, soaps and small treasures, wrapped the way you&rsquo;d
             send something to someone you love.
           </p>

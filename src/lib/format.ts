@@ -5,7 +5,7 @@ const zar = new Intl.NumberFormat("en-ZA", {
   maximumFractionDigits: 0,
 });
 
-/** R75 — South African Rand, no decimals (prices are whole numbers). */
+/** R75  South African Rand, no decimals (prices are whole numbers). */
 export function formatZAR(n: number): string {
   return zar.format(n).replace(/ /g, " "); // tidy the space after R
 }
