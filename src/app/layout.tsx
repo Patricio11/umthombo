@@ -34,7 +34,6 @@ export const metadata: Metadata = {
       "Handcrafted candles, soaps, body care and diffusers from Cape Town. Made with love and inspired by nature.",
     siteName: site.name,
   },
-  icons: { icon: "/favicon.ico" },
 };
 
 const localBusinessLd = {
