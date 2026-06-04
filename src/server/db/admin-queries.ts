@@ -1,5 +1,5 @@
 import "server-only";
-import { sql, desc } from "drizzle-orm";
+import { sql, desc, asc, eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import {
   products,
@@ -7,6 +7,7 @@ import {
   testimonials,
   orders,
 } from "@/server/db/schema";
+import type { Accent } from "@/lib/accents";
 
 export interface AdminStats {
   products: number;
@@ -52,6 +53,43 @@ export async function getAdminStats(): Promise<AdminStats> {
     orders: orderTotal,
     ordersByStatus,
   };
+}
+
+export interface AdminCategory {
+  id: string;
+  slug: string;
+  label: string;
+  eyebrow: string;
+  accent: Accent;
+  blurb: string;
+  sortOrder: number;
+  productCount: number;
+}
+
+export async function getAdminCategories(): Promise<AdminCategory[]> {
+  const rows = await db
+    .select({
+      id: categories.id,
+      slug: categories.slug,
+      label: categories.label,
+      eyebrow: categories.eyebrow,
+      accent: categories.accent,
+      blurb: categories.blurb,
+      sortOrder: categories.sortOrder,
+      productCount: sql<number>`count(${products.id})::int`,
+    })
+    .from(categories)
+    .leftJoin(products, eq(products.categoryId, categories.id))
+    .groupBy(categories.id)
+    .orderBy(asc(categories.sortOrder), asc(categories.label));
+  return rows.map((r) => ({ ...r, accent: (r.accent as Accent) ?? "olive" }));
+}
+
+export async function getAdminCategory(
+  id: string
+): Promise<AdminCategory | null> {
+  const list = await getAdminCategories();
+  return list.find((c) => c.id === id) ?? null;
 }
 
 export interface RecentOrder {

@@ -157,14 +157,16 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - [ ] `DataTable` primitive — built in Phase 5 (first list); `loading.tsx`/`error.tsx` in Phase 9
 - **Acceptance:** ✅ shell + dashboard polished and responsive (sidebar↔drawer), auth-gated, keyboard-navigable.
 
-### Phase 5 — Categories admin (CRUD)
+### Phase 5 — Categories admin (CRUD) ✅
 **Goal:** manage the category taxonomy with the shared primitives.
-- [ ] `server/actions/categories.ts`: `createCategory`, `updateCategory`, `deleteCategory`, `reorderCategories` — `requireAdmin()` + Zod, `revalidatePath`
-- [ ] **List** (`/admin/categories`): `DataTable` with label, slug, accent swatch, product count, sortOrder; responsive cards on mobile
-- [ ] **Create/Edit** form (drawer or `/new` + `/[id]`): slug (auto-from-label, editable, uniqueness check), label, eyebrow, accent picker (olive/clay/mist/taupe swatches), blurb; inline validation + toast
-- [ ] **Reorder** via up/down or drag (sortOrder persisted)
-- [ ] **Delete** with `ConfirmDialog`; block + explain when products reference it (FK `restrict`)
-- **Acceptance:** full CRUD works, validates, revalidates the public site, responsive, accessible.
+- [x] `server/actions/categories.ts`: `createCategory`, `updateCategory`, `deleteCategory`, `moveCategory` — `requireAdmin()` + Zod + `revalidatePath('/', 'layout')`; slug-uniqueness checks
+- [x] Built the reusable responsive **`DataTable`** (table ≥sm, stacked cards on mobile) here
+- [x] **List** (`/admin/categories`): order controls, accent swatch + label/eyebrow, slug, product count, edit/delete actions; empty state
+- [x] **Create/Edit** (`/new` + `/[id]`): slug auto-from-label (editable), accent swatch picker, eyebrow, blurb; inline errors + toast + redirect
+- [x] **Reorder** via up/down (sortOrder swap in a transaction)
+- [x] **Delete** with promise-based `ConfirmDialog`; blocked + explained when products reference it (FK `restrict` + pre-check)
+- [x] Verified authed: list / new / edit all render 200 with data
+- **Acceptance:** ✅ full CRUD + reorder, validated, revalidates the public site, responsive.
 
 ### Phase 6 — Products admin (CRUD + Supabase uploads) ⭐ (UX-critical)
 **Goal:** the flagship admin screen — create/edit any product, upload images, manage variants/gallery.
@@ -228,4 +230,5 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 
 - _2026-06-04_ — Plan created; decisions locked (Neon + Drizzle, Better Auth, Supabase Storage, orders persisted + WhatsApp).
 - _2026-06-04_ — **Phase 0 done.** Schema (9 tables) + migration `0000_init`; lazy transaction-capable Neon client; `db:*` scripts; fixed Better Auth/kysely bundling. **Phase 1 code done.** Better Auth (Drizzle adapter, no sign-up), `/admin/login`, middleware + `requireAdmin()`, `(site)` route group. Build green.
-- _2026-06-04_ — **Phase 2 done.** Migration applied to Neon; seed populated 4 categories / 23 products / 4 testimonials / 1 admin; sign-in verified (200 + cookie). **Phase 3 done.** Query layer + view types; all public pages read from Postgres; build SSGs everything from the DB; parity smoke-tested. Next: **Phase 4 — admin shell + dashboard.**
+- _2026-06-04_ — **Phase 2 done.** Migration applied to Neon; seed populated 4 categories / 23 products / 4 testimonials / 1 admin; sign-in verified (200 + cookie). **Phase 3 done.** Query layer + view types; all public pages read from Postgres; build SSGs everything from the DB; parity smoke-tested.
+- _2026-06-04_ — **Phase 4 done.** Admin design system (primitives, Toast, ConfirmDialog), responsive `AdminShell`, protected `(panel)` group + dashboard; auth-gate verified. **Phase 5 done.** Reusable responsive `DataTable`; Categories CRUD (create/edit/delete/reorder) via server actions with Zod + revalidate; verified. Next: **Phase 6 — Products CRUD + Supabase uploads** (needs Supabase keys in `.env.local`).
