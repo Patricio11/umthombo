@@ -61,7 +61,7 @@ export function Hero() {
             className="mt-7 max-w-md text-lg leading-relaxed text-ink-soft"
           >
             {site.tagline} Candles, soaps and care, hand-poured in small
-            batches and made with love &mdash; inspired by nature.
+            batches and made with love inspired by nature.
           </motion.p>
 
           <motion.div
