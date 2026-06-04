@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, forwardRef } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
@@ -12,6 +12,7 @@ import { useCart, selectTotal } from "@/store/cart";
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { OrderSuccess } from "@/components/order/OrderSuccess";
+import { lockScroll, unlockScroll } from "@/lib/lenis";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -30,6 +31,14 @@ export function OrderModal({
   const closeCart = useCart((s) => s.closeCart);
 
   const [submitted, setSubmitted] = useState(false);
+
+  // Pause Lenis while the modal is open so scrolling stays inside the modal,
+  // not the page behind it.
+  useEffect(() => {
+    if (!open) return;
+    lockScroll();
+    return () => unlockScroll();
+  }, [open]);
 
   const {
     register,
@@ -96,6 +105,7 @@ export function OrderModal({
                     <motion.div
                       key="form"
                       exit={{ opacity: 0 }}
+                      data-lenis-prevent
                       className="flex flex-col overflow-y-auto"
                     >
                       <header className="flex items-start justify-between px-7 pt-7">

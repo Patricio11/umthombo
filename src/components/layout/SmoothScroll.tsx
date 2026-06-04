@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
+import { registerLenis } from "@/lib/lenis";
 
 /** Site-wide Lenis smooth scroll  disabled when the user prefers reduced motion. */
 export function SmoothScroll() {
@@ -17,6 +18,8 @@ export function SmoothScroll() {
       smoothWheel: true,
     });
 
+    registerLenis(lenis);
+
     let frame = 0;
     const raf = (time: number) => {
       lenis.raf(time);
@@ -26,6 +29,7 @@ export function SmoothScroll() {
 
     return () => {
       cancelAnimationFrame(frame);
+      registerLenis(null);
       lenis.destroy();
     };
   }, []);

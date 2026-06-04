@@ -16,6 +16,7 @@ import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { CartLine } from "@/components/cart/CartLine";
 import { OrderModal } from "@/components/order/OrderModal";
+import { lockScroll, unlockScroll } from "@/lib/lenis";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -35,6 +36,14 @@ export function CartDrawer() {
   // Don't render persisted contents until mounted (hydration safety).
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // Pause Lenis smooth scroll while the drawer is open (so the page behind
+  // it doesn't scroll instead of the drawer contents).
+  useEffect(() => {
+    if (!isOpen) return;
+    lockScroll();
+    return () => unlockScroll();
+  }, [isOpen]);
 
   return (
     <>
@@ -86,7 +95,10 @@ export function CartDrawer() {
                   {!mounted || items.length === 0 ? (
                     <EmptyState />
                   ) : (
-                    <div className="flex-1 divide-y divide-cream-2 overflow-y-auto px-6">
+                    <div
+                      data-lenis-prevent
+                      className="flex-1 divide-y divide-cream-2 overflow-y-auto px-6"
+                    >
                       <AnimatePresence initial={false}>
                         {items.map((item) => (
                           <motion.div
