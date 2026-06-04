@@ -17,7 +17,11 @@ interface CartState {
   isOpen: boolean;
   ownContainer: boolean; // 10% reusable-container discount
   lastAdded: number; // timestamp-ish counter to trigger the badge pop
-  addItem: (item: Omit<CartItem, "qty">, qty?: number) => void;
+  addItem: (
+    item: Omit<CartItem, "qty">,
+    qty?: number,
+    opts?: { open?: boolean }
+  ) => void;
   removeItem: (slug: string, variant?: string) => void;
   setQty: (slug: string, variant: string | undefined, qty: number) => void;
   clear: () => void;
@@ -38,7 +42,7 @@ export const useCart = create<CartState>()(
       ownContainer: false,
       lastAdded: 0,
 
-      addItem: (item, qty = 1) =>
+      addItem: (item, qty = 1, opts) =>
         set((state) => {
           const existing = state.items.find((i) =>
             sameLine(i, item.slug, item.variant)
@@ -50,7 +54,11 @@ export const useCart = create<CartState>()(
                   : i
               )
             : [...state.items, { ...item, qty }];
-          return { items, isOpen: true, lastAdded: state.lastAdded + 1 };
+          return {
+            items,
+            isOpen: opts?.open ?? true, // quick-add from the grid can skip opening
+            lastAdded: state.lastAdded + 1,
+          };
         }),
 
       removeItem: (slug, variant) =>
