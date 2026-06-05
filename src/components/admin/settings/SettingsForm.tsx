@@ -47,6 +47,14 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
+  const TABS = [
+    { key: "brand", label: "Brand" },
+    { key: "contact", label: "Contact" },
+    { key: "shipping", label: "Shipping" },
+    { key: "social", label: "Social" },
+  ] as const;
+  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("brand");
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     startTransition(async () => {
@@ -62,11 +70,29 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
 
   return (
     <form onSubmit={onSubmit} className="max-w-2xl space-y-6">
+      <div className="flex gap-1 overflow-x-auto rounded-full bg-cream-2 p-1">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              tab === t.key
+                ? "bg-cream text-ink shadow-sm"
+                : "text-ink-soft hover:text-ink"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       <p className="text-sm text-ink-soft">
         Leave a field blank to use the built-in default (shown as the
         placeholder).
       </p>
 
+      {tab === "brand" && (
       <Card className="space-y-5">
         <h2 className="font-display text-lg">Brand voice</h2>
         <Field label="Tagline">
@@ -85,7 +111,9 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
           />
         </Field>
       </Card>
+      )}
 
+      {tab === "contact" && (
       <Card className="space-y-5">
         <h2 className="font-display text-lg">Contact</h2>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -120,7 +148,9 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
           />
         </Field>
       </Card>
+      )}
 
+      {tab === "shipping" && (
       <Card className="space-y-5">
         <h2 className="font-display text-lg">Shipping</h2>
         <label className="flex items-center justify-between gap-3">
@@ -198,7 +228,9 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
           </>
         )}
       </Card>
+      )}
 
+      {tab === "social" && (
       <Card className="space-y-5">
         <h2 className="font-display text-lg">Social</h2>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -232,6 +264,7 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
           </Field>
         </div>
       </Card>
+      )}
 
       <Button type="submit" disabled={pending}>
         {pending && <Loader2 size={16} className="animate-spin" />}
