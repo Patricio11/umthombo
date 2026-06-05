@@ -7,9 +7,10 @@ import {
   FacebookIcon,
   WhatsAppIcon,
 } from "@/components/brand/SocialIcons";
-import { site } from "@/data/site";
+import { getSiteSettings } from "@/server/db/settings";
 
-export function ContactBlock() {
+export async function ContactBlock() {
+  const site = await getSiteSettings();
   return (
     <section className="px-5 py-20 sm:px-8 lg:py-28">
       <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-olive px-6 py-16 text-cream sm:px-12 lg:py-24">

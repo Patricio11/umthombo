@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { orderSchema, type OrderInput } from "@/lib/zod-schemas";
 import { buildWhatsAppOrder } from "@/lib/whatsapp";
 import { createOrder } from "@/server/actions/orders";
+import { useSiteSettings } from "@/components/SiteSettingsProvider";
 import { useCart, selectTotal } from "@/store/cart";
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
@@ -25,6 +26,7 @@ export function OrderModal({
   onClose: () => void;
 }) {
   const reduce = useReducedMotion();
+  const site = useSiteSettings();
   const items = useCart((s) => s.items);
   const ownContainer = useCart((s) => s.ownContainer);
   const total = useCart(selectTotal);
@@ -70,7 +72,11 @@ export function OrderModal({
       return;
     }
     // 2. Open WhatsApp with the pre-filled order.
-    const url = buildWhatsAppOrder(items, { ...data, ownContainer });
+    const url = buildWhatsAppOrder(
+      items,
+      { ...data, ownContainer },
+      site.whatsapp.href
+    );
     window.open(url, "_blank", "noopener,noreferrer");
     setSubmitted(true);
   };

@@ -3,9 +3,11 @@
 import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/Button";
 import { RisingBubbles } from "@/components/motion/RisingBubbles";
+import { useSiteSettings } from "@/components/SiteSettingsProvider";
 
 export function OrderSuccess({ onDone }: { onDone: () => void }) {
   const reduce = useReducedMotion();
+  const site = useSiteSettings();
 
   return (
     <motion.div
@@ -52,7 +54,7 @@ export function OrderSuccess({ onDone }: { onDone: () => void }) {
       </Button>
       <p className="mt-4 text-xs text-ink-soft">
         Didn&rsquo;t open? Check that pop-ups are allowed, or message us on{" "}
-        <span className="text-olive">+27 63 705 3286</span>.
+        <span className="text-olive">{site.whatsapp.display}</span>.
       </p>
     </motion.div>
   );

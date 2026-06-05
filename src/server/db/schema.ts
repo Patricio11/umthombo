@@ -131,6 +131,28 @@ export const testimonials = pgTable("testimonials", {
 });
 
 /* ------------------------------------------------------------------ */
+/*  Site settings (singleton, id = "site"; null fields fall back to    */
+/*  the data/site.ts defaults)                                         */
+/* ------------------------------------------------------------------ */
+export const settings = pgTable("settings", {
+  id: text("id").primaryKey().default("site"),
+  tagline: text("tagline"),
+  story: text("story"),
+  collection: text("collection"),
+  whatsappNumber: text("whatsapp_number"),
+  whatsappDisplay: text("whatsapp_display"),
+  instagramHandle: text("instagram_handle"),
+  instagramUrl: text("instagram_url"),
+  facebookHandle: text("facebook_handle"),
+  facebookUrl: text("facebook_url"),
+  email: text("email"),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+/* ------------------------------------------------------------------ */
 /*  Relations                                                         */
 /* ------------------------------------------------------------------ */
 export const categoriesRelations = relations(categories, ({ many }) => ({
@@ -173,3 +195,5 @@ export type OrderItem = typeof orderItems.$inferSelect;
 export type NewOrderItem = typeof orderItems.$inferInsert;
 export type Testimonial = typeof testimonials.$inferSelect;
 export type NewTestimonial = typeof testimonials.$inferInsert;
+export type Settings = typeof settings.$inferSelect;
+export type NewSettings = typeof settings.$inferInsert;

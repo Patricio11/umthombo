@@ -8,7 +8,7 @@ import {
   FacebookIcon,
   WhatsAppIcon,
 } from "@/components/brand/SocialIcons";
-import { site } from "@/data/site";
+import { getSiteSettings } from "@/server/db/settings";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -16,7 +16,8 @@ export const metadata: Metadata = {
     "Talk to Umthombo Creations  WhatsApp, Instagram, Facebook, and collection in Observatory, Cape Town. Nationwide delivery available.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const site = await getSiteSettings();
   return (
     <>
       <PageHeader

@@ -197,7 +197,7 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - [x] **Create/Edit** (`/new` + `/[id]`): name, location, quote, published toggle
 - [x] Public `Testimonials` reads `published` only (DB-backed since Phase 3)
 - [x] Verified authed: list shows all 4 + publish toggles; forms 200
-- [ ] *(Deferred, optional)* `settings` singleton + `/admin/settings` (WhatsApp/tagline/collection)
+- [x] `settings` singleton table + `/admin/settings`: editable tagline, story, collection, WhatsApp number/display, email, Instagram/Facebook; `getSiteSettings()` merges DB over `data/site` defaults; consumed across footer/contact/hero/order via server fetch + a client `SiteSettingsProvider`
 - **Acceptance:** ✅ add/edit/hide/reorder a testimonial; carousel reflects it after revalidation.
 
 ### Phase 9 — Hardening, polish & deploy ✅

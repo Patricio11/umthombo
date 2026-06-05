@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { getCustomisableProducts } from "@/server/db/queries";
-import { site } from "@/data/site";
+import { getSiteSettings } from "@/server/db/settings";
 import { WhatsAppIcon } from "@/components/brand/SocialIcons";
 
 export const revalidate = 60;
@@ -34,7 +34,10 @@ const showcase = [
 ];
 
 export default async function CustomPage() {
-  const customisable = await getCustomisableProducts();
+  const [customisable, site] = await Promise.all([
+    getCustomisableProducts(),
+    getSiteSettings(),
+  ]);
 
   const whatsappCustom = `${site.whatsapp.href}?text=${encodeURIComponent(
     "Hi Umthombo 🌱 I'd love to talk about a custom piece. Here's what I have in mind:"

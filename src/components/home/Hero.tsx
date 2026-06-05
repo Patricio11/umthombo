@@ -11,9 +11,10 @@ import {
 } from "motion/react";
 import { stagger, riseItem } from "@/components/motion/Reveal";
 import { Logo } from "@/components/brand/Logo";
-import { site } from "@/data/site";
+import { useSiteSettings } from "@/components/SiteSettingsProvider";
 
 export function Hero() {
+  const site = useSiteSettings();
   const reduce = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({

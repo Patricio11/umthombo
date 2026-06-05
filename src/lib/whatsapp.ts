@@ -1,4 +1,3 @@
-import { site } from "@/data/site";
 import { formatZAR } from "@/lib/format";
 import type { CartItem } from "@/store/cart";
 
@@ -14,7 +13,8 @@ export interface OrderDetails {
 /** Build a warm, pre-filled WhatsApp order summary and return the deep link. */
 export function buildWhatsAppOrder(
   items: CartItem[],
-  details: OrderDetails
+  details: OrderDetails,
+  whatsappHref: string
 ): string {
   const subtotal = items.reduce((n, i) => n + i.qty * i.unitPriceZAR, 0);
   const total = details.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
@@ -52,5 +52,5 @@ export function buildWhatsAppOrder(
   }
 
   const text = encodeURIComponent(lines.join("\n"));
-  return `${site.whatsapp.href}?text=${text}`;
+  return `${whatsappHref}?text=${text}`;
 }

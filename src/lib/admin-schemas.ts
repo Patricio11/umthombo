@@ -77,6 +77,27 @@ export const testimonialSchema = z.object({
 
 export type TestimonialInput = z.infer<typeof testimonialSchema>;
 
+/* ------------------------------------------------------------------ */
+/*  Site settings                                                      */
+/* ------------------------------------------------------------------ */
+const optionalStr = (max: number) =>
+  z.string().trim().max(max).optional().default("");
+
+export const settingsSchema = z.object({
+  tagline: optionalStr(160),
+  story: optionalStr(2000),
+  collection: optionalStr(200),
+  whatsappNumber: optionalStr(20),
+  whatsappDisplay: optionalStr(30),
+  instagramHandle: optionalStr(60),
+  instagramUrl: optionalStr(200),
+  facebookHandle: optionalStr(60),
+  facebookUrl: optionalStr(200),
+  email: optionalStr(120),
+});
+
+export type SettingsInput = z.infer<typeof settingsSchema>;
+
 /** Turn a label into a slug suggestion. */
 export function slugify(s: string): string {
   return s

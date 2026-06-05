@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
-import { site } from "@/data/site";
+import { getSiteSettings } from "@/server/db/settings";
 
-export function StoryStrip() {
+export async function StoryStrip() {
+  const site = await getSiteSettings();
   return (
     <section className="px-5 py-20 sm:px-8 lg:py-28">
       <div className="mx-auto max-w-4xl text-center">

@@ -5,12 +5,13 @@ import { motion, AnimatePresence } from "motion/react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/brand/SocialIcons";
-import { site } from "@/data/site";
+import { useSiteSettings } from "@/components/SiteSettingsProvider";
 
 const inputCls =
   "w-full rounded-xl border border-cream-3 bg-cream px-4 py-3 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-olive focus:outline-none";
 
 export function ContactForm() {
+  const site = useSiteSettings();
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ContactBlock } from "@/components/home/ContactBlock";
-import { commitments, site } from "@/data/site";
+import { commitments } from "@/data/site";
+import { getSiteSettings } from "@/server/db/settings";
 
 export const metadata: Metadata = {
   title: "Our Story",
@@ -12,7 +13,8 @@ export const metadata: Metadata = {
     "Umthombo means a spring  a source of renewal and flow. The story behind our Cape Town handcrafted candles and skincare, and our commitment to eco-conscious craft.",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const site = await getSiteSettings();
   return (
     <>
       <PageHeader
