@@ -1,5 +1,6 @@
 export interface DeliveryConfig {
-  enabled: boolean;
+  enabled: boolean; // delivery offered at all (off = collection only)
+  charge: boolean; // charge a fee (off = free delivery)
   type: "flat" | "percent";
   flatZAR: number;
   percent: number;
@@ -15,7 +16,7 @@ export function computeDeliveryFee(
   goodsSubtotal: number,
   cfg: DeliveryConfig
 ): number {
-  if (!cfg.enabled || items.length === 0) return 0;
+  if (!cfg.enabled || !cfg.charge || items.length === 0) return 0;
   const globalFee =
     cfg.type === "percent"
       ? Math.round((cfg.percent / 100) * goodsSubtotal)

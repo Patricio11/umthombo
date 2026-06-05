@@ -29,6 +29,13 @@
       "when": 1780627564790,
       "tag": "0003_delivery_model",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780629184476,
+      "tag": "0004_delivery_charge",
+      "breakpoints": true
     }
   ]
 }

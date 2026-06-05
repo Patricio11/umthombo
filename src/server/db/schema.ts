@@ -149,7 +149,8 @@ export const settings = pgTable("settings", {
   facebookHandle: text("facebook_handle"),
   facebookUrl: text("facebook_url"),
   email: text("email"),
-  deliveryEnabled: boolean("delivery_enabled"),
+  deliveryEnabled: boolean("delivery_enabled"), // offer delivery at all
+  deliveryChargeEnabled: boolean("delivery_charge_enabled"), // charge a fee (off = free)
   deliveryFeeType: text("delivery_fee_type"), // "flat" | "percent"
   deliveryFeeZAR: integer("delivery_fee_zar"), // flat amount
   deliveryPercent: integer("delivery_percent"),

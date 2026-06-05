@@ -96,6 +96,7 @@ export const settingsSchema = z.object({
   facebookUrl: optionalStr(200),
   email: optionalStr(120),
   deliveryEnabled: z.boolean().default(true),
+  deliveryChargeEnabled: z.boolean().default(true),
   deliveryFeeType: z.enum(["flat", "percent"]).default("flat"),
   deliveryFlatZAR: optionalStr(10),
   deliveryPercent: optionalStr(5),

@@ -38,6 +38,7 @@ export async function updateSettings(
     facebookUrl: nullify(d.facebookUrl),
     email: nullify(d.email),
     deliveryEnabled: d.deliveryEnabled,
+    deliveryChargeEnabled: d.deliveryChargeEnabled,
     deliveryFeeType: d.deliveryFeeType,
     deliveryFeeZAR: toInt(d.deliveryFlatZAR),
     deliveryPercent: toInt(d.deliveryPercent),

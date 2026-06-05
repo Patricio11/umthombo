@@ -31,6 +31,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     email: pick(row?.email, site.email),
     delivery: {
       enabled: row?.deliveryEnabled ?? true,
+      charge: row?.deliveryChargeEnabled ?? true,
       type: row?.deliveryFeeType === "percent" ? "percent" : "flat",
       flatZAR: row?.deliveryFeeZAR ?? 0,
       percent: row?.deliveryPercent ?? 0,
