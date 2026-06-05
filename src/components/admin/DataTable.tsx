@@ -39,7 +39,7 @@ export function DataTable<T>({
   return (
     <>
       {/* Desktop table */}
-      <div className="hidden overflow-hidden rounded-2xl border border-cream-3 sm:block">
+      <div className="hidden overflow-hidden rounded-2xl border border-cream-3 bg-cream sm:block">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-cream-3 bg-cream-2/60">
