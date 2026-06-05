@@ -134,8 +134,8 @@ export function ProductsTable({ products }: { products: AdminProductRow[] }) {
     },
   ];
 
-  return (
-    <div className="space-y-4">
+  const toolbar = (
+    <div className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search
@@ -166,27 +166,30 @@ export function ProductsTable({ products }: { products: AdminProductRow[] }) {
         </div>
       </div>
 
-      <p className="text-sm text-ink-soft">
+      <p className="text-xs text-ink-soft">
         {rows.length} of {products.length} products
       </p>
-
-      <DataTable
-        columns={columns}
-        rows={rows}
-        getKey={(p) => p.id}
-        empty={
-          <EmptyState
-            icon={<Package size={28} />}
-            title={q || status !== "all" ? "No matching products" : "No products yet"}
-            description={q || status !== "all" ? "Try a different search or filter." : "Add your first product to the shop."}
-            action={
-              <Link href="/admin/products/new">
-                <Button size="sm">New product</Button>
-              </Link>
-            }
-          />
-        }
-      />
     </div>
+  );
+
+  return (
+    <DataTable
+      columns={columns}
+      rows={rows}
+      getKey={(p) => p.id}
+      toolbar={toolbar}
+      empty={
+        <EmptyState
+          icon={<Package size={28} />}
+          title={q || status !== "all" ? "No matching products" : "No products yet"}
+          description={q || status !== "all" ? "Try a different search or filter." : "Add your first product to the shop."}
+          action={
+            <Link href="/admin/products/new">
+              <Button size="sm">New product</Button>
+            </Link>
+          }
+        />
+      }
+    />
   );
 }

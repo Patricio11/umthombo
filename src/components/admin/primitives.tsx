@@ -91,7 +91,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-cream-3 px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
       {icon && <div className="mb-4 text-taupe">{icon}</div>}
       <p className="font-display text-xl">{title}</p>
       {description && (

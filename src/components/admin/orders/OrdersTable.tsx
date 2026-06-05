@@ -61,9 +61,9 @@ export function OrdersTable({ orders }: { orders: AdminOrderRow[] }) {
     },
   ];
 
-  return (
-    <div className="space-y-4">
-      <div className="flex gap-1 overflow-x-auto rounded-full bg-cream-2 p-1">
+  const toolbar = (
+    <div className="-mx-1 flex gap-1 overflow-x-auto px-1">
+      <div className="flex gap-1 rounded-full bg-cream-2 p-1">
         {(["all", ...ORDER_STATUSES] as const).map((s) => (
           <button
             key={s}
@@ -78,24 +78,27 @@ export function OrdersTable({ orders }: { orders: AdminOrderRow[] }) {
           </button>
         ))}
       </div>
-
-      <DataTable
-        columns={columns}
-        rows={rows}
-        getKey={(o) => o.id}
-        onRowClick={(o) => router.push(`/admin/orders/${o.id}`)}
-        empty={
-          <EmptyState
-            icon={<Inbox size={28} />}
-            title={status === "all" ? "No orders yet" : "No orders here"}
-            description={
-              status === "all"
-                ? "When customers place orders, they'll appear here."
-                : "Try a different status filter."
-            }
-          />
-        }
-      />
     </div>
+  );
+
+  return (
+    <DataTable
+      columns={columns}
+      rows={rows}
+      getKey={(o) => o.id}
+      onRowClick={(o) => router.push(`/admin/orders/${o.id}`)}
+      toolbar={toolbar}
+      empty={
+        <EmptyState
+          icon={<Inbox size={28} />}
+          title={status === "all" ? "No orders yet" : "No orders here"}
+          description={
+            status === "all"
+              ? "When customers place orders, they'll appear here."
+              : "Try a different status filter."
+          }
+        />
+      }
+    />
   );
 }
