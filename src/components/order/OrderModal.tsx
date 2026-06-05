@@ -6,14 +6,15 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { orderSchema, type OrderInput } from "@/lib/zod-schemas";
+import { orderFormSchema, type OrderFormInput } from "@/lib/order-schema";
 import { buildWhatsAppOrder } from "@/lib/whatsapp";
 import { createOrder } from "@/server/actions/orders";
 import { useSiteSettings } from "@/components/SiteSettingsProvider";
-import { useCart, selectTotal } from "@/store/cart";
+import { useCart, selectTotal, selectSubtotal } from "@/store/cart";
+import { computeDeliveryFee } from "@/lib/delivery";
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
-import { OrderSuccess } from "@/components/order/OrderSuccess";
+import { OrderSuccess, type OrderReceipt } from "@/components/order/OrderSuccess";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -29,12 +30,16 @@ export function OrderModal({
   const site = useSiteSettings();
   const items = useCart((s) => s.items);
   const ownContainer = useCart((s) => s.ownContainer);
-  const total = useCart(selectTotal);
+  const goodsTotal = useCart(selectTotal); // after own-container discount
+  const subtotal = useCart(selectSubtotal); // before discount
   const clear = useCart((s) => s.clear);
   const closeCart = useCart((s) => s.closeCart);
 
   const [submitted, setSubmitted] = useState(false);
+  const [receipt, setReceipt] = useState<OrderReceipt | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  const deliveryEnabled = site.delivery.enabled;
 
   // Pause Lenis while the modal is open so scrolling stays inside the modal,
   // not the page behind it.
@@ -48,17 +53,26 @@ export function OrderModal({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
-  } = useForm<OrderInput>({
-    resolver: zodResolver(orderSchema),
-    defaultValues: { method: "delivery" },
+  } = useForm<OrderFormInput>({
+    resolver: zodResolver(orderFormSchema),
+    defaultValues: { method: deliveryEnabled ? "delivery" : "collection" },
   });
 
-  const onSubmit = async (data: OrderInput) => {
+  const method = watch("method");
+  const deliveryFee =
+    method === "delivery"
+      ? computeDeliveryFee(items, subtotal, site.delivery)
+      : 0;
+  const total = goodsTotal + deliveryFee;
+
+  const onSubmit = async (data: OrderFormInput) => {
     setSaveError(null);
-    // 1. Persist the order (prices re-validated server-side).
+    // 1. Persist the order (prices + delivery re-validated server-side).
     const res = await createOrder({
       ...data,
+      address: data.address ?? "",
       ownContainer,
       items: items.map((i) => ({
         slug: i.slug,
@@ -67,17 +81,30 @@ export function OrderModal({
         unitPriceZAR: i.unitPriceZAR,
       })),
     });
-    if (!res.ok) {
+    if (!res.ok || !res.receipt) {
       setSaveError(res.error ?? "Something went wrong. Please try again.");
       return;
     }
     // 2. Open WhatsApp with the pre-filled order.
     const url = buildWhatsAppOrder(
       items,
-      { ...data, ownContainer },
+      { ...data, ownContainer, deliveryFee },
       site.whatsapp.href
     );
     window.open(url, "_blank", "noopener,noreferrer");
+
+    setReceipt({
+      ...res.receipt,
+      name: data.name,
+      method: data.method,
+      address: data.method === "delivery" ? data.address : undefined,
+      items: items.map((i) => ({
+        name: i.name,
+        variant: i.variant,
+        qty: i.qty,
+        unitPriceZAR: i.unitPriceZAR,
+      })),
+    });
     setSubmitted(true);
   };
 
@@ -86,6 +113,8 @@ export function OrderModal({
     // Reset a beat later so the closing animation doesn't flash the form.
     setTimeout(() => {
       setSubmitted(false);
+      setReceipt(null);
+      setSaveError(null);
       reset();
     }, 350);
   };
@@ -120,8 +149,12 @@ export function OrderModal({
                 className="fixed left-1/2 top-1/2 z-[81] flex max-h-[92dvh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl bg-cream shadow-2xl"
               >
                 <AnimatePresence mode="wait">
-                  {submitted ? (
-                    <OrderSuccess key="success" onDone={finishAndClear} />
+                  {submitted && receipt ? (
+                    <OrderSuccess
+                      key="success"
+                      receipt={receipt}
+                      onDone={finishAndClear}
+                    />
                   ) : (
                     <motion.div
                       key="form"
@@ -182,22 +215,49 @@ export function OrderModal({
                           <legend className="mb-2 text-sm font-medium text-ink">
                             How would you like it?
                           </legend>
-                          <div className="grid grid-cols-2 gap-3">
-                            <RadioCard
-                              {...register("method")}
-                              value="delivery"
-                              title="Delivery"
-                              sub="Nationwide"
-                              defaultChecked
-                            />
-                            <RadioCard
-                              {...register("method")}
-                              value="collection"
-                              title="Collection"
-                              sub="Observatory"
-                            />
-                          </div>
+                          {deliveryEnabled ? (
+                            <div className="grid grid-cols-2 gap-3">
+                              <RadioCard
+                                {...register("method")}
+                                value="delivery"
+                                title="Delivery"
+                                sub="Nationwide"
+                                defaultChecked
+                              />
+                              <RadioCard
+                                {...register("method")}
+                                value="collection"
+                                title="Collection"
+                                sub="Observatory"
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <input
+                                type="hidden"
+                                value="collection"
+                                {...register("method")}
+                              />
+                              <p className="rounded-2xl border border-cream-3 bg-cream-2/50 px-4 py-3 text-sm text-ink-soft">
+                                Collection in Observatory, Cape Town.
+                              </p>
+                            </>
+                          )}
                         </fieldset>
+
+                        {method === "delivery" && (
+                          <Field
+                            label="Delivery address"
+                            error={errors.address?.message}
+                          >
+                            <textarea
+                              {...register("address")}
+                              rows={2}
+                              placeholder="Street, suburb, city, postal code"
+                              className={`${inputCls} resize-none`}
+                            />
+                          </Field>
+                        )}
 
                         <Field
                           label="A note (optional)"
@@ -205,19 +265,33 @@ export function OrderModal({
                         >
                           <textarea
                             {...register("note")}
-                            rows={3}
+                            rows={2}
                             placeholder="Personalisation, scent, colour…"
                             className={`${inputCls} resize-none`}
                           />
                         </Field>
 
-                        <div className="mt-1 flex items-center justify-between rounded-2xl bg-cream-2 px-4 py-3">
-                          <span className="text-sm text-ink-soft">
-                            Order total
-                          </span>
-                          <span className="font-display text-xl">
-                            {formatZAR(total)}
-                          </span>
+                        <div className="mt-1 space-y-1.5 rounded-2xl bg-cream-2 px-4 py-3 text-sm">
+                          <div className="flex justify-between text-ink-soft">
+                            <span>Items</span>
+                            <span className="tabular-nums">
+                              {formatZAR(goodsTotal)}
+                            </span>
+                          </div>
+                          {method === "delivery" && (
+                            <div className="flex justify-between text-ink-soft">
+                              <span>Delivery</span>
+                              <span className="tabular-nums">
+                                {deliveryFee > 0 ? formatZAR(deliveryFee) : "Free"}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-baseline justify-between border-t border-cream-3 pt-1.5">
+                            <span className="font-medium text-ink">Total</span>
+                            <span className="font-display text-xl">
+                              {formatZAR(total)}
+                            </span>
+                          </div>
                         </div>
 
                         {saveError && (

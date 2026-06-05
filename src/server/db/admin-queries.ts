@@ -226,9 +226,11 @@ export interface AdminOrderDetail {
   customerEmail: string;
   customerPhone: string;
   method: "delivery" | "collection";
+  shippingAddress: string | null;
   note: string | null;
   ownContainer: boolean;
   subtotalZAR: number;
+  deliveryFeeZAR: number;
   totalZAR: number;
   status: OrderStatus;
   createdAt: Date;
@@ -268,6 +270,7 @@ export interface OrderableProduct {
   name: string;
   priceZAR: number;
   variants: string[];
+  deliveryFeeZAR: number | null;
 }
 
 export async function getOrderableProducts(): Promise<OrderableProduct[]> {
@@ -277,6 +280,7 @@ export async function getOrderableProducts(): Promise<OrderableProduct[]> {
       name: products.name,
       priceZAR: products.priceZAR,
       variants: products.variants,
+      deliveryFeeZAR: products.deliveryFeeZAR,
     })
     .from(products)
     .where(eq(products.status, "active"))

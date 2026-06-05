@@ -85,7 +85,20 @@ export default async function OrderDetailPage({
               <div className="flex justify-between text-olive">
                 <span>Own container · 10% off</span>
                 <span className="tabular-nums">
-                  −{formatZAR(order.subtotalZAR - order.totalZAR)}
+                  −
+                  {formatZAR(
+                    order.subtotalZAR - (order.totalZAR - order.deliveryFeeZAR)
+                  )}
+                </span>
+              </div>
+            )}
+            {order.method === "delivery" && (
+              <div className="flex justify-between text-ink-soft">
+                <span>Delivery</span>
+                <span className="tabular-nums">
+                  {order.deliveryFeeZAR > 0
+                    ? formatZAR(order.deliveryFeeZAR)
+                    : "Free"}
                 </span>
               </div>
             )}
@@ -111,13 +124,20 @@ export default async function OrderDetailPage({
                 <Phone size={16} className="text-taupe" />
                 {order.customerPhone}
               </li>
-              <li className="flex items-center gap-2.5 capitalize text-ink-soft">
+              <li className="flex items-start gap-2.5 text-ink-soft">
                 {order.method === "collection" ? (
-                  <MapPin size={16} className="text-taupe" />
+                  <MapPin size={16} className="mt-0.5 shrink-0 text-taupe" />
                 ) : (
-                  <Truck size={16} className="text-taupe" />
+                  <Truck size={16} className="mt-0.5 shrink-0 text-taupe" />
                 )}
-                {order.method}
+                <span>
+                  <span className="capitalize">{order.method}</span>
+                  {order.method === "delivery" && order.shippingAddress && (
+                    <span className="mt-0.5 block whitespace-pre-line text-ink">
+                      {order.shippingAddress}
+                    </span>
+                  )}
+                </span>
               </li>
             </ul>
             {order.note && (

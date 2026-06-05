@@ -6,6 +6,8 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/server/db";
 import { orders, orderItems, products } from "@/server/db/schema";
 import { requireAdmin } from "@/server/auth/guard";
+import { getSiteSettings } from "@/server/db/settings";
+import { computeDeliveryFee } from "@/lib/delivery";
 import {
   createOrderSchema,
   adminOrderSchema,
@@ -34,9 +36,17 @@ function genOrderNumber(): string {
  * Public: create an order. Prices are re-validated against the DB (never
  * trust the client), order + items written in one transaction.
  */
+export interface OrderReceiptTotals {
+  orderNumber: string;
+  subtotal: number;
+  discount: number;
+  deliveryFee: number;
+  total: number;
+}
+
 export async function createOrder(
   input: CreateOrderInput
-): Promise<ActionResult & { orderNumber?: string; total?: number }> {
+): Promise<ActionResult & { receipt?: OrderReceiptTotals }> {
   const parsed = createOrderSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
@@ -84,7 +94,17 @@ export async function createOrder(
     });
   }
 
-  const total = data.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const goodsTotal = data.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const discount = subtotal - goodsTotal;
+  const settings = await getSiteSettings();
+  const deliveryItems = data.items.map((it) => ({
+    deliveryFeeZAR: bySlug.get(it.slug)?.deliveryFeeZAR ?? null,
+  }));
+  const deliveryFee =
+    data.method === "delivery"
+      ? computeDeliveryFee(deliveryItems, subtotal, settings.delivery)
+      : 0;
+  const total = goodsTotal + deliveryFee;
   const orderNumber = genOrderNumber();
   const orderId = randomUUID();
 
@@ -97,9 +117,12 @@ export async function createOrder(
         customerEmail: data.email,
         customerPhone: data.phone,
         method: data.method,
+        shippingAddress:
+          data.method === "delivery" ? data.address.trim() : null,
         note: data.note ?? null,
         ownContainer: data.ownContainer,
         subtotalZAR: subtotal,
+        deliveryFeeZAR: deliveryFee,
         totalZAR: total,
         status: "new",
       });
@@ -112,7 +135,10 @@ export async function createOrder(
   }
 
   revalidatePath("/admin", "layout");
-  return { ok: true, orderNumber, total };
+  return {
+    ok: true,
+    receipt: { orderNumber, subtotal, discount, deliveryFee, total },
+  };
 }
 
 /** Admin: move an order through its lifecycle. */
@@ -135,6 +161,7 @@ async function buildLines(items: AdminOrderInput["items"]) {
   const rows = await db.select().from(products).where(inArray(products.id, ids));
   const byId = new Map(rows.map((r) => [r.id, r]));
   const lines: Omit<typeof orderItems.$inferInsert, "orderId">[] = [];
+  const deliveryItems: { deliveryFeeZAR: number | null }[] = [];
   let subtotal = 0;
   for (const it of items) {
     const p = byId.get(it.productId);
@@ -149,8 +176,9 @@ async function buildLines(items: AdminOrderInput["items"]) {
       unitPriceZAR: p.priceZAR,
       lineTotalZAR: lineTotal,
     });
+    deliveryItems.push({ deliveryFeeZAR: p.deliveryFeeZAR ?? null });
   }
-  return { lines, subtotal };
+  return { lines, subtotal, deliveryItems };
 }
 
 /** Admin: create an order manually (e.g. a phone or walk-in order). */
@@ -163,8 +191,14 @@ export async function createOrderAdmin(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
   }
   const d = parsed.data;
-  const { lines, subtotal } = await buildLines(d.items);
-  const total = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const { lines, subtotal, deliveryItems } = await buildLines(d.items);
+  const goods = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const settings = await getSiteSettings();
+  const deliveryFee =
+    d.method === "delivery"
+      ? computeDeliveryFee(deliveryItems, subtotal, settings.delivery)
+      : 0;
+  const total = goods + deliveryFee;
   const id = randomUUID();
   await db.transaction(async (tx) => {
     await tx.insert(orders).values({
@@ -174,9 +208,11 @@ export async function createOrderAdmin(
       customerEmail: d.email,
       customerPhone: d.phone,
       method: d.method,
+      shippingAddress: d.method === "delivery" ? d.address.trim() || null : null,
       note: d.note ?? null,
       ownContainer: d.ownContainer,
       subtotalZAR: subtotal,
+      deliveryFeeZAR: deliveryFee,
       totalZAR: total,
       status: d.status,
     });
@@ -197,8 +233,14 @@ export async function updateOrderAdmin(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
   }
   const d = parsed.data;
-  const { lines, subtotal } = await buildLines(d.items);
-  const total = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const { lines, subtotal, deliveryItems } = await buildLines(d.items);
+  const goods = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const settings = await getSiteSettings();
+  const deliveryFee =
+    d.method === "delivery"
+      ? computeDeliveryFee(deliveryItems, subtotal, settings.delivery)
+      : 0;
+  const total = goods + deliveryFee;
   await db.transaction(async (tx) => {
     await tx
       .update(orders)
@@ -207,9 +249,11 @@ export async function updateOrderAdmin(
         customerEmail: d.email,
         customerPhone: d.phone,
         method: d.method,
+        shippingAddress: d.method === "delivery" ? d.address.trim() || null : null,
         note: d.note ?? null,
         ownContainer: d.ownContainer,
         subtotalZAR: subtotal,
+        deliveryFeeZAR: deliveryFee,
         totalZAR: total,
         status: d.status,
       })

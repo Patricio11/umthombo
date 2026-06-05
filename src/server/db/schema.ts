@@ -73,6 +73,7 @@ export const products = pgTable("products", {
   packPriceZAR: integer("pack_price_zar"),
   customisable: boolean("customisable").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
+  deliveryFeeZAR: integer("delivery_fee_zar"), // per-product override (null = use global)
   status: productStatusEnum("status").notNull().default("active"),
   image: text("image").notNull().default(""),
   gallery: jsonb("gallery").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
@@ -94,9 +95,11 @@ export const orders = pgTable("orders", {
   customerEmail: text("customer_email").notNull(),
   customerPhone: text("customer_phone").notNull(),
   method: orderMethodEnum("method").notNull().default("delivery"),
+  shippingAddress: text("shipping_address"),
   note: text("note"),
   ownContainer: boolean("own_container").notNull().default(false),
   subtotalZAR: integer("subtotal_zar").notNull().default(0),
+  deliveryFeeZAR: integer("delivery_fee_zar").notNull().default(0),
   totalZAR: integer("total_zar").notNull().default(0),
   status: orderStatusEnum("status").notNull().default("new"),
   ...timestamps,
@@ -146,6 +149,10 @@ export const settings = pgTable("settings", {
   facebookHandle: text("facebook_handle"),
   facebookUrl: text("facebook_url"),
   email: text("email"),
+  deliveryEnabled: boolean("delivery_enabled"),
+  deliveryFeeType: text("delivery_fee_type"), // "flat" | "percent"
+  deliveryFeeZAR: integer("delivery_fee_zar"), // flat amount
+  deliveryPercent: integer("delivery_percent"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()

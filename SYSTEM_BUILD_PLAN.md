@@ -225,6 +225,10 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - **Accessibility & responsiveness** — same standards as the storefront, on every admin screen.
 - **Validation snapshots** — order line items snapshot name/price so historical orders stay correct if products change.
 
+## Post-launch enhancements
+
+- _2026-06-05_ — **Shipping & receipts.** Global delivery config (collection-only toggle; flat ZAR or % of goods subtotal) + per-product fee override; order delivery = "highest item wins". Customer enters a **delivery address** when choosing delivery; fee added to the total. **Receipt** on the order success screen (items, subtotal, discount, delivery, total, address). Stored as snapshots on the order; admin create/edit/detail all delivery-aware. Migrations 0001–0003.
+
 ## Progress log
 
 - _2026-06-04_ — Plan created; decisions locked (Neon + Drizzle, Better Auth, Supabase Storage, orders persisted + WhatsApp).

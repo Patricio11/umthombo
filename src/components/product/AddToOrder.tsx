@@ -30,6 +30,7 @@ export function AddToOrder({ product }: { product: ProductView }) {
         variant,
         unitPriceZAR: unitPrice,
         image: product.image,
+        deliveryFeeZAR: product.deliveryFeeZAR ?? null,
       },
       qty
     );

@@ -15,6 +15,20 @@
       "when": 1780626183402,
       "tag": "0001_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780627032923,
+      "tag": "0002_shipping",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780627564790,
+      "tag": "0003_delivery_model",
+      "breakpoints": true
     }
   ]
 }

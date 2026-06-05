@@ -8,6 +8,8 @@ export interface OrderDetails {
   method: "delivery" | "collection";
   note?: string;
   ownContainer: boolean;
+  address?: string;
+  deliveryFee?: number;
 }
 
 /** Build a warm, pre-filled WhatsApp order summary and return the deep link. */
@@ -17,7 +19,9 @@ export function buildWhatsAppOrder(
   whatsappHref: string
 ): string {
   const subtotal = items.reduce((n, i) => n + i.qty * i.unitPriceZAR, 0);
-  const total = details.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const goods = details.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const deliveryFee = details.method === "delivery" ? details.deliveryFee ?? 0 : 0;
+  const total = goods + deliveryFee;
 
   const lines: string[] = [];
   lines.push("Hi Umthombo Creations 🌱 I'd love to order:");
@@ -31,9 +35,12 @@ export function buildWhatsAppOrder(
   }
 
   lines.push("");
+  lines.push(`Subtotal: ${formatZAR(subtotal)}`);
   if (details.ownContainer) {
-    lines.push(`Subtotal: ${formatZAR(subtotal)}`);
-    lines.push(`Bringing my own container  10% off applied`);
+    lines.push(`Own container — 10% off applied`);
+  }
+  if (deliveryFee > 0) {
+    lines.push(`Delivery: ${formatZAR(deliveryFee)}`);
   }
   lines.push(`Total: ${formatZAR(total)}`);
   lines.push("");
@@ -47,6 +54,9 @@ export function buildWhatsAppOrder(
         : "Nationwide delivery"
     }`
   );
+  if (details.method === "delivery" && details.address?.trim()) {
+    lines.push(`Address: ${details.address.trim()}`);
+  }
   if (details.note?.trim()) {
     lines.push(`Note: ${details.note.trim()}`);
   }

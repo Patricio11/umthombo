@@ -56,6 +56,9 @@ export function ProductForm({
   const [packPrice, setPackPrice] = useState(
     product?.packPriceZAR != null ? String(product.packPriceZAR) : ""
   );
+  const [deliveryFee, setDeliveryFee] = useState(
+    product?.deliveryFeeZAR != null ? String(product.deliveryFeeZAR) : ""
+  );
   const [variants, setVariants] = useState<string[]>(product?.variants ?? []);
   const [customisable, setCustomisable] = useState(
     product?.customisable ?? false
@@ -86,6 +89,7 @@ export function ProductForm({
       priceZAR: num(price) as number, // null → schema "A price is required."
       priceMaxZAR: num(priceMax),
       packPriceZAR: num(packPrice),
+      deliveryFeeZAR: num(deliveryFee),
       customisable,
       featured,
       status,
@@ -262,6 +266,19 @@ export function ProductForm({
                 <Input id="packPrice" inputMode="numeric" value={packPrice} onChange={(e) => setPackPrice(e.target.value)} />
               </Field>
             </div>
+            <Field
+              label="Delivery fee (ZAR)"
+              htmlFor="deliveryFee"
+              hint="Optional — overrides the global delivery fee for this product"
+            >
+              <Input
+                id="deliveryFee"
+                inputMode="numeric"
+                value={deliveryFee}
+                onChange={(e) => setDeliveryFee(e.target.value)}
+                placeholder="Use global"
+              />
+            </Field>
           </Card>
         </div>
       </div>

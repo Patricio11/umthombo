@@ -12,6 +12,8 @@ export interface ActionResult {
 }
 
 const nullify = (v: string) => (v.trim() ? v.trim() : null);
+const toInt = (v: string) =>
+  v.trim() ? Math.max(0, parseInt(v.replace(/[^\d]/g, "")) || 0) : null;
 
 export async function updateSettings(
   input: SettingsInput
@@ -35,6 +37,10 @@ export async function updateSettings(
     facebookHandle: nullify(d.facebookHandle),
     facebookUrl: nullify(d.facebookUrl),
     email: nullify(d.email),
+    deliveryEnabled: d.deliveryEnabled,
+    deliveryFeeType: d.deliveryFeeType,
+    deliveryFeeZAR: toInt(d.deliveryFlatZAR),
+    deliveryPercent: toInt(d.deliveryPercent),
   };
   await db
     .insert(settings)

@@ -29,6 +29,12 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     story: pick(row?.story, site.story),
     collection: pick(row?.collection, site.collection),
     email: pick(row?.email, site.email),
+    delivery: {
+      enabled: row?.deliveryEnabled ?? true,
+      type: row?.deliveryFeeType === "percent" ? "percent" : "flat",
+      flatZAR: row?.deliveryFeeZAR ?? 0,
+      percent: row?.deliveryPercent ?? 0,
+    },
     whatsapp: {
       number,
       display: pick(row?.whatsappDisplay, site.whatsapp.display),

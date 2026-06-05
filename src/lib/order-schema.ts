@@ -8,12 +8,31 @@ export const orderItemInput = z.object({
   unitPriceZAR: z.number().int().min(0),
 });
 
-export const createOrderSchema = orderSchema.extend({
-  ownContainer: z.boolean().default(false),
-  items: z.array(orderItemInput).min(1, "Your selection is empty."),
-});
+export const createOrderSchema = orderSchema
+  .extend({
+    ownContainer: z.boolean().default(false),
+    address: z.string().trim().max(400).optional().default(""),
+    items: z.array(orderItemInput).min(1, "Your selection is empty."),
+  })
+  .refine((d) => d.method !== "delivery" || d.address.trim().length >= 5, {
+    message: "Please enter a delivery address.",
+    path: ["address"],
+  });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+
+/** The fields the customer fills in the order modal (items + ownContainer
+ *  come from the cart store). */
+export const orderFormSchema = orderSchema
+  .extend({
+    address: z.string().trim().max(400).optional(),
+  })
+  .refine((d) => d.method !== "delivery" || (d.address ?? "").trim().length >= 5, {
+    message: "Please enter a delivery address.",
+    path: ["address"],
+  });
+
+export type OrderFormInput = z.infer<typeof orderFormSchema>;
 
 export const ORDER_STATUSES = [
   "new",
@@ -35,6 +54,7 @@ export const adminOrderItemSchema = z.object({
 
 export const adminOrderSchema = orderSchema.extend({
   ownContainer: z.boolean().default(false),
+  address: z.string().trim().max(400).optional().default(""),
   status: z.enum(ORDER_STATUSES),
   items: z.array(adminOrderItemSchema).min(1, "Add at least one item."),
 });

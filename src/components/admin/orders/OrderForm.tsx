@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/admin/Toast";
 import { ORDER_STATUSES } from "@/lib/order-schema";
 import { createOrderAdmin, updateOrderAdmin } from "@/server/actions/orders";
+import { computeDeliveryFee, type DeliveryConfig } from "@/lib/delivery";
 import { formatZAR } from "@/lib/format";
 
 interface ItemRow {
@@ -28,9 +29,11 @@ interface ItemRow {
 export function OrderForm({
   order,
   products,
+  deliveryConfig,
 }: {
   order?: AdminOrderDetail;
   products: OrderableProduct[];
+  deliveryConfig: DeliveryConfig;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -48,6 +51,7 @@ export function OrderForm({
     order?.method ?? "delivery"
   );
   const [note, setNote] = useState(order?.note ?? "");
+  const [address, setAddress] = useState(order?.shippingAddress ?? "");
   const [ownContainer, setOwnContainer] = useState(order?.ownContainer ?? false);
   const [status, setStatus] = useState(order?.status ?? "new");
   const [items, setItems] = useState<ItemRow[]>(
@@ -67,7 +71,18 @@ export function OrderForm({
     const p = byId.get(it.productId);
     return sum + (p ? p.priceZAR * it.qty : 0);
   }, 0);
-  const total = ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const goods = ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const deliveryFee =
+    method === "delivery"
+      ? computeDeliveryFee(
+          items.map((it) => ({
+            deliveryFeeZAR: byId.get(it.productId)?.deliveryFeeZAR ?? null,
+          })),
+          subtotal,
+          deliveryConfig
+        )
+      : 0;
+  const total = goods + deliveryFee;
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +96,7 @@ export function OrderForm({
       email,
       phone,
       method,
+      address: method === "delivery" ? address : "",
       note: note || undefined,
       ownContainer,
       status,
@@ -195,7 +211,15 @@ export function OrderForm({
             {ownContainer && (
               <div className="flex justify-between text-olive">
                 <span>Own container · 10% off</span>
-                <span className="tabular-nums">−{formatZAR(subtotal - total)}</span>
+                <span className="tabular-nums">−{formatZAR(subtotal - goods)}</span>
+              </div>
+            )}
+            {method === "delivery" && (
+              <div className="flex justify-between text-ink-soft">
+                <span>Delivery</span>
+                <span className="tabular-nums">
+                  {deliveryFee > 0 ? formatZAR(deliveryFee) : "Free"}
+                </span>
               </div>
             )}
             <div className="flex justify-between pt-1 font-display text-xl">
@@ -235,6 +259,16 @@ export function OrderForm({
               <option value="collection">Collection</option>
             </Select>
           </Field>
+          {method === "delivery" && (
+            <Field label="Delivery address">
+              <Textarea
+                rows={2}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Street, suburb, city, postal code"
+              />
+            </Field>
+          )}
           <Field label="Note">
             <Textarea
               rows={2}
