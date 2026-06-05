@@ -60,6 +60,23 @@ export const productSchema = z.object({
 
 export type ProductInput = z.infer<typeof productSchema>;
 
+/* ------------------------------------------------------------------ */
+/*  Testimonials                                                       */
+/* ------------------------------------------------------------------ */
+export const testimonialSchema = z.object({
+  name: z.string().trim().min(1, "A name is required.").max(80),
+  quote: z.string().trim().min(1, "A quote is required.").max(600),
+  location: z
+    .string()
+    .trim()
+    .max(80)
+    .optional()
+    .transform((v) => (v ? v : null)),
+  published: z.boolean().default(true),
+});
+
+export type TestimonialInput = z.infer<typeof testimonialSchema>;
+
 /** Turn a label into a slug suggestion. */
 export function slugify(s: string): string {
   return s

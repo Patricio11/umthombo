@@ -94,6 +94,47 @@ export async function getAdminCategory(
   return list.find((c) => c.id === id) ?? null;
 }
 
+export interface AdminTestimonial {
+  id: string;
+  name: string;
+  quote: string;
+  location: string | null;
+  sortOrder: number;
+  published: boolean;
+}
+
+export async function getAdminTestimonials(): Promise<AdminTestimonial[]> {
+  return db
+    .select({
+      id: testimonials.id,
+      name: testimonials.name,
+      quote: testimonials.quote,
+      location: testimonials.location,
+      sortOrder: testimonials.sortOrder,
+      published: testimonials.published,
+    })
+    .from(testimonials)
+    .orderBy(asc(testimonials.sortOrder), asc(testimonials.name));
+}
+
+export async function getAdminTestimonial(
+  id: string
+): Promise<AdminTestimonial | null> {
+  const [row] = await db
+    .select({
+      id: testimonials.id,
+      name: testimonials.name,
+      quote: testimonials.quote,
+      location: testimonials.location,
+      sortOrder: testimonials.sortOrder,
+      published: testimonials.published,
+    })
+    .from(testimonials)
+    .where(eq(testimonials.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
 export interface AdminProductRow {
   id: string;
   slug: string;

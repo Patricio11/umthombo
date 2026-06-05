@@ -190,13 +190,15 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - [x] Verified with a real inserted order: list/detail/dashboard correct (then cleaned up)
 - **Acceptance:** ✅ orders persist server-priced in a transaction + WhatsApp opens; admin reads and advances them.
 
-### Phase 8 — Testimonials admin (+ optional site settings)
+### Phase 8 — Testimonials admin (+ optional site settings) ✅
 **Goal:** manage social proof (and basic site content) without code.
-- [ ] `server/actions/testimonials.ts`: CRUD + publish toggle + reorder — `requireAdmin()` + Zod + revalidate
-- [ ] **List/Edit** (`/admin/testimonials`): `DataTable`/cards, inline publish switch, reorder, create/edit form (name, quote, location)
-- [ ] Public `Testimonials` reads `published` only (already DB-backed from Phase 3)
-- [ ] *(Optional)* `settings` singleton + `/admin/settings`: WhatsApp number, tagline, collection info → consumed by site/footer/contact
-- **Acceptance:** add/edit/hide a testimonial and see the carousel update after revalidation.
+- [x] `server/actions/testimonials.ts`: create/update/delete + publish toggle + reorder — `requireAdmin()` + Zod + revalidate
+- [x] **List** (`/admin/testimonials`): order controls, name + quote preview, inline publish `Switch`, edit/delete; empty state
+- [x] **Create/Edit** (`/new` + `/[id]`): name, location, quote, published toggle
+- [x] Public `Testimonials` reads `published` only (DB-backed since Phase 3)
+- [x] Verified authed: list shows all 4 + publish toggles; forms 200
+- [ ] *(Deferred, optional)* `settings` singleton + `/admin/settings` (WhatsApp/tagline/collection)
+- **Acceptance:** ✅ add/edit/hide/reorder a testimonial; carousel reflects it after revalidation.
 
 ### Phase 9 — Hardening, polish & deploy
 **Goal:** production-ready, secure, documented.
@@ -229,4 +231,5 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - _2026-06-04_ — **Phase 2 done.** Migration applied to Neon; seed populated 4 categories / 23 products / 4 testimonials / 1 admin; sign-in verified (200 + cookie). **Phase 3 done.** Query layer + view types; all public pages read from Postgres; build SSGs everything from the DB; parity smoke-tested.
 - _2026-06-04_ — **Phase 4 done.** Admin design system (primitives, Toast, ConfirmDialog), responsive `AdminShell`, protected `(panel)` group + dashboard; auth-gate verified. **Phase 5 done.** Reusable responsive `DataTable`; Categories CRUD (create/edit/delete/reorder) via server actions with Zod + revalidate; verified.
 - _2026-06-04_ — **Phase 6 done.** Supabase Storage wired (bucket public, upload/url/delete tested); `ImageUploader` (drag-drop primary + gallery); Products CRUD with sectioned responsive form, variants, feature/status toggles, search/filter list; delete cleans up images; verified authed + build green.
-- _2026-06-05_ — **Phase 7 done.** `createOrder` re-prices from the DB and writes order + items in a transaction; `OrderModal` persists then opens WhatsApp; admin orders list + detail + status switcher + WhatsApp reply; verified with a real order then cleaned up. Next: **Phase 8 — testimonials CRUD.**
+- _2026-06-05_ — **Phase 7 done.** `createOrder` re-prices from the DB and writes order + items in a transaction; `OrderModal` persists then opens WhatsApp; admin orders list + detail + status switcher + WhatsApp reply; verified with a real order then cleaned up.
+- _2026-06-05_ — **Phase 8 done.** Testimonials CRUD (create/edit/delete/reorder + inline publish toggle) via server actions; verified authed. Site-settings panel deferred (optional). Next: **Phase 9 — hardening, docs, final build.**
