@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Package, TrendingUp, Truck, MapPin } from "lucide-react";
+import { Package, TrendingUp, Truck, MapPin, Download } from "lucide-react";
 import {
   getAnalytics,
   isPeriodKey,
   PERIODS,
   type PeriodKey,
+  type Scope,
 } from "@/server/db/analytics";
 import {
   AdminPageHeader,
@@ -12,21 +13,14 @@ import {
   StatusBadge,
 } from "@/components/admin/primitives";
 import { BarChart } from "@/components/admin/analytics/BarChart";
+import { CustomRange } from "@/components/admin/analytics/CustomRange";
 import { formatZAR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Analytics" };
 
-function Kpi({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-}) {
+function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <Card className="h-full">
       <p className="text-sm text-ink-soft">{label}</p>
@@ -39,36 +33,85 @@ function Kpi({
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ period?: string }>;
+  searchParams: Promise<{ period?: string; from?: string; to?: string; scope?: string }>;
 }) {
-  const { period } = await searchParams;
-  const key: PeriodKey = isPeriodKey(period) ? period : "this-month";
-  const a = await getAnalytics(key);
+  const params = await searchParams;
+  const period: PeriodKey = isPeriodKey(params.period) ? params.period : "this-month";
+  const scope: Scope = params.scope === "pipeline" ? "pipeline" : "completed";
+  const from = params.from;
+  const to = params.to;
+
+  const a = await getAnalytics({ period, from, to, scope });
+
+  // Build a query string preserving current params, with overrides.
+  const qp = (over: Partial<{ period: string; from: string; to: string; scope: string }>) => {
+    const merged: Record<string, string> = { period, scope };
+    if (from) merged.from = from;
+    if (to) merged.to = to;
+    Object.assign(merged, over);
+    return new URLSearchParams(merged).toString();
+  };
+
+  const scopeNoun = scope === "completed" ? "completed" : "active";
 
   return (
     <>
       <AdminPageHeader
         title="Analytics"
-        subtitle={`A read on how the shop is doing — ${a.periodLabel.toLowerCase()}.`}
+        subtitle={`A read on how the shop is doing — ${a.range.label.toLowerCase()}.`}
+        action={
+          <a
+            href={`/admin/analytics/export?${qp({})}`}
+            className="inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-olive hover:text-olive"
+          >
+            <Download size={15} /> Export CSV
+          </a>
+        }
       />
 
-      {/* Period selector */}
-      <div className="mb-6 flex gap-1 overflow-x-auto rounded-full bg-cream-2 p-1">
-        {PERIODS.map((p) => (
-          <Link
-            key={p.key}
-            href={`/admin/analytics?period=${p.key}`}
-            className={cn(
-              "shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
-              key === p.key
-                ? "bg-cream text-ink shadow-sm"
-                : "text-ink-soft hover:text-ink"
-            )}
-          >
-            {p.label}
-          </Link>
-        ))}
+      {/* Period + scope controls */}
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex gap-1 overflow-x-auto rounded-full bg-cream-2 p-1">
+          {PERIODS.map((p) => (
+            <Link
+              key={p.key}
+              href={`/admin/analytics?${qp({ period: p.key })}`}
+              className={cn(
+                "shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+                period === p.key ? "bg-cream text-ink shadow-sm" : "text-ink-soft hover:text-ink"
+              )}
+            >
+              {p.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="flex gap-1 rounded-full bg-cream-2 p-1">
+          {(
+            [
+              { key: "completed", label: "Completed" },
+              { key: "pipeline", label: "Incl. pending" },
+            ] as const
+          ).map((s) => (
+            <Link
+              key={s.key}
+              href={`/admin/analytics?${qp({ scope: s.key })}`}
+              className={cn(
+                "shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+                scope === s.key ? "bg-cream text-ink shadow-sm" : "text-ink-soft hover:text-ink"
+              )}
+            >
+              {s.label}
+            </Link>
+          ))}
+        </div>
       </div>
+
+      {period === "custom" && (
+        <div className="mb-6">
+          <CustomRange from={from} to={to} scope={scope} />
+        </div>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -78,16 +121,12 @@ export default async function AnalyticsPage({
           sub={`${formatZAR(a.deliveryRevenue)} from delivery`}
         />
         <Kpi
-          label="Completed orders"
-          value={String(a.completedCount)}
-          sub={`${a.ordersPlaced} placed · ${Math.round(a.conversion * 100)}% completed`}
+          label={scope === "completed" ? "Completed orders" : "Active orders"}
+          value={String(a.scopedCount)}
+          sub={`${a.ordersPlaced} placed · ${Math.round(a.conversion * 100)}% ${scopeNoun}`}
         />
         <Kpi label="Items sold" value={String(a.itemsSold)} />
-        <Kpi
-          label="Avg order"
-          value={formatZAR(a.avgOrder)}
-          sub="completed orders"
-        />
+        <Kpi label="Avg order" value={formatZAR(a.avgOrder)} sub={`${scopeNoun} orders`} />
       </div>
 
       {/* Revenue chart */}
@@ -95,7 +134,7 @@ export default async function AnalyticsPage({
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-xl">Revenue over time</h2>
           <span className="inline-flex items-center gap-1.5 text-sm text-ink-soft">
-            <TrendingUp size={15} className="text-olive" /> completed
+            <TrendingUp size={15} className="text-olive" /> {scopeNoun}
           </span>
         </div>
         <BarChart data={a.series} />
@@ -108,7 +147,7 @@ export default async function AnalyticsPage({
           {a.topProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center text-sm text-ink-soft">
               <Package size={26} className="mb-3 text-taupe" />
-              No completed sales in this period yet.
+              No {scopeNoun} sales in this period yet.
             </div>
           ) : (
             <ul className="mt-4 space-y-3">
@@ -147,10 +186,7 @@ export default async function AnalyticsPage({
                 <li className="text-sm text-ink-soft">No orders in this period.</li>
               ) : (
                 a.statusBreakdown.map((s) => (
-                  <li
-                    key={s.status}
-                    className="flex items-center justify-between text-sm"
-                  >
+                  <li key={s.status} className="flex items-center justify-between text-sm">
                     <StatusBadge status={s.status} />
                     <span className="tabular-nums text-ink-soft">{s.count}</span>
                   </li>
