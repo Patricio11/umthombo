@@ -234,6 +234,7 @@ export interface AdminOrderDetail {
   createdAt: Date;
   items: {
     id: string;
+    productId: string | null;
     name: string;
     variant: string | null;
     qty: number;
@@ -250,6 +251,7 @@ export async function getAdminOrder(
   const items = await db
     .select({
       id: orderItems.id,
+      productId: orderItems.productId,
       name: orderItems.name,
       variant: orderItems.variant,
       qty: orderItems.qty,
@@ -259,6 +261,27 @@ export async function getAdminOrder(
     .from(orderItems)
     .where(eq(orderItems.orderId, id));
   return { ...order, items };
+}
+
+export interface OrderableProduct {
+  id: string;
+  name: string;
+  priceZAR: number;
+  variants: string[];
+}
+
+export async function getOrderableProducts(): Promise<OrderableProduct[]> {
+  const rows = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      priceZAR: products.priceZAR,
+      variants: products.variants,
+    })
+    .from(products)
+    .where(eq(products.status, "active"))
+    .orderBy(asc(products.name));
+  return rows.map((r) => ({ ...r, variants: r.variants ?? [] }));
 }
 
 export async function getRecentOrders(limit = 6): Promise<RecentOrder[]> {

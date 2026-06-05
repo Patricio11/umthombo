@@ -4,6 +4,7 @@ import { ArrowLeft, Mail, Phone, MapPin, Truck } from "lucide-react";
 import { getAdminOrder } from "@/server/db/admin-queries";
 import { Card, StatusBadge } from "@/components/admin/primitives";
 import { OrderStatusControl } from "@/components/admin/orders/OrderStatusControl";
+import { OrderActions } from "@/components/admin/orders/OrderActions";
 import { WhatsAppIcon } from "@/components/brand/SocialIcons";
 import { formatZAR } from "@/lib/format";
 
@@ -47,7 +48,10 @@ export default async function OrderDetailPage({
             </h1>
             <p className="mt-1 text-sm text-ink-soft">{placed}</p>
           </div>
-          <StatusBadge status={order.status} />
+          <div className="flex items-center gap-3">
+            <StatusBadge status={order.status} />
+            <OrderActions id={order.id} orderNumber={order.orderNumber} />
+          </div>
         </div>
       </div>
 

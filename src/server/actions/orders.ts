@@ -8,8 +8,10 @@ import { orders, orderItems, products } from "@/server/db/schema";
 import { requireAdmin } from "@/server/auth/guard";
 import {
   createOrderSchema,
+  adminOrderSchema,
   ORDER_STATUSES,
   type CreateOrderInput,
+  type AdminOrderInput,
   type OrderStatus,
 } from "@/lib/order-schema";
 
@@ -123,6 +125,106 @@ export async function updateOrderStatus(
     return { ok: false, error: "Unknown status." };
   }
   await db.update(orders).set({ status }).where(eq(orders.id, id));
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+/** Price admin order items from the DB and build the insertable lines. */
+async function buildLines(items: AdminOrderInput["items"]) {
+  const ids = [...new Set(items.map((i) => i.productId))];
+  const rows = await db.select().from(products).where(inArray(products.id, ids));
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const lines: Omit<typeof orderItems.$inferInsert, "orderId">[] = [];
+  let subtotal = 0;
+  for (const it of items) {
+    const p = byId.get(it.productId);
+    if (!p) throw new Error("A selected product no longer exists.");
+    const lineTotal = p.priceZAR * it.qty;
+    subtotal += lineTotal;
+    lines.push({
+      productId: p.id,
+      name: p.name,
+      variant: it.variant?.trim() ? it.variant.trim() : null,
+      qty: it.qty,
+      unitPriceZAR: p.priceZAR,
+      lineTotalZAR: lineTotal,
+    });
+  }
+  return { lines, subtotal };
+}
+
+/** Admin: create an order manually (e.g. a phone or walk-in order). */
+export async function createOrderAdmin(
+  input: AdminOrderInput
+): Promise<ActionResult & { id?: string }> {
+  await requireAdmin();
+  const parsed = adminOrderSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
+  }
+  const d = parsed.data;
+  const { lines, subtotal } = await buildLines(d.items);
+  const total = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const id = randomUUID();
+  await db.transaction(async (tx) => {
+    await tx.insert(orders).values({
+      id,
+      orderNumber: genOrderNumber(),
+      customerName: d.name,
+      customerEmail: d.email,
+      customerPhone: d.phone,
+      method: d.method,
+      note: d.note ?? null,
+      ownContainer: d.ownContainer,
+      subtotalZAR: subtotal,
+      totalZAR: total,
+      status: d.status,
+    });
+    await tx.insert(orderItems).values(lines.map((l) => ({ ...l, orderId: id })));
+  });
+  revalidatePath("/admin", "layout");
+  return { ok: true, id };
+}
+
+/** Admin: edit an order — replaces items and recomputes totals atomically. */
+export async function updateOrderAdmin(
+  id: string,
+  input: AdminOrderInput
+): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = adminOrderSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
+  }
+  const d = parsed.data;
+  const { lines, subtotal } = await buildLines(d.items);
+  const total = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  await db.transaction(async (tx) => {
+    await tx
+      .update(orders)
+      .set({
+        customerName: d.name,
+        customerEmail: d.email,
+        customerPhone: d.phone,
+        method: d.method,
+        note: d.note ?? null,
+        ownContainer: d.ownContainer,
+        subtotalZAR: subtotal,
+        totalZAR: total,
+        status: d.status,
+      })
+      .where(eq(orders.id, id));
+    await tx.delete(orderItems).where(eq(orderItems.orderId, id));
+    await tx.insert(orderItems).values(lines.map((l) => ({ ...l, orderId: id })));
+  });
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+/** Admin: delete an order (items cascade). */
+export async function deleteOrder(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  await db.delete(orders).where(eq(orders.id, id));
   revalidatePath("/admin", "layout");
   return { ok: true };
 }
