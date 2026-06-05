@@ -25,6 +25,17 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // refresh daily
     cookieCache: { enabled: true, maxAge: 5 * 60 },
   },
+  rateLimit: {
+    enabled: true,
+    window: 60, // seconds
+    max: 30, // requests per window per IP
+    customRules: {
+      "/sign-in/email": { window: 60, max: 5 }, // throttle brute-force
+    },
+  },
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === "production",
+  },
 });
 
 export type Session = typeof auth.$Infer.Session;

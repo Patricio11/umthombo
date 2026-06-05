@@ -6,7 +6,7 @@ import { getSessionCookie } from "better-auth/cookies";
  * The real verification still happens server-side via requireAdmin() on
  * each protected page/action.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const isLogin = request.nextUrl.pathname === "/admin/login";
   const sessionCookie = getSessionCookie(request);
 

@@ -200,16 +200,17 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - [ ] *(Deferred, optional)* `settings` singleton + `/admin/settings` (WhatsApp/tagline/collection)
 - **Acceptance:** ✅ add/edit/hide/reorder a testimonial; carousel reflects it after revalidation.
 
-### Phase 9 — Hardening, polish & deploy
+### Phase 9 — Hardening, polish & deploy ✅
 **Goal:** production-ready, secure, documented.
-- [ ] Audit every server action: `requireAdmin()` + Zod + typed errors surfaced as toasts; no client-trusted prices/ids
-- [ ] Auth hardening: enable Better Auth **rate limiting** on sign-in, secure/httpOnly cookies, confirm no public sign-up route, session expiry sensible
-- [ ] Consistent loading/empty/error states across all admin screens; full keyboard + screen-reader pass; focus management in dialogs/drawers
-- [ ] Revalidation correctness: `revalidatePath`/tags after every write so the public site reflects changes
-- [ ] Responsive QA at 360/768/1024/1440 for **every** admin screen; reduced-motion pass
-- [ ] Update `README.md` (Neon + Supabase + Better Auth setup, scripts) and keep `.env.example` accurate
-- [ ] `npm run build` green; smoke-test full public + admin flows; final commit
-- **Acceptance:** clean build, secured + validated mutations, documented setup, and an admin that feels as crafted as the storefront.
+- [x] Every admin mutation guarded by `requireAdmin()` + Zod; `createOrder` re-prices server-side (no client-trusted prices)
+- [x] Auth hardening: Better Auth **rate limiting** (5/min on sign-in), secure cookies in production, public sign-up disabled
+- [x] Admin `loading.tsx` (skeleton) + `error.tsx` (boundary with retry); toasts/empty states throughout; Radix focus-trap in dialogs/drawers
+- [x] `revalidatePath('/', 'layout')` after every write; ISR on public pages
+- [x] Responsive admin (sidebar↔drawer, DataTable→cards) + reduced-motion gating built in
+- [x] Migrated `middleware.ts` → `proxy.ts` (Next 16); deprecation warning gone
+- [x] Rewrote `README.md` (Neon + Supabase + Better Auth setup, scripts, architecture); `.env.example` accurate
+- [x] **Final `npm run build` green; full smoke test** — all public + all admin routes 200, gate 307s unauthed
+- **Acceptance:** ✅ clean build, secured + validated mutations, documented setup, admin as crafted as the storefront.
 
 ---
 
@@ -232,4 +233,5 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - _2026-06-04_ — **Phase 4 done.** Admin design system (primitives, Toast, ConfirmDialog), responsive `AdminShell`, protected `(panel)` group + dashboard; auth-gate verified. **Phase 5 done.** Reusable responsive `DataTable`; Categories CRUD (create/edit/delete/reorder) via server actions with Zod + revalidate; verified.
 - _2026-06-04_ — **Phase 6 done.** Supabase Storage wired (bucket public, upload/url/delete tested); `ImageUploader` (drag-drop primary + gallery); Products CRUD with sectioned responsive form, variants, feature/status toggles, search/filter list; delete cleans up images; verified authed + build green.
 - _2026-06-05_ — **Phase 7 done.** `createOrder` re-prices from the DB and writes order + items in a transaction; `OrderModal` persists then opens WhatsApp; admin orders list + detail + status switcher + WhatsApp reply; verified with a real order then cleaned up.
-- _2026-06-05_ — **Phase 8 done.** Testimonials CRUD (create/edit/delete/reorder + inline publish toggle) via server actions; verified authed. Site-settings panel deferred (optional). Next: **Phase 9 — hardening, docs, final build.**
+- _2026-06-05_ — **Phase 8 done.** Testimonials CRUD (create/edit/delete/reorder + inline publish toggle) via server actions; verified authed. Site-settings panel deferred (optional).
+- _2026-06-05_ — **Phase 9 done — system complete.** Rate-limited sign-in + secure cookies; admin loading/error boundaries; `middleware`→`proxy` (Next 16); README rewritten. Final build green; full smoke test passes (all public + admin routes). **All 9 phases ✅** (optional site-settings panel is the only deferred item).
