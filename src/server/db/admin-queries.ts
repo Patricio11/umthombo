@@ -64,6 +64,7 @@ export interface AdminCategory {
   eyebrow: string;
   accent: Accent;
   blurb: string;
+  image: string;
   sortOrder: number;
   productCount: number;
 }
@@ -77,6 +78,7 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
       eyebrow: categories.eyebrow,
       accent: categories.accent,
       blurb: categories.blurb,
+      image: categories.image,
       sortOrder: categories.sortOrder,
       productCount: sql<number>`count(${products.id})::int`,
     })

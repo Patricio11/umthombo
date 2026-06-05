@@ -49,6 +49,7 @@ export const categories = pgTable("categories", {
   eyebrow: text("eyebrow").notNull().default(""),
   accent: text("accent").notNull().default("olive"), // olive | clay | mist | taupe
   blurb: text("blurb").notNull().default(""),
+  image: text("image").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
   ...timestamps,
 });

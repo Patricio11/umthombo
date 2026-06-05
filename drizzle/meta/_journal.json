@@ -36,6 +36,13 @@
       "when": 1780629184476,
       "tag": "0004_delivery_charge",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780676333144,
+      "tag": "0005_category_image",
+      "breakpoints": true
     }
   ]
 }

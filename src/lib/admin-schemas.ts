@@ -15,6 +15,7 @@ export const categorySchema = z.object({
   eyebrow: z.string().trim().max(60).optional().default(""),
   accent: accentEnum,
   blurb: z.string().trim().max(300).optional().default(""),
+  image: z.string().trim().default(""),
 });
 
 export type CategoryInput = z.infer<typeof categorySchema>;

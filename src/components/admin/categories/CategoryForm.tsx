@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import type { AdminCategory } from "@/server/db/admin-queries";
 import { Card, Field, Input, Textarea } from "@/components/admin/primitives";
 import { Button } from "@/components/ui/Button";
+import { ImageField } from "@/components/admin/ImageUploader";
 import { useToast } from "@/components/admin/Toast";
 import { accentClasses, type Accent } from "@/lib/accents";
 import { slugify } from "@/lib/admin-schemas";
@@ -26,6 +27,7 @@ export function CategoryForm({ category }: { category?: AdminCategory }) {
   const [eyebrow, setEyebrow] = useState(category?.eyebrow ?? "");
   const [accent, setAccent] = useState<Accent>(category?.accent ?? "olive");
   const [blurb, setBlurb] = useState(category?.blurb ?? "");
+  const [image, setImage] = useState(category?.image ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const onLabel = (v: string) => {
@@ -36,7 +38,7 @@ export function CategoryForm({ category }: { category?: AdminCategory }) {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    const input = { label, slug, eyebrow, accent, blurb };
+    const input = { label, slug, eyebrow, accent, blurb, image };
     startTransition(async () => {
       const res = category
         ? await updateCategory(category.id, input)
@@ -122,6 +124,10 @@ export function CategoryForm({ category }: { category?: AdminCategory }) {
             onChange={(e) => setBlurb(e.target.value)}
             placeholder="Sculptural, scented, slow to burn."
           />
+        </Field>
+
+        <Field label="Image" hint="Shown on the home page category tile">
+          <ImageField value={image} onChange={setImage} />
         </Field>
       </Card>
 

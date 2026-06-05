@@ -89,10 +89,17 @@ export function CategoriesTable({
       primary: true,
       cell: (c) => (
         <div className="flex items-center gap-3">
-          <span
-            className={`h-7 w-7 shrink-0 rounded-full ${accentClasses[c.accent].bg}`}
-            aria-hidden
-          />
+          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-cream-2">
+            {c.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={c.image} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span
+                className={`block h-full w-full ${accentClasses[c.accent].bg}`}
+                aria-hidden
+              />
+            )}
+          </div>
           <div className="min-w-0">
             <p className="font-medium">{c.label}</p>
             <p className="text-xs text-ink-soft">{c.eyebrow || "—"}</p>

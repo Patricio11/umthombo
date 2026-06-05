@@ -20,11 +20,19 @@ import { categoryMeta, products as seedProducts } from "../src/data/products";
 import { testimonials as seedTestimonials } from "../src/data/testimonials";
 import { auth } from "../src/server/auth/auth";
 
+const categoryImages: Record<string, string> = {
+  candles: "/products/crimson-petal.jpg",
+  skin: "/products/buttertastic-mega.jpg",
+  home: "/products/citrus-burst.jpg",
+  hampers: "/products/collective-box.jpg",
+};
+
 async function seedCategories() {
   const slugToId = new Map<string, string>();
   const entries = Object.entries(categoryMeta);
   for (let i = 0; i < entries.length; i++) {
     const [slug, meta] = entries[i];
+    const image = categoryImages[slug] ?? "";
     const [row] = await db
       .insert(categories)
       .values({
@@ -33,6 +41,7 @@ async function seedCategories() {
         eyebrow: meta.eyebrow,
         accent: meta.accent,
         blurb: meta.blurb,
+        image,
         sortOrder: i,
       })
       .onConflictDoUpdate({
@@ -42,6 +51,7 @@ async function seedCategories() {
           eyebrow: meta.eyebrow,
           accent: meta.accent,
           blurb: meta.blurb,
+          image,
           sortOrder: i,
         },
       })

@@ -10,22 +10,24 @@ import {
   getFeaturedProducts,
   getTestimonials,
   getProducts,
+  getCategories,
 } from "@/server/db/queries";
 
 export const revalidate = 60;
 
 export default async function Home() {
-  const [featured, testimonials, hampers] = await Promise.all([
+  const [featured, testimonials, hampers, categories] = await Promise.all([
     getFeaturedProducts(4),
     getTestimonials(),
     getProducts({ category: "hampers" }),
+    getCategories(),
   ]);
 
   return (
     <>
       <Hero />
       <StoryStrip />
-      <CategoryTiles />
+      <CategoryTiles categories={categories} />
       <Featured items={featured} />
       <HampersFeature hampers={hampers} />
       <Testimonials items={testimonials} />

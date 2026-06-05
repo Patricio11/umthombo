@@ -50,6 +50,7 @@ function toCategoryView(row: typeof categories.$inferSelect): CategoryView {
     eyebrow: row.eyebrow,
     accent: (row.accent as Accent) ?? "olive",
     blurb: row.blurb,
+    image: row.image,
   };
 }
 

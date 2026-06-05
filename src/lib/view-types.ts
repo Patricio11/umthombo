@@ -35,6 +35,7 @@ export interface CategoryView {
   eyebrow: string;
   accent: Accent;
   blurb: string;
+  image: string;
 }
 
 export interface TestimonialView {
