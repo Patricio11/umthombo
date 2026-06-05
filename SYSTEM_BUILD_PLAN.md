@@ -179,15 +179,16 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - [x] Verified authed: list / new / edit render 200; build green; Supabase pipeline tested
 - **Acceptance:** ✅ full product CRUD with real Supabase uploads; drafts hidden, active shown; revalidates; responsive & validated.
 
-### Phase 7 — Orders (public persistence + admin management)
+### Phase 7 — Orders (public persistence + admin management) ✅
 **Goal:** every order is captured and manageable; customer still gets the WhatsApp hand-off.
-- [ ] `server/actions/orders.ts` (or `POST /api/orders`): Zod-validate cart + details, compute totals **server-side** (don't trust client prices — re-price from DB), generate `orderNumber`, insert order + items in **one transaction**, return id/number
-- [ ] Update `OrderModal`: submit → create order (server) → then open WhatsApp deep-link (existing) → success screen; handle/save failures gracefully
-- [ ] `server/actions/orders.ts`: `updateOrderStatus`, `addAdminNote` (optional) — `requireAdmin()`
-- [ ] **List** (`/admin/orders`): `DataTable` filter by status + search by name/number/phone; columns: number, customer, total, items count, status badge, date; responsive cards; newest first
-- [ ] **Detail** (`/admin/orders/[id]`): customer block, line items (snapshot), totals, 10%-container flag, method, note; **status switcher** (new→confirmed→preparing→completed / cancelled) with toast + optimistic update; quick "reply on WhatsApp" link
-- [ ] Dashboard "recent orders" + new-order count wired
-- **Acceptance:** placing an order writes a correct row (server-priced) + opens WhatsApp; admin can find it, read it, and move it through statuses.
+- [x] `createOrder`: Zod-validate, **re-price every line from the DB** (accept only base/pack/range — no client trust), generate `orderNumber`, insert order + items in **one transaction**
+- [x] `OrderModal`: submit → `createOrder` → on success open WhatsApp → success; inline error + "Placing your order…" state on failure
+- [x] `updateOrderStatus` — `requireAdmin()` + enum guard + revalidate
+- [x] **List** (`/admin/orders`): status filter, columns number/customer/method/items/total/status/date, newest first, row → detail, responsive
+- [x] **Detail** (`/admin/orders/[id]`): customer block, snapshot line items, subtotal/10%/total, method, note; **status switcher** (toast + refresh); "reply on WhatsApp" (ZA number normalised)
+- [x] Dashboard recent-orders + new-count wired
+- [x] Verified with a real inserted order: list/detail/dashboard correct (then cleaned up)
+- **Acceptance:** ✅ orders persist server-priced in a transaction + WhatsApp opens; admin reads and advances them.
 
 ### Phase 8 — Testimonials admin (+ optional site settings)
 **Goal:** manage social proof (and basic site content) without code.
@@ -227,4 +228,5 @@ The admin must feel as crafted as the storefront — **smooth, consistent, fully
 - _2026-06-04_ — **Phase 0 done.** Schema (9 tables) + migration `0000_init`; lazy transaction-capable Neon client; `db:*` scripts; fixed Better Auth/kysely bundling. **Phase 1 code done.** Better Auth (Drizzle adapter, no sign-up), `/admin/login`, middleware + `requireAdmin()`, `(site)` route group. Build green.
 - _2026-06-04_ — **Phase 2 done.** Migration applied to Neon; seed populated 4 categories / 23 products / 4 testimonials / 1 admin; sign-in verified (200 + cookie). **Phase 3 done.** Query layer + view types; all public pages read from Postgres; build SSGs everything from the DB; parity smoke-tested.
 - _2026-06-04_ — **Phase 4 done.** Admin design system (primitives, Toast, ConfirmDialog), responsive `AdminShell`, protected `(panel)` group + dashboard; auth-gate verified. **Phase 5 done.** Reusable responsive `DataTable`; Categories CRUD (create/edit/delete/reorder) via server actions with Zod + revalidate; verified.
-- _2026-06-04_ — **Phase 6 done.** Supabase Storage wired (bucket public, upload/url/delete tested); `ImageUploader` (drag-drop primary + gallery); Products CRUD with sectioned responsive form, variants, feature/status toggles, search/filter list; delete cleans up images; verified authed + build green. Next: **Phase 7 — orders persistence + admin management.**
+- _2026-06-04_ — **Phase 6 done.** Supabase Storage wired (bucket public, upload/url/delete tested); `ImageUploader` (drag-drop primary + gallery); Products CRUD with sectioned responsive form, variants, feature/status toggles, search/filter list; delete cleans up images; verified authed + build green.
+- _2026-06-05_ — **Phase 7 done.** `createOrder` re-prices from the DB and writes order + items in a transaction; `OrderModal` persists then opens WhatsApp; admin orders list + detail + status switcher + WhatsApp reply; verified with a real order then cleaned up. Next: **Phase 8 — testimonials CRUD.**

@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { orderSchema, type OrderInput } from "@/lib/zod-schemas";
 import { buildWhatsAppOrder } from "@/lib/whatsapp";
+import { createOrder } from "@/server/actions/orders";
 import { useCart, selectTotal } from "@/store/cart";
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
@@ -31,6 +32,7 @@ export function OrderModal({
   const closeCart = useCart((s) => s.closeCart);
 
   const [submitted, setSubmitted] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Pause Lenis while the modal is open so scrolling stays inside the modal,
   // not the page behind it.
@@ -50,12 +52,25 @@ export function OrderModal({
     defaultValues: { method: "delivery" },
   });
 
-  const onSubmit = (data: OrderInput) => {
-    const url = buildWhatsAppOrder(items, {
+  const onSubmit = async (data: OrderInput) => {
+    setSaveError(null);
+    // 1. Persist the order (prices re-validated server-side).
+    const res = await createOrder({
       ...data,
       ownContainer,
+      items: items.map((i) => ({
+        slug: i.slug,
+        variant: i.variant ?? null,
+        qty: i.qty,
+        unitPriceZAR: i.unitPriceZAR,
+      })),
     });
-    // Open WhatsApp with the pre-filled order.
+    if (!res.ok) {
+      setSaveError(res.error ?? "Something went wrong. Please try again.");
+      return;
+    }
+    // 2. Open WhatsApp with the pre-filled order.
+    const url = buildWhatsAppOrder(items, { ...data, ownContainer });
     window.open(url, "_blank", "noopener,noreferrer");
     setSubmitted(true);
   };
@@ -199,13 +214,19 @@ export function OrderModal({
                           </span>
                         </div>
 
+                        {saveError && (
+                          <p className="rounded-xl bg-clay/10 px-4 py-3 text-sm text-clay">
+                            {saveError}
+                          </p>
+                        )}
+
                         <Button
                           type="submit"
                           size="lg"
                           className="mt-1 w-full"
                           disabled={isSubmitting || items.length === 0}
                         >
-                          Send via WhatsApp
+                          {isSubmitting ? "Placing your order…" : "Send via WhatsApp"}
                         </Button>
                       </form>
                     </motion.div>

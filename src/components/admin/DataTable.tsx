@@ -22,11 +22,13 @@ export function DataTable<T>({
   rows,
   getKey,
   empty,
+  onRowClick,
 }: {
   columns: Column<T>[];
   rows: T[];
   getKey: (row: T) => string;
   empty?: ReactNode;
+  onRowClick?: (row: T) => void;
 }) {
   const cols = columns.filter((c) => !c.hidden);
 
@@ -59,7 +61,11 @@ export function DataTable<T>({
             {rows.map((row) => (
               <tr
                 key={getKey(row)}
-                className="border-b border-cream-2 transition-colors last:border-0 hover:bg-cream-2/40"
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={cn(
+                  "border-b border-cream-2 transition-colors last:border-0 hover:bg-cream-2/40",
+                  onRowClick && "cursor-pointer"
+                )}
               >
                 {cols.map((c) => (
                   <td
@@ -84,7 +90,11 @@ export function DataTable<T>({
         {rows.map((row) => (
           <div
             key={getKey(row)}
-            className="rounded-2xl border border-cream-3 bg-cream p-4"
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+            className={cn(
+              "rounded-2xl border border-cream-3 bg-cream p-4",
+              onRowClick && "cursor-pointer"
+            )}
           >
             {cols.map((c) =>
               c.primary ? (

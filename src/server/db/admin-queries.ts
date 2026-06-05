@@ -6,8 +6,10 @@ import {
   categories,
   testimonials,
   orders,
+  orderItems,
 } from "@/server/db/schema";
 import type { Accent } from "@/lib/accents";
+import type { OrderStatus } from "@/lib/order-schema";
 
 export interface AdminStats {
   products: number;
@@ -144,6 +146,78 @@ export interface RecentOrder {
   totalZAR: number;
   status: string;
   createdAt: Date;
+}
+
+export interface AdminOrderRow {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  totalZAR: number;
+  status: OrderStatus;
+  method: "delivery" | "collection";
+  itemCount: number;
+  createdAt: Date;
+}
+
+export async function getAdminOrders(): Promise<AdminOrderRow[]> {
+  const rows = await db
+    .select({
+      id: orders.id,
+      orderNumber: orders.orderNumber,
+      customerName: orders.customerName,
+      totalZAR: orders.totalZAR,
+      status: orders.status,
+      method: orders.method,
+      createdAt: orders.createdAt,
+      itemCount: sql<number>`count(${orderItems.id})::int`,
+    })
+    .from(orders)
+    .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
+    .groupBy(orders.id)
+    .orderBy(desc(orders.createdAt));
+  return rows;
+}
+
+export interface AdminOrderDetail {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  method: "delivery" | "collection";
+  note: string | null;
+  ownContainer: boolean;
+  subtotalZAR: number;
+  totalZAR: number;
+  status: OrderStatus;
+  createdAt: Date;
+  items: {
+    id: string;
+    name: string;
+    variant: string | null;
+    qty: number;
+    unitPriceZAR: number;
+    lineTotalZAR: number;
+  }[];
+}
+
+export async function getAdminOrder(
+  id: string
+): Promise<AdminOrderDetail | null> {
+  const [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+  if (!order) return null;
+  const items = await db
+    .select({
+      id: orderItems.id,
+      name: orderItems.name,
+      variant: orderItems.variant,
+      qty: orderItems.qty,
+      unitPriceZAR: orderItems.unitPriceZAR,
+      lineTotalZAR: orderItems.lineTotalZAR,
+    })
+    .from(orderItems)
+    .where(eq(orderItems.orderId, id));
+  return { ...order, items };
 }
 
 export async function getRecentOrders(limit = 6): Promise<RecentOrder[]> {
