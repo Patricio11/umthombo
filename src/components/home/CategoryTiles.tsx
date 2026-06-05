@@ -50,10 +50,11 @@ export function CategoryTiles({ categories }: { categories: CategoryView[] }) {
                       className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105"
                     />
                   )}
-                  {/* Subtle system-green wash over the photo */}
-                  <div className="absolute inset-0 bg-olive/35 mix-blend-multiply transition-colors duration-500 group-hover:bg-olive/50" />
+                  {/* System-green wash — clearly tinted, lightens on hover to
+                      reveal the photo */}
+                  <div className="absolute inset-0 bg-olive/55 transition-colors duration-500 group-hover:bg-olive/25" />
                   {/* Darken the foot for legible text */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-ink/10 to-transparent" />
 
                   <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8">
                     <p className="eyebrow text-cream/85">{cat.eyebrow}</p>
