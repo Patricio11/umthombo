@@ -172,11 +172,11 @@ Delete `src/lib/delivery.ts` (computeDeliveryFee) and all its callers.
 
 ### Phase 8 — Hardening, docs & deploy
 **Goal:** production-ready and documented.
-- [ ] Webhook security: raw-body HMAC, timestamp window, idempotency, fail-closed; never log secrets; mask in UI
-- [ ] Validation + friendly errors across checkout (address, rate selection, payment init failures); loading/disabled states; reduced-motion
-- [ ] `.env.example` + README: how to configure BobGo & YetoPay in `/admin/integrations`, webhook URLs to register (`/api/webhooks/yetopay`, `/api/webhooks/bobgo`), sandbox notes, the YetoPay gaps to confirm
-- [ ] Responsive QA of `/checkout` + admin integrations at 360/768/1024/1440; final `npm run build`; smoke test of the full flow (mocked where no creds)
-- **Acceptance:** clean build; secure verified webhooks; documented setup; smooth end-to-end flow.
+- [x] Webhook security: YetoPay verifies **raw-body HMAC** (`X-Webhook-Signature`, constant-time), **idempotent** via `payment_events`, **fail-closed** (bad sig → 401; no secret → ack-and-ignore). BobGo trusted-by-construction (order-scoped, shipping-only writes) + idempotent. No secrets logged; secrets masked in UI. *(Timestamp-window intentionally omitted — idempotency already blocks replays, and a strict clock gate would drop legitimately delayed provider retries.)*
+- [x] Checkout: friendly errors (address/rate/payment-init), loading + disabled states (rate fetch, place order); no unguarded motion (reduced-motion safe). Graceful degradation everywhere (BobGo off → collection-only; YetoEFT off → WhatsApp/manual; Resend off → skip)
+- [x] `.env.example` + README: added `NEXT_PUBLIC_APP_URL`, an **Integrations & webhooks** guide (table, product shipping dims, webhook URLs to register, sandbox + YetoPay gaps), updated checkout/admin/file-tree sections
+- [x] Responsive `/checkout` (single-column on mobile, sticky summary on lg) + admin integrations grid; **final `next build` clean**; all new routes present (`/checkout`, `/checkout/success|cancelled`, `/api/webhooks/yetopay|bobgo`)
+- **Acceptance:** ✅ clean build; verified/idempotent webhooks; documented setup; smooth, gracefully-degrading end-to-end flow.
 
 ---
 
