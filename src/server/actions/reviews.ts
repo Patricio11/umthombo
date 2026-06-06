@@ -31,6 +31,7 @@ async function revalidateProduct(productId: string) {
 }
 
 export interface ReviewEligibility {
+  signedIn: boolean;
   eligible: boolean;
   myReview: MyReview | null;
 }
@@ -40,12 +41,12 @@ export async function getReviewEligibility(
   productId: string
 ): Promise<ReviewEligibility> {
   const user = await getCurrentUser();
-  if (!user) return { eligible: false, myReview: null };
+  if (!user) return { signedIn: false, eligible: false, myReview: null };
   const [orderId, mine] = await Promise.all([
     canReview(user.id, productId),
     getMyReview(user.id, productId),
   ]);
-  return { eligible: !!orderId, myReview: mine };
+  return { signedIn: true, eligible: !!orderId, myReview: mine };
 }
 
 /** Customer: create or update their review for a product they've paid for. */

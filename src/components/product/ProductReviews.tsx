@@ -32,7 +32,9 @@ export function ProductReviews({
       </div>
 
       {stats.count === 0 ? (
-        <p className="mt-6 text-ink-soft">No reviews yet.</p>
+        <p className="editorial-italic mt-6 text-lg text-ink-soft">
+          No reviews yet — be the first to share your experience.
+        </p>
       ) : (
         <ul className="mt-8 space-y-7">
           {reviews.map((r) => (

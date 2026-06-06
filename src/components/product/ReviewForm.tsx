@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Star, Loader2, Check } from "lucide-react";
 import {
   getReviewEligibility,
@@ -42,14 +43,62 @@ export function ReviewForm({ productId }: { productId: string }) {
           setBody(s.myReview.body);
         }
       })
-      .catch(() => active && setState({ eligible: false, myReview: null }));
+      .catch(
+        () =>
+          active &&
+          setState({ signedIn: false, eligible: false, myReview: null })
+      );
     return () => {
       active = false;
     };
   }, [productId]);
 
   if (!state) return null; // loading
-  if (!state.eligible && !state.myReview) return null; // not a verified buyer
+
+  // Not a verified buyer (yet) — invite them in rather than showing nothing.
+  if (!state.eligible && !state.myReview) {
+    if (state.signedIn) {
+      return (
+        <div className="mt-8 rounded-2xl border border-cream-3 bg-cream p-6">
+          <p className="text-sm text-ink-soft">
+            Reviews come from customers who’ve bought this piece. Once your
+            order is paid, you’ll be able to share your thoughts right here.
+          </p>
+        </div>
+      );
+    }
+    const next =
+      typeof window !== "undefined"
+        ? window.location.pathname + window.location.search
+        : "/";
+    return (
+      <div className="mt-8 rounded-2xl border border-cream-3 bg-cream p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-medium text-ink">Bought this one?</p>
+            <p className="mt-1 text-sm text-ink-soft">
+              Sign in or create an account to leave a review — they come from
+              verified buyers only.
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2.5">
+            <Link
+              href={`/login?next=${encodeURIComponent(next)}`}
+              className="inline-flex items-center justify-center rounded-full bg-olive px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-olive-soft"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center rounded-full border border-ink/25 px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-olive hover:text-olive"
+            >
+              Create account
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
