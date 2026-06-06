@@ -95,7 +95,7 @@ docs/                  build plans (.md)
 1. **Contact → method → address.** Delivery is offered only when **BobGo** is enabled. The customer enters a structured address and taps **Get delivery options** → live courier rates from BobGo (name, ETA, price) → selects one.
 2. **Place order.** `placeOrder` **re-prices every line from the DB** and **re-verifies the chosen courier rate against BobGo** (the client can't set prices or fees), then writes the order + items in one transaction as `paymentStatus: pending`.
 3. **Pay.** Routing is graceful:
-   - **YetoEFT** configured → a signed payment link is created and the customer is redirected to YetoPay. The **webhook** (`/api/webhooks/yetopay`, HMAC-verified, idempotent) is authoritative: it flips the order to **paid**.
+   - **YetoEFT** configured → a signed payment link is created and the customer either is **redirected** to YetoPay or pays in an **embedded iFrame** on-site (admin toggle; iFrame uses YetoPay's `postMessage` to advance). Either way the **webhook** (`/api/webhooks/yetopay`, HMAC-verified, idempotent) is authoritative: it flips the order to **paid**.
    - else **WhatsApp** on → a pre-filled message opens (the owner confirms + arranges payment).
    - else → the order is recorded as **manual** for the owner to follow up.
 4. **On first paid:** the customer + admin are emailed (Resend), and for a delivery order the **BobGo courier order** is created (`channel_order_number = order number`).
@@ -110,7 +110,7 @@ Configure everything in **/admin/integrations** — each provider is a card you 
 | Integration | What it does | Key config |
 |---|---|---|
 | **BobGo** | Live courier rates, shipment creation, tracking | API key, sandbox toggle, collection address |
-| **YetoEFT** (YetoPay) | Online payment | Base URL, merchant ID, API key/secret, webhook secret, default method |
+| **YetoEFT** (YetoPay) | Online payment | Base URL, merchant ID, API key/secret, webhook secret, default method, **checkout display: full-page redirect or embedded iFrame** |
 | **Resend** | Transactional email | API key, from-email, from-name |
 | **WhatsApp** | Secondary "order over WhatsApp" fallback | on/off (number from Settings) |
 

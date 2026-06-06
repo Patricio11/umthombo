@@ -96,6 +96,7 @@ export async function getYetopayConfig(): Promise<YetopayConfig | null> {
     merchantId: str(c.merchantId),
     webhookSecret: str(c.webhookSecret),
     paymentMethod: c.paymentMethod === "card" ? "card" : "eft_direct",
+    displayMode: c.displayMode === "iframe" ? "iframe" : "redirect",
   };
 }
 

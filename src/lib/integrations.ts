@@ -27,6 +27,8 @@ export interface YetopayConfig {
   merchantId: string;
   webhookSecret: string;
   paymentMethod: "eft_direct" | "card";
+  /** How the hosted payment page is presented at checkout. */
+  displayMode: "redirect" | "iframe";
 }
 
 export interface ResendConfig {

@@ -34,6 +34,9 @@ export function IntegrationForm({
   const [paymentMethod, setPaymentMethod] = useState<"eft_direct" | "card">(
     c.paymentMethod === "card" ? "card" : "eft_direct"
   );
+  const [displayMode, setDisplayMode] = useState<"redirect" | "iframe">(
+    c.displayMode === "iframe" ? "iframe" : "redirect"
+  );
   const [f, setF] = useState({
     baseUrl: c.baseUrl ?? "",
     merchantId: c.merchantId ?? "",
@@ -78,6 +81,7 @@ export function IntegrationForm({
         apiSecret: secrets.apiSecret,
         webhookSecret: secrets.webhookSecret,
         paymentMethod,
+        displayMode,
       };
     } else if (detail.key === "resend") {
       config = {
@@ -232,6 +236,20 @@ export function IntegrationForm({
               <Select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as "eft_direct" | "card")}>
                 <option value="eft_direct">Instant EFT</option>
                 <option value="card">Card</option>
+              </Select>
+            </Field>
+            <Field
+              label="Checkout display"
+              hint="How the payment page is shown to customers"
+            >
+              <Select
+                value={displayMode}
+                onChange={(e) =>
+                  setDisplayMode(e.target.value as "redirect" | "iframe")
+                }
+              >
+                <option value="redirect">Full-page redirect</option>
+                <option value="iframe">Embedded iFrame (stay on site)</option>
               </Select>
             </Field>
           </Card>

@@ -101,6 +101,7 @@ function mergeConfig(key: IntegrationKey, existing: Cfg, incoming: Cfg): Cfg {
     setStr("baseUrl");
     setStr("merchantId");
     out.paymentMethod = incoming.paymentMethod === "card" ? "card" : "eft_direct";
+    out.displayMode = incoming.displayMode === "iframe" ? "iframe" : "redirect";
   } else if (key === "resend") {
     setStr("apiKey");
     setStr("fromEmail", 160);

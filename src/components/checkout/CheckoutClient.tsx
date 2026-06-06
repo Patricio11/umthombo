@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Truck, Store, Check } from "lucide-react";
+import { Loader2, Truck, Store, Check, X } from "lucide-react";
 import { useCart, selectSubtotal, selectTotal } from "@/store/cart";
 import { ZA_PROVINCES } from "@/lib/integrations";
 import { rateEta, type DeliveryAddress, type RateOption } from "@/lib/shipping";
@@ -57,6 +57,10 @@ export function CheckoutClient({
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [payFrame, setPayFrame] = useState<{
+    url: string;
+    orderNumber: string;
+  } | null>(null);
 
   const setAddr = (k: keyof DeliveryAddress, v: string) => {
     setAddress((a) => ({ ...a, [k]: v }));
@@ -131,9 +135,14 @@ export function CheckoutClient({
       setSubmitError(res.error ?? "Something went wrong. Please try again.");
       return;
     }
-    // Payment redirect keeps the cart until the webhook confirms; the other
-    // routes have a recorded order, so clear the selection now.
+    // Payment keeps the cart until the webhook confirms.
     if (res.mode === "payment" && res.redirectUrl) {
+      if (res.paymentDisplay === "iframe") {
+        // Present the hosted page inline; the webhook is authoritative.
+        setPayFrame({ url: res.redirectUrl, orderNumber: res.orderNumber! });
+        setSubmitting(false);
+        return;
+      }
       window.location.href = res.redirectUrl;
       return;
     }
@@ -428,7 +437,85 @@ export function CheckoutClient({
           </aside>
         </div>
       </div>
+
+      {payFrame && (
+        <PaymentFrame
+          url={payFrame.url}
+          onCompleted={() => {
+            clearCart();
+            router.push(`/checkout/success?order=${payFrame.orderNumber}`);
+          }}
+          onFailed={() => {
+            setPayFrame(null);
+            setSubmitError(
+              "Your payment wasn’t completed. Your selection is saved — you can try again."
+            );
+          }}
+          onClose={() => setPayFrame(null)}
+        />
+      )}
     </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Inline (iframe) payment overlay — webhook stays authoritative      */
+/* ------------------------------------------------------------------ */
+function PaymentFrame({
+  url,
+  onCompleted,
+  onFailed,
+  onClose,
+}: {
+  url: string;
+  onCompleted: () => void;
+  onFailed: (status: string) => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    let origin: string | null = null;
+    try {
+      origin = new URL(url).origin;
+    } catch {
+      origin = null;
+    }
+    const onMessage = (e: MessageEvent) => {
+      if (origin && e.origin !== origin) return; // verify the sender
+      const data = (e.data ?? {}) as { type?: string; status?: string };
+      if (data.type !== "payment_complete") return;
+      if (data.status === "completed") onCompleted();
+      else onFailed(data.status ?? "failed");
+    };
+    window.addEventListener("message", onMessage);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("message", onMessage);
+      document.body.style.overflow = "";
+    };
+  }, [url, onCompleted, onFailed]);
+
+  return (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ink/50 p-3 backdrop-blur-sm">
+      <div className="flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-cream shadow-2xl">
+        <header className="flex items-center justify-between border-b border-cream-2 px-5 py-3.5">
+          <span className="font-display text-lg">Secure payment</span>
+          <button
+            type="button"
+            aria-label="Close payment"
+            onClick={onClose}
+            className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-cream-2 hover:text-olive"
+          >
+            <X size={18} />
+          </button>
+        </header>
+        <iframe
+          src={url}
+          title="YetoPay Payment"
+          allow="payment"
+          className="h-[680px] max-h-[80dvh] w-full bg-white"
+        />
+      </div>
+    </div>
   );
 }
 

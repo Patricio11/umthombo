@@ -215,7 +215,8 @@ export interface PlaceOrderResult {
   ok: boolean;
   error?: string;
   mode?: "payment" | "whatsapp" | "manual";
-  redirectUrl?: string; // YetoPay hosted payment page
+  redirectUrl?: string; // YetoPay hosted payment page (paymentUrl)
+  paymentDisplay?: "redirect" | "iframe"; // how to present it
   whatsappUrl?: string; // WhatsApp fallback deep link
   orderNumber?: string;
 }
@@ -268,6 +269,7 @@ export async function placeOrder(
       ok: true,
       mode: "payment",
       redirectUrl: link.paymentUrl,
+      paymentDisplay: yeto.displayMode,
       orderNumber,
     };
   }
