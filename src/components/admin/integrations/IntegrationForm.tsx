@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, ArrowLeft, Copy, Check } from "lucide-react";
+import { Loader2, ArrowLeft, Copy, Check, Plug, RotateCcw } from "lucide-react";
 import type { AdminIntegrationDetail } from "@/server/db/integrations";
 import { ZA_PROVINCES } from "@/lib/integrations";
 import {
@@ -15,7 +15,12 @@ import {
 } from "@/components/admin/primitives";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/admin/Toast";
-import { updateIntegration } from "@/server/actions/integrations";
+import { useConfirm } from "@/components/admin/ConfirmDialog";
+import {
+  updateIntegration,
+  testIntegration,
+  resetIntegration,
+} from "@/server/actions/integrations";
 
 export function IntegrationForm({
   detail,
@@ -26,8 +31,39 @@ export function IntegrationForm({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const confirm = useConfirm();
   const [pending, startTransition] = useTransition();
+  const [testing, startTest] = useTransition();
+  const [resetting, startReset] = useTransition();
   const c = detail.config as Record<string, any>;
+
+  const onTest = () =>
+    startTest(async () => {
+      const res = await testIntegration(detail.key);
+      if (res.ok) toast.success(res.message);
+      else toast.error(res.message);
+    });
+
+  const onReset = async () => {
+    const ok = await confirm({
+      title: `Reset ${detail.name}?`,
+      description:
+        "This clears all saved credentials and turns it off. You can re-enter them anytime.",
+      confirmLabel: "Reset",
+      danger: true,
+    });
+    if (!ok) return;
+    startReset(async () => {
+      const res = await resetIntegration(detail.key);
+      if (res.ok) {
+        toast.success("Credentials cleared.");
+        router.push("/admin/integrations");
+        router.refresh();
+      } else {
+        toast.error(res.error ?? "Could not reset.");
+      }
+    });
+  };
 
   const [enabled, setEnabled] = useState(detail.enabled);
   const [sandbox, setSandbox] = useState(c.sandbox === true);
@@ -293,10 +329,43 @@ export function IntegrationForm({
         </Card>
       )}
 
-      <Button type="submit" disabled={pending}>
-        {pending && <Loader2 size={16} className="animate-spin" />}
-        Save integration
-      </Button>
+      <div className="flex flex-wrap items-center gap-3 border-t border-cream-2 pt-5">
+        <Button type="submit" disabled={pending}>
+          {pending && <Loader2 size={16} className="animate-spin" />}
+          Save integration
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onTest}
+          disabled={testing}
+        >
+          {testing ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <Plug size={16} />
+          )}
+          Test connection
+        </Button>
+        <button
+          type="button"
+          onClick={onReset}
+          disabled={resetting}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-clay transition-colors hover:bg-clay/10 disabled:opacity-60"
+        >
+          {resetting ? (
+            <Loader2 size={15} className="animate-spin" />
+          ) : (
+            <RotateCcw size={15} />
+          )}
+          Reset
+        </button>
+      </div>
+      <p className="-mt-2 text-xs text-ink-soft">
+        Test uses your <strong>saved</strong> settings — save changes first.
+        Changing a secret? Type the new value (leaving it blank keeps the old
+        one).
+      </p>
     </form>
   );
 }

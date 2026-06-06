@@ -1,5 +1,6 @@
 import "server-only";
 import { getResendConfig } from "@/server/db/integrations";
+import type { ResendConfig } from "@/lib/integrations";
 
 export interface SendEmailInput {
   to: string | string[];
@@ -8,15 +9,11 @@ export interface SendEmailInput {
   replyTo?: string;
 }
 
-/**
- * Send an email through Resend if the integration is enabled & configured.
- * No-ops gracefully (returns false) when email is off  callers shouldn't
- * fail because notifications are unavailable.
- */
-export async function sendEmail(input: SendEmailInput): Promise<boolean> {
-  const config = await getResendConfig();
-  if (!config) return false;
-
+/** Send via an explicit Resend config (used by the connection test too). */
+export async function sendEmailWith(
+  config: ResendConfig,
+  input: SendEmailInput
+): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -36,11 +33,22 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       console.error("[resend] send failed:", res.status, text.slice(0, 300));
-      return false;
+      return { ok: false, error: text.slice(0, 200) || `HTTP ${res.status}` };
     }
-    return true;
+    return { ok: true };
   } catch (err) {
     console.error("[resend] send error:", err);
-    return false;
+    return { ok: false, error: (err as Error).message };
   }
+}
+
+/**
+ * Send an email through Resend if the integration is enabled & configured.
+ * No-ops gracefully (returns false) when email is off.
+ */
+export async function sendEmail(input: SendEmailInput): Promise<boolean> {
+  const config = await getResendConfig();
+  if (!config) return false;
+  const res = await sendEmailWith(config, input);
+  return res.ok;
 }
