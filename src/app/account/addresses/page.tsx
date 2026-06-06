@@ -1,5 +1,6 @@
-import { MapPin } from "lucide-react";
 import { requireUser } from "@/server/auth/guard";
+import { getUserAddresses } from "@/server/db/addresses";
+import { AddressManager } from "@/components/account/AddressManager";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -8,16 +9,17 @@ export const metadata = {
 };
 
 export default async function AccountAddressesPage() {
-  await requireUser("/account/addresses");
+  const user = await requireUser("/account/addresses");
+  const addresses = await getUserAddresses(user.id);
+
   return (
     <>
       <h1 className="font-display text-3xl sm:text-4xl">Addresses</h1>
-      <div className="mt-8 flex flex-col items-center justify-center rounded-2xl border border-dashed border-cream-3 bg-cream px-6 py-16 text-center">
-        <MapPin size={28} className="text-taupe" />
-        <p className="mt-4 font-medium text-ink">Saved addresses are coming</p>
-        <p className="mt-1 max-w-xs text-sm text-ink-soft">
-          Save delivery addresses and pick one in a tap at checkout.
-        </p>
+      <p className="mt-2 text-ink-soft">
+        Save delivery addresses and pick one in a tap at checkout.
+      </p>
+      <div className="mt-8">
+        <AddressManager addresses={addresses} />
       </div>
     </>
   );

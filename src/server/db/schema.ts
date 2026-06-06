@@ -13,6 +13,7 @@ import {
 
 // Better Auth tables (user, session, account, verification)
 export * from "./auth-schema";
+import { user } from "./auth-schema";
 
 /* ------------------------------------------------------------------ */
 /*  Enums                                                             */
@@ -223,6 +224,30 @@ export const integrations = pgTable("integrations", {
 });
 
 export type Integration = typeof integrations.$inferSelect;
+
+/* ------------------------------------------------------------------ */
+/*  Customer saved addresses                                          */
+/* ------------------------------------------------------------------ */
+export const addresses = pgTable("addresses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  label: text("label"), // e.g. "Home", "Work"
+  recipientName: text("recipient_name").notNull(),
+  phone: text("phone"),
+  company: text("company"),
+  streetAddress: text("street_address").notNull(),
+  localArea: text("local_area"),
+  city: text("city").notNull(),
+  zone: text("zone").notNull(), // ZA province code
+  code: text("code").notNull(), // postal code
+  country: text("country").notNull().default("ZA"),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  ...timestamps,
+});
+
+export type Address = typeof addresses.$inferSelect;
 
 /* ------------------------------------------------------------------ */
 /*  Relations                                                         */
