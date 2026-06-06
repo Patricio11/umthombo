@@ -40,8 +40,8 @@ const optionalText = z
   .string()
   .trim()
   .max(120)
-  .optional()
-  .transform((v) => (v ? v : null));
+  .nullish() // accept "" / null / undefined from the form
+  .transform((v) => (v && v.trim() ? v.trim() : null));
 
 export const productSchema = z.object({
   name: z.string().trim().min(1, "A name is required.").max(120),
