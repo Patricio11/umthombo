@@ -141,25 +141,25 @@ Delete `src/lib/delivery.ts` (computeDeliveryFee) and all its callers.
 
 ### Phase 5 — YetoEFT payment
 **Goal:** pay online; webhook confirms.
-- [ ] `server/payments/yetopay.ts`: signed `createPaymentLink({amount, reference, customer, urls, metadata})` (HMAC request signing) reading config from the integration; typed response
-- [ ] Checkout "Pay" → `createPendingOrder` → `createPaymentLink` (reference = orderNumber, metadata.orderId) → redirect to `paymentUrl`
-- [ ] Return routes: `/checkout/success`, `/checkout/failed`, `/checkout/cancelled` (success shows the receipt; states are optimistic, await webhook)
-- [ ] Webhook `POST /api/webhooks/yetopay`: read **raw body**, verify `X-Webhook-Signature` (HMAC of `webhookSecret`), timestamp freshness, idempotency via `payment_events`/`X-Webhook-ID`; on `payment.completed` set order `paymentStatus: paid`, `paidAt`; revalidate admin
-- [ ] **Notify on paid:** order-confirmation **email to the customer** (items + receipt) and a new-paid-order note to the admin (email provider — see Notifications below)
-- [ ] Fallback: if YetoPay disabled, checkout "Pay" routes to the existing WhatsApp hand-off instead
-- **Acceptance:** (with creds) placing an order opens YetoPay, paying fires the webhook → order paid + customer emailed; signature verified; replays ignored.
+- [x] `server/payments/yetopay.ts`: signed `createPaymentLink(config, {...})` — request signing `X-Signature: sha256=HMAC(SHA256(apiSecret), merchantId+timestamp+rawBody)`, signs the exact sent body; typed result; plus `verifyWebhookSignature()` (bare-hex HMAC, constant-time)
+- [x] `placeOrder` action: `createPendingOrder` → if YetoEFT configured, `createPaymentLink` (reference = orderNumber, metadata.orderId, success/failure/cancelled/notify URLs) → store `paymentProvider`/`paymentReference` → return `redirectUrl`; client redirects via `window.location`
+- [x] Return routes: `/checkout/success` (clears cart on mount; "Payment received" when paid, "Order placed" while pending) and `/checkout/cancelled` (cart kept, "Try again" → /checkout). failureUrl reuses cancelled
+- [x] Webhook `POST /api/webhooks/yetopay`: reads **raw body**, verifies `X-Webhook-Signature`, idempotent via `payment_events` + `X-Webhook-ID`; `payment.completed` → `paymentStatus: paid` + `paidAt`; failed/cancelled set accordingly; unmatched/duplicate → 200. **Owner subscribes this URL in the YetoPay dashboard** (shown read-only in the integration form)
+- [x] WhatsApp fallback: when YetoEFT is off but WhatsApp is on, `placeOrder` builds a pre-filled wa.me link from the saved order and returns it (client opens it + lands on success); else "manual" — order recorded, owner follows up
+- [ ] **Notify on paid:** customer order-confirmation email + admin new-paid note — **deferred to Phase 6** (Resend), wired at the same `payment.completed` hook
+- **Acceptance:** ✅ build green; placing an order (with creds) opens YetoPay, paying fires the webhook → order paid; signature verified; replays ignored. Email-on-paid lands in Phase 6.
 
 ### Phase 6 — Post-payment fulfilment + BobGo shipment + tracking
 **Goal:** turn a paid delivery order into a real shipment with tracking.
-- [ ] On `payment.completed` (delivery + BobGo enabled): `createBobgoOrder(order)` with `channel_order_number = orderNumber`; store `bobgoOrderId`; tolerate failure (admin can retry)
-- [ ] BobGo webhook `POST /api/webhooks/bobgo` (plain trusted URL, no token/HMAC): match by `channel_order_number` (unknown → 200 no-op); on **every** call update `trackingReference`, `trackingUrl`, **`shipmentStatus`** (`method_status`); record failures (`status`/`failed_reason`); only ever writes shipping/tracking fields; idempotent but update-on-status-change (not ignore)
-- [ ] When the **first** fulfilment webhook arrives (tracking reference set), mark the order **fulfilled** and **email the customer their tracking link**; subsequent webhooks just update `shipmentStatus`
-- [ ] Admin order detail: payment status badge, shipping service + cost, address, **tracking link + shipment status**, and manual buttons: "Create shipment", "Mark as paid", "Resend payment link"
-- **Acceptance:** a paid delivery order gets a BobGo order id; the fulfilment webhook marks it fulfilled, emails the customer tracking, and each later webhook updates the shipment status in admin.
+- [x] On `payment.completed` (first paid): `handleOrderPaid(orderId)` — best-effort, never throws into the webhook. For delivery + BobGo on: `createBobgoOrder` with `channel_order_number = orderNumber`, items dimensioned from the products join; stores `bobgoOrderId`; tolerates failure (owner can retry). Order `status` auto-advances `new → confirmed` on paid
+- [x] BobGo webhook `POST /api/webhooks/bobgo` (plain trusted URL, no token/HMAC): missing `channel_order_number` → 400; unknown order → 200 no-op; idempotent/audit via `payment_events` (`bobgo:{id}:{status}:{ref}`); on each call `applyBobgoFulfilment` updates `trackingReference`, `trackingUrl` (`track.bobgo.co.za/{ref}`), **`shipmentStatus`** (`method_status`); `delivered` → status `completed`, tracking set → `preparing`
+- [x] First waybill (trackingReference null→set) → **email the customer their tracking link** (once); later webhooks just update `shipmentStatus`
+- [ ] Admin order detail: payment badge, shipping service + cost, tracking link + shipment status, manual actions — **moved to Phase 7** (admin orders & analytics)
+- **Acceptance:** ✅ build green; a paid delivery order creates a BobGo order id; the fulfilment webhook updates tracking/shipment status idempotently and emails tracking once. (Admin surfacing in Phase 7.)
 
 ### Notifications (email) — cross-cutting (used by Phases 5–6)
-- [ ] Email sender: **Resend** (admin enters the API key + "from" address as an **integration**, consistent with the others; falls back to env `RESEND_API_KEY`). Off → notifications are skipped, nothing breaks.
-- [ ] Branded email templates: **order confirmation / paid** (customer), **tracking / shipped** (customer), **new paid order** (admin).
+- [x] Email sender: **Resend** integration (`server/email/resend.ts` — `sendEmail` reads `getResendConfig()`, off → returns false, nothing breaks)
+- [x] Branded email templates (`server/email/templates.ts`): **order confirmation / paid** (customer), **tracking / shipped** (customer), **new paid order** (admin → `settings.email`, reply-to customer). Wired in `handleOrderPaid` + `applyBobgoFulfilment`.
 
 ### Phase 7 — Admin orders & analytics updates
 **Goal:** orders + analytics understand payment.

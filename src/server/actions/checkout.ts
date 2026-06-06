@@ -2,16 +2,25 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "@/server/db";
 import { orders, orderItems, products } from "@/server/db/schema";
-import { getBobgoConfig } from "@/server/db/integrations";
+import {
+  getBobgoConfig,
+  getYetopayConfig,
+  isIntegrationEnabled,
+} from "@/server/db/integrations";
 import { getRatesAtCheckout, type ShipItem } from "@/server/shipping/bobgo";
+import { createPaymentLink } from "@/server/payments/yetopay";
+import { getSiteSettings } from "@/server/db/settings";
+import { getOrderConfirmation } from "@/server/db/order-public";
 import { ZA_PROVINCES } from "@/lib/integrations";
 import {
   createPendingOrderSchema,
   type CreatePendingOrderInput,
 } from "@/lib/checkout-schema";
+import { formatZAR } from "@/lib/format";
+import { site } from "@/data/site";
 import type { DeliveryAddress } from "@/lib/shipping";
 
 export interface CreatePendingOrderResult {
@@ -197,4 +206,119 @@ export async function createPendingOrder(
 
   revalidatePath("/admin", "layout");
   return { ok: true, orderId, orderNumber, totalZAR: total };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Place order — create the pending order, then route to payment      */
+/* ------------------------------------------------------------------ */
+export interface PlaceOrderResult {
+  ok: boolean;
+  error?: string;
+  mode?: "payment" | "whatsapp" | "manual";
+  redirectUrl?: string; // YetoPay hosted payment page
+  whatsappUrl?: string; // WhatsApp fallback deep link
+  orderNumber?: string;
+}
+
+const appUrl = () =>
+  (process.env.NEXT_PUBLIC_APP_URL || site.url).replace(/\/+$/, "");
+
+/**
+ * The single action the checkout calls. Creates the pending order then:
+ *  1. YetoEFT configured → create a payment link, return its redirect URL.
+ *  2. else WhatsApp on   → return a pre-filled WhatsApp deep link (fallback).
+ *  3. else               → record as manual; the owner follows up.
+ */
+export async function placeOrder(
+  input: CreatePendingOrderInput
+): Promise<PlaceOrderResult> {
+  const created = await createPendingOrder(input);
+  if (!created.ok || !created.orderId || !created.orderNumber) {
+    return { ok: false, error: created.error };
+  }
+  const { orderId, orderNumber } = created;
+  const total = created.totalZAR ?? 0;
+
+  // 1. Online payment (primary when configured).
+  const yeto = await getYetopayConfig();
+  if (yeto) {
+    const link = await createPaymentLink(yeto, {
+      amountZAR: total,
+      reference: orderNumber,
+      description: `Umthombo Creations order ${orderNumber}`,
+      customerName: input.name,
+      customerEmail: input.email,
+      successUrl: `${appUrl()}/checkout/success?order=${orderNumber}`,
+      failureUrl: `${appUrl()}/checkout/cancelled?order=${orderNumber}`,
+      cancelledUrl: `${appUrl()}/checkout/cancelled?order=${orderNumber}`,
+      notifyUrl: `${appUrl()}/api/webhooks/yetopay`,
+      metadata: { orderId, orderNumber },
+    });
+    if (!link.ok || !link.paymentUrl) {
+      return { ok: false, error: link.error ?? "Couldn’t start payment." };
+    }
+    await db
+      .update(orders)
+      .set({
+        paymentProvider: "yetopay",
+        paymentReference: link.transactionId ?? null,
+      })
+      .where(eq(orders.id, orderId));
+    return {
+      ok: true,
+      mode: "payment",
+      redirectUrl: link.paymentUrl,
+      orderNumber,
+    };
+  }
+
+  // 2. WhatsApp fallback.
+  if (await isIntegrationEnabled("whatsapp")) {
+    const settings = await getSiteSettings();
+    const whatsappUrl = await buildWhatsAppLink(settings.whatsapp.href, orderNumber);
+    await db
+      .update(orders)
+      .set({ paymentProvider: "whatsapp" })
+      .where(eq(orders.id, orderId));
+    return { ok: true, mode: "whatsapp", whatsappUrl, orderNumber };
+  }
+
+  // 3. Manual — order recorded, owner follows up.
+  await db
+    .update(orders)
+    .set({ paymentProvider: "manual" })
+    .where(eq(orders.id, orderId));
+  return { ok: true, mode: "manual", orderNumber };
+}
+
+/** Build a pre-filled WhatsApp order message from the saved order. */
+async function buildWhatsAppLink(
+  whatsappHref: string,
+  orderNumber: string
+): Promise<string> {
+  const conf = await getOrderConfirmation(orderNumber);
+  const lines: string[] = [];
+  lines.push(`Hi Umthombo Creations 🌱 I've just placed order ${orderNumber}:`);
+  lines.push("");
+  if (conf) {
+    for (const it of conf.items) {
+      const variant = it.variant ? ` · ${it.variant}` : "";
+      lines.push(
+        `• ${it.qty} × ${it.name}${variant}  ${formatZAR(it.lineTotalZAR)}`
+      );
+    }
+    lines.push("");
+    if (conf.method === "delivery") {
+      lines.push(
+        `Delivery${conf.shippingService ? ` (${conf.shippingService})` : ""}: ${formatZAR(conf.deliveryFeeZAR)}`
+      );
+    } else {
+      lines.push("Collection");
+    }
+    lines.push(`Total: ${formatZAR(conf.totalZAR)}`);
+    lines.push(`Name: ${conf.customerName}`);
+  }
+  lines.push("");
+  lines.push("I'd like to arrange payment, please.");
+  return `${whatsappHref}?text=${encodeURIComponent(lines.join("\n"))}`;
 }

@@ -1,0 +1,141 @@
+import "server-only";
+import { formatZAR } from "@/lib/format";
+
+export interface OrderEmailData {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  method: "delivery" | "collection";
+  items: { name: string; variant: string | null; qty: number; lineTotalZAR: number }[];
+  subtotalZAR: number;
+  deliveryFeeZAR: number;
+  totalZAR: number;
+  shippingService: string | null;
+  addressText: string | null;
+  trackingReference: string | null;
+  trackingUrl: string | null;
+}
+
+const OLIVE = "#4b5a30";
+const INK = "#2e2c26";
+const SOFT = "#7a766c";
+const CREAM = "#f7f3ec";
+const LINE = "#e6ded1";
+
+function layout(heading: string, intro: string, body: string): string {
+  return `<!doctype html><html><body style="margin:0;background:${CREAM};font-family:Georgia,'Times New Roman',serif;color:${INK};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM};padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fffdf9;border:1px solid ${LINE};border-radius:18px;overflow:hidden;">
+        <tr><td style="padding:28px 32px 8px;">
+          <div style="font-size:13px;letter-spacing:2px;text-transform:uppercase;color:${OLIVE};">Umthombo Creations</div>
+          <h1 style="margin:10px 0 6px;font-size:26px;font-weight:normal;color:${INK};">${heading}</h1>
+          <p style="margin:0;color:${SOFT};font-size:15px;line-height:1.5;">${intro}</p>
+        </td></tr>
+        <tr><td style="padding:20px 32px 32px;">${body}</td></tr>
+        <tr><td style="padding:18px 32px;background:${CREAM};border-top:1px solid ${LINE};">
+          <p style="margin:0;color:${SOFT};font-size:12px;line-height:1.6;">Handcrafted in Cape Town · Umthombo Creations</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table></body></html>`;
+}
+
+function itemsTable(d: OrderEmailData): string {
+  const rows = d.items
+    .map(
+      (it) => `<tr>
+        <td style="padding:7px 0;font-size:14px;color:${INK};">${it.qty} × ${escapeHtml(it.name)}${
+          it.variant ? `<span style="color:${SOFT};"> · ${escapeHtml(it.variant)}</span>` : ""
+        }</td>
+        <td style="padding:7px 0;font-size:14px;color:${SOFT};text-align:right;white-space:nowrap;">${formatZAR(it.lineTotalZAR)}</td>
+      </tr>`
+    )
+    .join("");
+  const deliveryLine =
+    d.method === "delivery"
+      ? `<tr><td style="padding:5px 0;font-size:14px;color:${SOFT};">${
+          d.shippingService ? escapeHtml(d.shippingService) : "Delivery"
+        }</td><td style="padding:5px 0;font-size:14px;color:${SOFT};text-align:right;">${formatZAR(d.deliveryFeeZAR)}</td></tr>`
+      : `<tr><td style="padding:5px 0;font-size:14px;color:${SOFT};">Collection</td><td style="padding:5px 0;font-size:14px;color:${SOFT};text-align:right;">Free</td></tr>`;
+
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    ${rows}
+    <tr><td colspan="2" style="border-top:1px solid ${LINE};padding-top:10px;"></td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:${SOFT};">Subtotal</td><td style="padding:4px 0;font-size:14px;color:${SOFT};text-align:right;">${formatZAR(d.subtotalZAR)}</td></tr>
+    ${deliveryLine}
+    <tr>
+      <td style="padding:10px 0 0;font-size:18px;color:${INK};">Total</td>
+      <td style="padding:10px 0 0;font-size:18px;color:${INK};text-align:right;">${formatZAR(d.totalZAR)}</td>
+    </tr>
+  </table>`;
+}
+
+/** Customer: payment received / order confirmed. */
+export function orderConfirmationEmail(d: OrderEmailData): {
+  subject: string;
+  html: string;
+} {
+  const address =
+    d.method === "delivery" && d.addressText
+      ? `<p style="margin:18px 0 0;font-size:13px;color:${SOFT};">Delivering to: ${escapeHtml(d.addressText)}</p>`
+      : `<p style="margin:18px 0 0;font-size:13px;color:${SOFT};">Ready for collection — we’ll confirm a time.</p>`;
+  return {
+    subject: `Order ${d.orderNumber} confirmed — thank you!`,
+    html: layout(
+      "Thank you for your order",
+      `Hi ${escapeHtml(firstName(d.customerName))}, we’ve received your payment and we’re getting everything ready.`,
+      `<div style="margin-bottom:8px;font-size:13px;color:${SOFT};">Order ${d.orderNumber}</div>${itemsTable(d)}${address}`
+    ),
+  };
+}
+
+/** Admin: a new paid order landed. */
+export function adminOrderEmail(d: OrderEmailData): {
+  subject: string;
+  html: string;
+} {
+  return {
+    subject: `New paid order ${d.orderNumber} — ${formatZAR(d.totalZAR)}`,
+    html: layout(
+      "New paid order",
+      `${escapeHtml(d.customerName)} just paid for order ${d.orderNumber}.`,
+      `${itemsTable(d)}<p style="margin:18px 0 0;font-size:13px;color:${SOFT};">${
+        d.method === "delivery"
+          ? `Deliver to: ${escapeHtml(d.addressText ?? "")}`
+          : "Collection"
+      }<br/>${escapeHtml(d.customerEmail)}</p>`
+    ),
+  };
+}
+
+/** Customer: their parcel is on the way, with a tracking link. */
+export function trackingEmail(d: OrderEmailData): {
+  subject: string;
+  html: string;
+} {
+  const track = d.trackingUrl
+    ? `<a href="${d.trackingUrl}" style="display:inline-block;margin-top:18px;background:${OLIVE};color:#fff;text-decoration:none;font-size:14px;padding:12px 22px;border-radius:999px;">Track your parcel</a>
+       <p style="margin:12px 0 0;font-size:12px;color:${SOFT};">Waybill ${escapeHtml(d.trackingReference ?? "")}</p>`
+    : "";
+  return {
+    subject: `Your order ${d.orderNumber} is on its way`,
+    html: layout(
+      "Your parcel is on the way",
+      `Hi ${escapeHtml(firstName(d.customerName))}, your order has been collected by the courier.`,
+      `<div style="margin-bottom:8px;font-size:13px;color:${SOFT};">Order ${d.orderNumber}</div>${itemsTable(d)}${track}`
+    ),
+  };
+}
+
+function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0] || name;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}

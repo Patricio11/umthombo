@@ -8,7 +8,7 @@ import { useCart, selectSubtotal, selectTotal } from "@/store/cart";
 import { ZA_PROVINCES } from "@/lib/integrations";
 import { rateEta, type DeliveryAddress, type RateOption } from "@/lib/shipping";
 import { getDeliveryRates } from "@/server/actions/shipping";
-import { createPendingOrder } from "@/server/actions/checkout";
+import { placeOrder } from "@/server/actions/checkout";
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 
@@ -34,6 +34,7 @@ export function CheckoutClient({
   const router = useRouter();
   const items = useCart((s) => s.items);
   const ownContainer = useCart((s) => s.ownContainer);
+  const clearCart = useCart((s) => s.clear);
   const subtotal = useCart(selectSubtotal);
   const goodsTotal = useCart(selectTotal); // after own-container discount
 
@@ -98,7 +99,7 @@ export function CheckoutClient({
     }
   };
 
-  const placeOrder = async () => {
+  const submitOrder = async () => {
     setSubmitError(null);
     if (!name.trim() || !email.trim() || !phone.trim()) {
       setSubmitError("Please fill in your contact details.");
@@ -109,7 +110,7 @@ export function CheckoutClient({
       return;
     }
     setSubmitting(true);
-    const res = await createPendingOrder({
+    const res = await placeOrder({
       name,
       email,
       phone,
@@ -125,12 +126,22 @@ export function CheckoutClient({
         unitPriceZAR: i.unitPriceZAR,
       })),
     });
-    if (res.ok && res.orderNumber) {
-      router.push(`/checkout/success?order=${res.orderNumber}`);
-    } else {
+    if (!res.ok) {
       setSubmitting(false);
       setSubmitError(res.error ?? "Something went wrong. Please try again.");
+      return;
     }
+    // Payment redirect keeps the cart until the webhook confirms; the other
+    // routes have a recorded order, so clear the selection now.
+    if (res.mode === "payment" && res.redirectUrl) {
+      window.location.href = res.redirectUrl;
+      return;
+    }
+    clearCart();
+    if (res.mode === "whatsapp" && res.whatsappUrl) {
+      window.open(res.whatsappUrl, "_blank", "noopener,noreferrer");
+    }
+    router.push(`/checkout/success?order=${res.orderNumber}`);
   };
 
   if (mounted && items.length === 0) {
@@ -404,7 +415,7 @@ export function CheckoutClient({
               <Button
                 size="lg"
                 className="mt-5 w-full"
-                onClick={placeOrder}
+                onClick={submitOrder}
                 disabled={submitting || (mounted && items.length === 0)}
               >
                 {submitting && <Loader2 size={16} className="animate-spin" />}

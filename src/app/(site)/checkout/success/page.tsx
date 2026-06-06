@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Check } from "lucide-react";
 import { getOrderConfirmation } from "@/server/db/order-public";
+import { ClearCartOnMount } from "@/components/checkout/ClearCartOnMount";
 import { formatZAR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,7 @@ export default async function CheckoutSuccessPage({
 
   return (
     <section className="px-5 py-16 sm:px-8 lg:py-24">
+      <ClearCartOnMount />
       <div className="mx-auto max-w-xl text-center">
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-olive text-cream">
           <Check size={30} />
