@@ -52,11 +52,21 @@ export const adminOrderItemSchema = z.object({
   qty: z.number().int().min(1).max(99),
 });
 
+export const PAYMENT_STATUSES = [
+  "pending",
+  "paid",
+  "failed",
+  "cancelled",
+] as const;
+export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+
 export const adminOrderSchema = orderSchema.extend({
   ownContainer: z.boolean().default(false),
   address: z.string().trim().max(400).optional().default(""),
   status: z.enum(ORDER_STATUSES),
+  paymentStatus: z.enum(PAYMENT_STATUSES).default("pending"),
   deliveryFeeZAR: z.number().int().min(0).optional().default(0),
+  shippingService: z.string().trim().max(120).optional().default(""),
   items: z.array(adminOrderItemSchema).min(1, "Add at least one item."),
 });
 

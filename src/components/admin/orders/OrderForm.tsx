@@ -15,7 +15,7 @@ import {
 } from "@/components/admin/primitives";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/admin/Toast";
-import { ORDER_STATUSES } from "@/lib/order-schema";
+import { ORDER_STATUSES, PAYMENT_STATUSES } from "@/lib/order-schema";
 import { createOrderAdmin, updateOrderAdmin } from "@/server/actions/orders";
 import { formatZAR } from "@/lib/format";
 
@@ -53,7 +53,13 @@ export function OrderForm({
   const [shipping, setShipping] = useState(
     order?.deliveryFeeZAR ? String(order.deliveryFeeZAR) : ""
   );
+  const [shippingService, setShippingService] = useState(
+    order?.shippingService ?? ""
+  );
   const [status, setStatus] = useState(order?.status ?? "new");
+  const [paymentStatus, setPaymentStatus] = useState(
+    order?.paymentStatus ?? "pending"
+  );
   const [items, setItems] = useState<ItemRow[]>(
     order?.items.length
       ? order.items.map((i) => ({
@@ -92,7 +98,9 @@ export function OrderForm({
       note: note || undefined,
       ownContainer,
       status,
+      paymentStatus,
       deliveryFeeZAR: deliveryFee,
+      shippingService: method === "delivery" ? shippingService : "",
       items: cleaned.map((it) => ({
         productId: it.productId,
         variant: it.variant || null,
@@ -260,14 +268,23 @@ export function OrderForm({
                   placeholder="Street, suburb, city, postal code"
                 />
               </Field>
-              <Field label="Shipping (ZAR)" hint="Courier cost charged on this order">
-                <Input
-                  inputMode="numeric"
-                  value={shipping}
-                  onChange={(e) => setShipping(e.target.value)}
-                  placeholder="0"
-                />
-              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Shipping (ZAR)" hint="Courier cost on this order">
+                  <Input
+                    inputMode="numeric"
+                    value={shipping}
+                    onChange={(e) => setShipping(e.target.value)}
+                    placeholder="0"
+                  />
+                </Field>
+                <Field label="Courier" hint="Optional, e.g. The Courier Guy">
+                  <Input
+                    value={shippingService}
+                    onChange={(e) => setShippingService(e.target.value)}
+                    placeholder="Courier name"
+                  />
+                </Field>
+              </div>
             </>
           )}
           <Field label="Note">
@@ -289,6 +306,22 @@ export function OrderForm({
               }
             >
               {ORDER_STATUSES.map((s) => (
+                <option key={s} value={s} className="capitalize">
+                  {s}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Payment" hint="Mark paid to send confirmation + create the shipment">
+            <Select
+              value={paymentStatus}
+              onChange={(e) =>
+                setPaymentStatus(
+                  e.target.value as (typeof PAYMENT_STATUSES)[number]
+                )
+              }
+            >
+              {PAYMENT_STATUSES.map((s) => (
                 <option key={s} value={s} className="capitalize">
                   {s}
                 </option>

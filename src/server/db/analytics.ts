@@ -13,7 +13,7 @@ export const PERIODS = [
 ] as const;
 
 export type PeriodKey = (typeof PERIODS)[number]["key"];
-export type Scope = "completed" | "pipeline";
+export type Scope = "completed" | "pipeline" | "paid";
 
 export function isPeriodKey(v: string | undefined): v is PeriodKey {
   return !!v && PERIODS.some((p) => p.key === v);
@@ -78,12 +78,14 @@ export function resolveRange(
   }
 }
 
-/** WHERE for orders counted as "made" — completed only, or the whole pipeline
- *  (everything except cancelled). */
+/** WHERE for orders counted as "made":
+ *  - `paid`: payment confirmed (real revenue)
+ *  - `pipeline`: everything except cancelled
+ *  - `completed`: fulfilled orders only */
 export function scopeCondition(scope: Scope): SQL {
-  return scope === "pipeline"
-    ? ne(orders.status, "cancelled")
-    : eq(orders.status, "completed");
+  if (scope === "paid") return eq(orders.paymentStatus, "paid");
+  if (scope === "pipeline") return ne(orders.status, "cancelled");
+  return eq(orders.status, "completed");
 }
 
 export interface Analytics {
@@ -220,6 +222,10 @@ export async function getOrdersForExport(
       customerPhone: orders.customerPhone,
       method: orders.method,
       status: orders.status,
+      paymentStatus: orders.paymentStatus,
+      paymentProvider: orders.paymentProvider,
+      shippingService: orders.shippingService,
+      trackingReference: orders.trackingReference,
       itemCount: sql<number>`count(${orderItems.id})::int`,
       subtotalZAR: orders.subtotalZAR,
       deliveryFeeZAR: orders.deliveryFeeZAR,

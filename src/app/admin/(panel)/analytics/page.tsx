@@ -37,7 +37,12 @@ export default async function AnalyticsPage({
 }) {
   const params = await searchParams;
   const period: PeriodKey = isPeriodKey(params.period) ? params.period : "this-month";
-  const scope: Scope = params.scope === "pipeline" ? "pipeline" : "completed";
+  const scope: Scope =
+    params.scope === "pipeline"
+      ? "pipeline"
+      : params.scope === "completed"
+      ? "completed"
+      : "paid";
   const from = params.from;
   const to = params.to;
 
@@ -52,7 +57,8 @@ export default async function AnalyticsPage({
     return new URLSearchParams(merged).toString();
   };
 
-  const scopeNoun = scope === "completed" ? "completed" : "active";
+  const scopeNoun =
+    scope === "completed" ? "completed" : scope === "paid" ? "paid" : "active";
 
   return (
     <>
@@ -89,6 +95,7 @@ export default async function AnalyticsPage({
         <div className="flex gap-1 rounded-full bg-cream-2 p-1">
           {(
             [
+              { key: "paid", label: "Paid" },
               { key: "completed", label: "Completed" },
               { key: "pipeline", label: "Incl. pending" },
             ] as const
@@ -121,7 +128,13 @@ export default async function AnalyticsPage({
           sub={`${formatZAR(a.deliveryRevenue)} from delivery`}
         />
         <Kpi
-          label={scope === "completed" ? "Completed orders" : "Active orders"}
+          label={
+            scope === "paid"
+              ? "Paid orders"
+              : scope === "completed"
+              ? "Completed orders"
+              : "Active orders"
+          }
           value={String(a.scopedCount)}
           sub={`${a.ordersPlaced} placed · ${Math.round(a.conversion * 100)}% ${scopeNoun}`}
         />

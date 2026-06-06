@@ -6,9 +6,16 @@ import { Inbox } from "lucide-react";
 import type { AdminOrderRow } from "@/server/db/admin-queries";
 import { ORDER_STATUSES, type OrderStatus } from "@/lib/order-schema";
 import { DataTable, type Column } from "@/components/admin/DataTable";
-import { EmptyState, StatusBadge } from "@/components/admin/primitives";
+import { EmptyState, StatusBadge, PaymentBadge } from "@/components/admin/primitives";
 import { formatZAR } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+type PaymentFilter = "all" | "paid" | "unpaid";
+const PAYMENT_FILTERS: { key: PaymentFilter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "paid", label: "Paid" },
+  { key: "unpaid", label: "Unpaid" },
+];
 
 const fmtDate = (d: Date | string) =>
   new Intl.DateTimeFormat("en-ZA", { dateStyle: "medium" }).format(new Date(d));
@@ -25,6 +32,7 @@ const STATUS_DOT: Record<string, string> = {
 export function OrdersTable({ orders }: { orders: AdminOrderRow[] }) {
   const router = useRouter();
   const [status, setStatus] = useState<"all" | OrderStatus>("all");
+  const [payment, setPayment] = useState<PaymentFilter>("all");
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: orders.length };
@@ -34,8 +42,17 @@ export function OrdersTable({ orders }: { orders: AdminOrderRow[] }) {
   }, [orders]);
 
   const rows = useMemo(
-    () => (status === "all" ? orders : orders.filter((o) => o.status === status)),
-    [orders, status]
+    () =>
+      orders
+        .filter((o) => status === "all" || o.status === status)
+        .filter((o) =>
+          payment === "all"
+            ? true
+            : payment === "paid"
+            ? o.paymentStatus === "paid"
+            : o.paymentStatus !== "paid"
+        ),
+    [orders, status, payment]
   );
 
   const columns: Column<AdminOrderRow>[] = [
@@ -68,6 +85,11 @@ export function OrdersTable({ orders }: { orders: AdminOrderRow[] }) {
       header: "Total",
       align: "right",
       cell: (o) => <span className="tabular-nums">{formatZAR(o.totalZAR)}</span>,
+    },
+    {
+      key: "payment",
+      header: "Payment",
+      cell: (o) => <PaymentBadge status={o.paymentStatus} />,
     },
     {
       key: "status",
@@ -109,6 +131,30 @@ export function OrdersTable({ orders }: { orders: AdminOrderRow[] }) {
             </button>
           );
         })}
+      </div>
+
+      {/* Payment filter */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+          Payment
+        </span>
+        <div className="flex gap-1 rounded-full bg-cream-2 p-1">
+          {PAYMENT_FILTERS.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => setPayment(p.key)}
+              className={cn(
+                "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                payment === p.key
+                  ? "bg-cream text-ink shadow-sm"
+                  : "text-ink-soft hover:text-ink"
+              )}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <DataTable

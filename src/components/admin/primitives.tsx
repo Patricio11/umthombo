@@ -76,6 +76,33 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 
+const paymentStyles: Record<string, string> = {
+  paid: "bg-olive/15 text-olive",
+  pending: "bg-taupe/20 text-taupe",
+  failed: "bg-clay/12 text-clay",
+  cancelled: "bg-clay/10 text-clay/70",
+};
+const paymentLabels: Record<string, string> = {
+  paid: "Paid",
+  pending: "Unpaid",
+  failed: "Payment failed",
+  cancelled: "Payment cancelled",
+};
+
+export function PaymentBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+        paymentStyles[status] ?? "bg-cream-2 text-ink-soft"
+      )}
+    >
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+      {paymentLabels[status] ?? status}
+    </span>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Empty state                                                        */
 /* ------------------------------------------------------------------ */

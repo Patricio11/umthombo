@@ -6,6 +6,7 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/server/db";
 import { orders, orderItems, products } from "@/server/db/schema";
 import { requireAdmin } from "@/server/auth/guard";
+import { handleOrderPaid, createBobgoShipment } from "@/server/orders/fulfilment";
 import {
   createOrderSchema,
   adminOrderSchema,
@@ -202,6 +203,11 @@ export async function createOrderAdmin(
       deliveryFeeZAR: deliveryFee,
       totalZAR: total,
       status: d.status,
+      paymentStatus: d.paymentStatus,
+      paymentProvider: "manual",
+      paidAt: d.paymentStatus === "paid" ? new Date() : null,
+      shippingService:
+        d.method === "delivery" && d.shippingService ? d.shippingService : null,
     });
     await tx.insert(orderItems).values(lines.map((l) => ({ ...l, orderId: id })));
   });
@@ -224,6 +230,13 @@ export async function updateOrderAdmin(
   const goods = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
   const deliveryFee = d.method === "delivery" ? d.deliveryFeeZAR : 0;
   const total = goods + deliveryFee;
+  const [existing] = await db
+    .select({ paymentStatus: orders.paymentStatus, paidAt: orders.paidAt })
+    .from(orders)
+    .where(eq(orders.id, id))
+    .limit(1);
+  const becamePaid =
+    d.paymentStatus === "paid" && existing?.paymentStatus !== "paid";
   await db.transaction(async (tx) => {
     await tx
       .update(orders)
@@ -239,11 +252,50 @@ export async function updateOrderAdmin(
         deliveryFeeZAR: deliveryFee,
         totalZAR: total,
         status: d.status,
+        paymentStatus: d.paymentStatus,
+        paidAt: becamePaid ? new Date() : existing?.paidAt ?? null,
+        shippingService:
+          d.method === "delivery" && d.shippingService ? d.shippingService : null,
       })
       .where(eq(orders.id, id));
     await tx.delete(orderItems).where(eq(orderItems.orderId, id));
     await tx.insert(orderItems).values(lines.map((l) => ({ ...l, orderId: id })));
   });
+  if (becamePaid) await handleOrderPaid(id);
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+/** Admin: mark an order paid manually (e.g. a confirmed EFT or WhatsApp order)
+ *  — fires the same paid-order flow (customer/admin emails + BobGo shipment). */
+export async function markOrderPaid(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  const [row] = await db
+    .select({ paymentStatus: orders.paymentStatus, status: orders.status })
+    .from(orders)
+    .where(eq(orders.id, id))
+    .limit(1);
+  if (!row) return { ok: false, error: "Order not found." };
+  if (row.paymentStatus === "paid") return { ok: true };
+
+  await db
+    .update(orders)
+    .set({
+      paymentStatus: "paid",
+      paidAt: new Date(),
+      status: row.status === "new" ? "confirmed" : row.status,
+    })
+    .where(eq(orders.id, id));
+  await handleOrderPaid(id);
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+/** Admin: manually create the BobGo shipment for a paid delivery order. */
+export async function createShipment(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  const res = await createBobgoShipment(id);
+  if (!res.ok) return { ok: false, error: res.error ?? "Couldn’t create shipment." };
   revalidatePath("/admin", "layout");
   return { ok: true };
 }

@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Phone, MapPin, Truck } from "lucide-react";
 import { getAdminOrder } from "@/server/db/admin-queries";
-import { Card, StatusBadge } from "@/components/admin/primitives";
+import { Card, StatusBadge, PaymentBadge } from "@/components/admin/primitives";
 import { OrderStatusControl } from "@/components/admin/orders/OrderStatusControl";
 import { OrderActions } from "@/components/admin/orders/OrderActions";
+import { OrderFulfilmentActions } from "@/components/admin/orders/OrderFulfilmentActions";
 import { WhatsAppIcon } from "@/components/brand/SocialIcons";
 import { formatZAR } from "@/lib/format";
 
@@ -49,6 +50,7 @@ export default async function OrderDetailPage({
             <p className="mt-1 text-sm text-ink-soft">{placed}</p>
           </div>
           <div className="flex items-center gap-3">
+            <PaymentBadge status={order.paymentStatus} />
             <StatusBadge status={order.status} />
             <OrderActions id={order.id} orderNumber={order.orderNumber} />
           </div>
@@ -153,6 +155,70 @@ export default async function OrderDetailPage({
             >
               <WhatsAppIcon size={17} /> Reply on WhatsApp
             </a>
+          </Card>
+
+          <Card className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl">Payment</h2>
+              <PaymentBadge status={order.paymentStatus} />
+            </div>
+            <ul className="space-y-1 text-sm text-ink-soft">
+              {order.paymentProvider && (
+                <li>
+                  via <span className="capitalize text-ink">{order.paymentProvider}</span>
+                </li>
+              )}
+              {order.paidAt && (
+                <li>
+                  Paid{" "}
+                  {new Intl.DateTimeFormat("en-ZA", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }).format(new Date(order.paidAt))}
+                </li>
+              )}
+              {order.paymentReference && (
+                <li className="break-all text-xs">Ref {order.paymentReference}</li>
+              )}
+            </ul>
+
+            {order.method === "delivery" && (
+              <div className="space-y-1 border-t border-cream-2 pt-3 text-sm">
+                <h3 className="font-medium text-ink">Shipping</h3>
+                <p className="text-ink-soft">
+                  {order.shippingService || "Courier"} ·{" "}
+                  {formatZAR(order.deliveryFeeZAR)}
+                </p>
+                {order.shipmentStatus && (
+                  <p className="text-ink-soft">
+                    Status:{" "}
+                    <span className="text-ink">{order.shipmentStatus}</span>
+                  </p>
+                )}
+                {order.trackingUrl ? (
+                  <a
+                    href={order.trackingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-underline inline-block text-olive"
+                  >
+                    Track {order.trackingReference}
+                  </a>
+                ) : null}
+                {order.bobgoOrderId && (
+                  <p className="text-xs text-ink-soft">
+                    BobGo #{order.bobgoOrderId}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <OrderFulfilmentActions
+              id={order.id}
+              paymentStatus={order.paymentStatus}
+              method={order.method}
+              hasShipment={!!order.bobgoOrderId}
+            />
           </Card>
 
           <Card>

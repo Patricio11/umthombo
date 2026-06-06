@@ -25,7 +25,13 @@ export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
   const periodParam = sp.get("period") ?? undefined;
   const period = isPeriodKey(periodParam) ? periodParam : "this-month";
-  const scope: Scope = sp.get("scope") === "pipeline" ? "pipeline" : "completed";
+  const scopeParam = sp.get("scope");
+  const scope: Scope =
+    scopeParam === "pipeline"
+      ? "pipeline"
+      : scopeParam === "paid"
+      ? "paid"
+      : "completed";
   const from = sp.get("from") ?? undefined;
   const to = sp.get("to") ?? undefined;
 
@@ -39,6 +45,10 @@ export async function GET(request: NextRequest) {
     "Phone",
     "Method",
     "Status",
+    "Payment",
+    "Payment via",
+    "Courier",
+    "Tracking",
     "Items",
     "Subtotal (ZAR)",
     "Delivery (ZAR)",
@@ -55,6 +65,10 @@ export async function GET(request: NextRequest) {
         r.customerPhone,
         r.method,
         r.status,
+        r.paymentStatus,
+        r.paymentProvider ?? "",
+        r.shippingService ?? "",
+        r.trackingReference ?? "",
         r.itemCount,
         r.subtotalZAR,
         r.deliveryFeeZAR,

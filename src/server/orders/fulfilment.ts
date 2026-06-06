@@ -112,48 +112,64 @@ export async function handleOrderPaid(orderId: string): Promise<void> {
     }
 
     // 2. Create the BobGo courier order for delivery orders.
-    if (
-      order.method === "delivery" &&
-      order.shippingAddressJson &&
-      !order.bobgoOrderId
-    ) {
-      const config = await getBobgoConfig();
-      if (config) {
-        const shipItems: ShipItem[] = items.map((i) => ({
-          description: i.name,
-          priceZAR: i.unitPriceZAR,
-          quantity: i.qty,
-          weightKg: i.weightKg,
-          lengthCm: i.lengthCm,
-          widthCm: i.widthCm,
-          heightCm: i.heightCm,
-          sku: i.slug ?? undefined,
-        }));
-        try {
-          const created = await createBobgoOrder(config, {
-            channelOrderNumber: order.orderNumber,
-            customerName: order.customerName,
-            customerEmail: order.customerEmail,
-            customerPhone: order.customerPhone,
-            deliveryAddress: order.shippingAddressJson as unknown as DeliveryAddress,
-            shippingCostZAR: order.deliveryFeeZAR,
-            shippingMethod: order.shippingServiceCode ?? "",
-            items: shipItems,
-          });
-          if (created.id) {
-            await db
-              .update(orders)
-              .set({ bobgoOrderId: created.id })
-              .where(eq(orders.id, order.id));
-          }
-        } catch (err) {
-          // Owner can retry from the admin; tracking still flows via webhook.
-          console.error("[fulfilment] createBobgoOrder failed:", err);
-        }
-      }
-    }
+    await createBobgoShipment(order.id);
   } catch (err) {
     console.error("[fulfilment] handleOrderPaid failed:", err);
+  }
+}
+
+/**
+ * Create the BobGo courier order for a paid delivery order (idempotent: skips
+ * if it already has a `bobgoOrderId`). Usable from the admin "Create shipment"
+ * action and from `handleOrderPaid`.
+ */
+export async function createBobgoShipment(
+  orderId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const loaded = await loadOrderWithItems(orderId);
+  if (!loaded) return { ok: false, error: "Order not found." };
+  const { order, items } = loaded;
+
+  if (order.method !== "delivery" || !order.shippingAddressJson) {
+    return { ok: false, error: "This isn’t a delivery order." };
+  }
+  if (order.bobgoOrderId) {
+    return { ok: true }; // already created
+  }
+  const config = await getBobgoConfig();
+  if (!config) return { ok: false, error: "BobGo isn’t enabled." };
+
+  const shipItems: ShipItem[] = items.map((i) => ({
+    description: i.name,
+    priceZAR: i.unitPriceZAR,
+    quantity: i.qty,
+    weightKg: i.weightKg,
+    lengthCm: i.lengthCm,
+    widthCm: i.widthCm,
+    heightCm: i.heightCm,
+    sku: i.slug ?? undefined,
+  }));
+  try {
+    const created = await createBobgoOrder(config, {
+      channelOrderNumber: order.orderNumber,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      customerPhone: order.customerPhone,
+      deliveryAddress: order.shippingAddressJson as unknown as DeliveryAddress,
+      shippingCostZAR: order.deliveryFeeZAR,
+      shippingMethod: order.shippingServiceCode ?? "",
+      items: shipItems,
+    });
+    if (created.id) {
+      await db
+        .update(orders)
+        .set({ bobgoOrderId: created.id })
+        .where(eq(orders.id, order.id));
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error("[fulfilment] createBobgoShipment failed:", err);
+    return { ok: false, error: "Couldn’t create the BobGo shipment." };
   }
 }
 

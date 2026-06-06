@@ -163,10 +163,12 @@ Delete `src/lib/delivery.ts` (computeDeliveryFee) and all its callers.
 
 ### Phase 7 — Admin orders & analytics updates
 **Goal:** orders + analytics understand payment.
-- [ ] Orders list/detail: **payment status** badge + filter; show shipping service; structured address; tracking
-- [ ] Admin OrderForm (manual orders): structured address, manual shipping service + fee, payment status
-- [ ] Analytics: "Revenue" = orders with `paymentStatus: paid` (replace the completed-only assumption where appropriate); add a "Paid vs unpaid" lens; CSV gains payment columns
-- **Acceptance:** admin can see/manage paid vs unpaid, shipping, and tracking; analytics reflect real paid revenue.
+- [x] Orders list: **payment badge** column + Paid/Unpaid filter. Detail: `PaymentBadge` in the header + a **Payment & shipping** card (provider, paidAt, ref; courier service + cost, shipment status, tracking link, BobGo id) and manual actions **Mark as paid** / **Create BobGo shipment** (`OrderFulfilmentActions`)
+- [x] Manual actions (`orders.ts`): `markOrderPaid` (→ runs `handleOrderPaid`: emails + shipment) and `createShipment` (→ `createBobgoShipment`, idempotent). `createBobgoShipment` extracted from `handleOrderPaid` for reuse
+- [x] Admin OrderForm (manual orders): **Payment** status select (paid → stamps `paidAt`, provider `manual`, fires `handleOrderPaid` on edit-to-paid) + courier service field + manual shipping fee
+- [x] `AdminOrderDetail` now `typeof orders.$inferSelect & {items}` so all payment/shipping columns surface; `AdminOrderRow` += `paymentStatus`
+- [x] Analytics: added a **Paid** scope (`paymentStatus = paid`) — now the **default** revenue lens (alongside Completed / Incl. pending); CSV export gains Payment / Payment-via / Courier / Tracking columns
+- **Acceptance:** ✅ admin sees/manages paid vs unpaid, shipping & tracking; analytics default to real paid revenue; build green.
 
 ### Phase 8 — Hardening, docs & deploy
 **Goal:** production-ready and documented.

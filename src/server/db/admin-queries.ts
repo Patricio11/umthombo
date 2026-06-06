@@ -197,6 +197,7 @@ export interface AdminOrderRow {
   customerName: string;
   totalZAR: number;
   status: OrderStatus;
+  paymentStatus: "pending" | "paid" | "failed" | "cancelled";
   method: "delivery" | "collection";
   itemCount: number;
   createdAt: Date;
@@ -210,6 +211,7 @@ export async function getAdminOrders(): Promise<AdminOrderRow[]> {
       customerName: orders.customerName,
       totalZAR: orders.totalZAR,
       status: orders.status,
+      paymentStatus: orders.paymentStatus,
       method: orders.method,
       createdAt: orders.createdAt,
       itemCount: sql<number>`count(${orderItems.id})::int`,
@@ -221,21 +223,7 @@ export async function getAdminOrders(): Promise<AdminOrderRow[]> {
   return rows;
 }
 
-export interface AdminOrderDetail {
-  id: string;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  method: "delivery" | "collection";
-  shippingAddress: string | null;
-  note: string | null;
-  ownContainer: boolean;
-  subtotalZAR: number;
-  deliveryFeeZAR: number;
-  totalZAR: number;
-  status: OrderStatus;
-  createdAt: Date;
+export type AdminOrderDetail = typeof orders.$inferSelect & {
   items: {
     id: string;
     productId: string | null;
@@ -245,7 +233,7 @@ export interface AdminOrderDetail {
     unitPriceZAR: number;
     lineTotalZAR: number;
   }[];
-}
+};
 
 export async function getAdminOrder(
   id: string
