@@ -1,4 +1,4 @@
-/** SEO helpers — canonical URLs and JSON-LD builders.
+/** SEO helpers - canonical URLs and JSON-LD builders.
  *  Client-safe (no server imports); pages pass in the data they have. */
 import type { Metadata } from "next";
 import { site } from "@/data/site";
@@ -8,7 +8,7 @@ import type { SiteSettings } from "@/lib/settings-types";
 export const absUrl = (path = ""): string =>
   `${site.url}${path.startsWith("/") || path === "" ? path : `/${path}`}`;
 
-/** `alternates.canonical` block for a page (relative path is fine — resolved
+/** `alternates.canonical` block for a page (relative path is fine - resolved
  *  against metadataBase). */
 export const canonical = (path: string): Metadata => ({
   alternates: { canonical: path },

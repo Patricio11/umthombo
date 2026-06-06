@@ -278,7 +278,7 @@ export function CheckoutClient({
                     className="mt-0.5"
                   />
                   <span>
-                    Create an account with this email — we’ll send a link to set
+                    Create an account with this email - we’ll send a link to set
                     your password, so you can track orders and reorder faster.
                   </span>
                 </label>

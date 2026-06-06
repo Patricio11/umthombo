@@ -363,7 +363,7 @@ export function IntegrationForm({
         </button>
       </div>
       <p className="-mt-2 text-xs text-ink-soft">
-        Test uses your <strong>saved</strong> settings — save changes first.
+        Test uses your <strong>saved</strong> settings - save changes first.
         Changing a secret? Type the new value (leaving it blank keeps the old
         one).
       </p>

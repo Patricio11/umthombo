@@ -31,7 +31,7 @@ export async function setMyPassword(
     if (/already/i.test(msg)) {
       return {
         ok: false,
-        error: "A password is already set — please sign in or reset it.",
+        error: "A password is already set - please sign in or reset it.",
       };
     }
     if (/session|unauthor/i.test(msg)) {

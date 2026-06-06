@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Shop · Umthombo Creations",
     description:
-      "Handcrafted candles, soaps, body care, diffusers and hampers — made with care in Cape Town.",
+      "Handcrafted candles, soaps, body care, diffusers and hampers - made with care in Cape Town.",
     url: "/shop",
   },
 };

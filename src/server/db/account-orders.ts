@@ -44,7 +44,7 @@ export interface AccountOrderDetail {
 
 /**
  * Link any guest orders placed with this (verified) email to the account.
- * Idempotent and case-insensitive — only touches still-unlinked rows.
+ * Idempotent and case-insensitive - only touches still-unlinked rows.
  */
 export async function linkGuestOrdersByEmail(userId: string, email: string) {
   await db

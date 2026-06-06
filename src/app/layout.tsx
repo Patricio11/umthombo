@@ -9,7 +9,7 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} — ${site.tagline}`,
+    default: `${site.name} - ${site.tagline}`,
     template: `%s · ${site.name}`,
   },
   description: DESCRIPTION,
@@ -37,14 +37,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_ZA",
     url: site.url,
-    title: `${site.name} — ${site.tagline}`,
+    title: `${site.name} - ${site.tagline}`,
     description:
       "Handcrafted candles, soaps, body care and diffusers from Cape Town. Made with love and inspired by nature.",
     siteName: site.name,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} — ${site.tagline}`,
+    title: `${site.name} - ${site.tagline}`,
     description: DESCRIPTION,
   },
   robots: {

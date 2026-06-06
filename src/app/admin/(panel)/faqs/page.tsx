@@ -11,7 +11,7 @@ export default async function AdminFaqsPage() {
     <>
       <AdminPageHeader
         title="FAQ"
-        subtitle="Answer common questions — these appear on the public FAQ page."
+        subtitle="Answer common questions - these appear on the public FAQ page."
       />
       <FaqManager faqs={faqs} />
     </>

@@ -23,7 +23,7 @@ export const auth = betterAuth({
   }),
   user: {
     additionalFields: {
-      // role is server-controlled — never settable from a sign-up request.
+      // role is server-controlled - never settable from a sign-up request.
       role: {
         type: "string",
         required: false,

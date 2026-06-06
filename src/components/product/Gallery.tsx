@@ -49,7 +49,7 @@ export function Gallery({
             >
               <Image
                 src={src}
-                alt={`${name} — thumbnail ${i + 1}`}
+                alt={`${name} - thumbnail ${i + 1}`}
                 fill
                 sizes="80px"
                 className="object-cover"

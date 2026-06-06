@@ -12,12 +12,12 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Hampers",
   description:
-    "Curated Umthombo gift hampers — the Collective Box and the Loved Up Box. Soft, beautiful things, assembled with love and wrapped in eco-friendly packaging.",
+    "Curated Umthombo gift hampers - the Collective Box and the Loved Up Box. Soft, beautiful things, assembled with love and wrapped in eco-friendly packaging.",
   alternates: { canonical: "/hampers" },
   openGraph: {
     title: "Gift Hampers · Umthombo Creations",
     description:
-      "Curated gift hampers of handcrafted candles and care — assembled with love in Cape Town.",
+      "Curated gift hampers of handcrafted candles and care - assembled with love in Cape Town.",
     url: "/hampers",
   },
 };

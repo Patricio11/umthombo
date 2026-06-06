@@ -34,7 +34,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
-  const desc = `${product.tagline} — ${product.description}`.slice(0, 160).trim();
+  const desc = `${product.tagline} - ${product.description}`.slice(0, 160).trim();
   return {
     title: product.name,
     description: desc,

@@ -12,7 +12,7 @@ export interface SelectOption {
 const triggerBase =
   "flex w-full items-center justify-between gap-2 rounded-xl border border-cream-3 bg-cream px-3.5 py-2.5 text-left text-sm text-ink transition-colors focus:border-olive focus:outline-none focus:ring-2 focus:ring-olive/15 disabled:opacity-60";
 
-/** Fully custom dropdown (accessible listbox) — no native select chrome. */
+/** Fully custom dropdown (accessible listbox) - no native select chrome. */
 export function Select({
   value,
   onChange,

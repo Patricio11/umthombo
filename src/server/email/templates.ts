@@ -104,7 +104,7 @@ export function passwordResetEmail(name: string, url: string) {
     html: layout(
       "Reset your password",
       `Hi ${escapeHtml(firstName(name))}, click below to choose a new password.`,
-      `${ctaButton(url, "Reset password")}<p style="margin:18px 0 0;font-size:12px;color:${SOFT};">If you didn’t request this, ignore this email — your password stays the same.</p>`
+      `${ctaButton(url, "Reset password")}<p style="margin:18px 0 0;font-size:12px;color:${SOFT};">If you didn’t request this, ignore this email - your password stays the same.</p>`
     ),
   };
 }

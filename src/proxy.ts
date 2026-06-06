@@ -2,14 +2,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
 /**
- * Optimistic auth gate at the edge — a fast cookie check for /admin/* and
+ * Optimistic auth gate at the edge - a fast cookie check for /admin/* and
  * /account/*. The real verification still happens server-side via
  * requireAdmin() / requireUser() on each protected page/action.
  */
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // Never gate the admin login page itself — a stale/invalid cookie could
+  // Never gate the admin login page itself - a stale/invalid cookie could
   // otherwise bounce login ↔ dashboard forever (the server check rejects it).
   if (path === "/admin/login") return NextResponse.next();
 

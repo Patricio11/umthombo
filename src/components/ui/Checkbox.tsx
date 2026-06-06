@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Fully custom checkbox — a styled box over a visually-hidden native input
+ * Fully custom checkbox - a styled box over a visually-hidden native input
  * (keeps native keyboard + label behaviour + form semantics). Controlled:
  * `checked` + `onChange(checked)`.
  */

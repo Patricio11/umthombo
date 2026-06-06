@@ -138,7 +138,7 @@ async function main() {
   }
 
   // Raster exports for places that don't take SVG.
-  // Social profile avatar (olive square, cream mark — platforms crop to circle).
+  // Social profile avatar (olive square, cream mark - platforms crop to circle).
   await sharp(Buffer.from(iconSquare(false)))
     .resize(1080, 1080)
     .png()

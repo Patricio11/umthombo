@@ -79,7 +79,7 @@ export async function toggleIntegration(
   return { ok: true };
 }
 
-/** Wipe an integration's stored config and turn it off — a clean slate. */
+/** Wipe an integration's stored config and turn it off - a clean slate. */
 export async function resetIntegration(key: string): Promise<ActionResult> {
   await requireAdmin();
   if (!KEYS.has(key as IntegrationKey)) {
@@ -150,7 +150,7 @@ export async function testIntegration(key: string): Promise<TestResult> {
       });
       return {
         ok: true,
-        message: `Connected — BobGo returned ${rates.length} rate option(s).`,
+        message: `Connected - BobGo returned ${rates.length} rate option(s).`,
       };
     }
 
@@ -175,10 +175,10 @@ export async function testIntegration(key: string): Promise<TestResult> {
       const link = await createPaymentLink(config, {
         amountZAR: 1,
         reference: `TEST-${Date.now()}`,
-        description: "Connection test (no order — safe to ignore)",
+        description: "Connection test (no order - safe to ignore)",
       });
       return link.ok
-        ? { ok: true, message: "Connected — YetoPay accepted your credentials." }
+        ? { ok: true, message: "Connected - YetoPay accepted your credentials." }
         : { ok: false, message: link.error ?? "YetoPay rejected the request." };
     }
 
@@ -192,7 +192,7 @@ export async function testIntegration(key: string): Promise<TestResult> {
         return { ok: false, message: "Add the API key and from-email, then save and test." };
       const res = await sendEmailWith(config, {
         to: config.fromEmail,
-        subject: "Umthombo Creations — test email",
+        subject: "Umthombo Creations - test email",
         html: "<p>This is a test email confirming your Resend integration works. 🌱</p>",
       });
       return res.ok
@@ -204,7 +204,7 @@ export async function testIntegration(key: string): Promise<TestResult> {
   } catch (err) {
     const msg = (err as Error).message || "Test failed.";
     if (/\b(401|403)\b/.test(msg))
-      return { ok: false, message: "Authentication failed — check the API key/secret." };
+      return { ok: false, message: "Authentication failed - check the API key/secret." };
     return { ok: false, message: msg.slice(0, 200) };
   }
 }

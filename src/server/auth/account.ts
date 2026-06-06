@@ -58,7 +58,7 @@ export async function saveCheckoutAddress(
       .where(eq(addresses.userId, userId));
     await db.insert(addresses).values({
       userId,
-      recipientName: recipientName.trim() || "—",
+      recipientName: recipientName.trim() || "-",
       phone: phone?.trim() || null,
       company: addr.company?.trim() || null,
       streetAddress: addr.streetAddress,

@@ -43,7 +43,7 @@ export function ProductReviews({
               )}
               <p className="mt-1.5 leading-relaxed text-ink-soft">{r.body}</p>
               <p className="mt-2 text-xs text-ink-soft">
-                — {r.authorName}, {fmtDate(r.createdAt)}
+                - {r.authorName}, {fmtDate(r.createdAt)}
               </p>
             </li>
           ))}

@@ -15,7 +15,7 @@ const inputCls =
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Your review is awaiting approval.",
-  published: "Your review is published — thank you!",
+  published: "Your review is published - thank you!",
   rejected: "Your review wasn’t approved.",
 };
 
@@ -94,7 +94,7 @@ export function ReviewForm({ productId }: { productId: string }) {
       ) : !open ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-ink-soft">
-            You bought this — share what you think.
+            You bought this - share what you think.
           </p>
           <Button type="button" onClick={() => setOpen(true)}>
             Write a review

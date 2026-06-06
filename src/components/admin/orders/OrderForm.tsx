@@ -151,7 +151,7 @@ export function OrderForm({
                     <Select
                       value={it.variant}
                       onChange={(v) => setItem(i, { variant: v })}
-                      placeholder="—"
+                      placeholder="-"
                       options={p.variants.map((v) => ({ value: v, label: v }))}
                     />
                   </Field>

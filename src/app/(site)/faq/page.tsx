@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "FAQ · Umthombo Creations",
     description:
-      "Ordering, delivery, collection, payment, custom orders and product care — answered.",
+      "Ordering, delivery, collection, payment, custom orders and product care - answered.",
     url: "/faq",
   },
 };
@@ -48,14 +48,14 @@ export default async function FaqPage() {
       <PageHeader
         eyebrow="Good to know"
         title="Questions & answers"
-        blurb="Everything about ordering, delivery, collection, custom work and caring for your pieces. Still stuck? Message us — we’re quick to reply."
+        blurb="Everything about ordering, delivery, collection, custom work and caring for your pieces. Still stuck? Message us - we’re quick to reply."
       />
 
       <section className="px-5 pb-24 sm:px-8">
         <div className="mx-auto max-w-3xl space-y-10">
           {items.length === 0 ? (
             <p className="text-center text-ink-soft">
-              We’re putting our FAQ together — in the meantime, just message us.
+              We’re putting our FAQ together - in the meantime, just message us.
             </p>
           ) : (
             groups.map((g) => (
