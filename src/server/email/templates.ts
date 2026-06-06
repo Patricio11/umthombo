@@ -41,6 +41,46 @@ function layout(heading: string, intro: string, body: string): string {
   </table></body></html>`;
 }
 
+function ctaButton(url: string, label: string): string {
+  return `<a href="${url}" style="display:inline-block;margin-top:8px;background:${OLIVE};color:#fff;text-decoration:none;font-size:15px;font-weight:500;padding:13px 26px;border-radius:999px;">${label}</a>`;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Account / auth emails                                              */
+/* ------------------------------------------------------------------ */
+export function verificationEmail(name: string, url: string) {
+  return {
+    subject: "Verify your email · Umthombo Creations",
+    html: layout(
+      "Verify your email",
+      `Hi ${escapeHtml(firstName(name))}, please confirm your email to activate your account.`,
+      `${ctaButton(url, "Verify email")}<p style="margin:18px 0 0;font-size:12px;color:${SOFT};">If you didn’t create an account, you can safely ignore this email.</p>`
+    ),
+  };
+}
+
+export function passwordSetupEmail(name: string, url: string) {
+  return {
+    subject: "Set up your password · Umthombo Creations",
+    html: layout(
+      "Set your password",
+      `Hi ${escapeHtml(firstName(name))}, confirm your email and choose a password to finish setting up your account.`,
+      `${ctaButton(url, "Set my password")}<p style="margin:18px 0 0;font-size:12px;color:${SOFT};">This link expires soon. If you didn’t ask for this, you can ignore it.</p>`
+    ),
+  };
+}
+
+export function passwordResetEmail(name: string, url: string) {
+  return {
+    subject: "Reset your password · Umthombo Creations",
+    html: layout(
+      "Reset your password",
+      `Hi ${escapeHtml(firstName(name))}, click below to choose a new password.`,
+      `${ctaButton(url, "Reset password")}<p style="margin:18px 0 0;font-size:12px;color:${SOFT};">If you didn’t request this, ignore this email — your password stays the same.</p>`
+    ),
+  };
+}
+
 function itemsTable(d: OrderEmailData): string {
   const rows = d.items
     .map(

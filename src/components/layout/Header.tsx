@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { CartButton } from "@/components/cart/CartButton";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 import { nav } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +72,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-1">
+          <AccountMenu />
           <CartButton />
           <button
             type="button"

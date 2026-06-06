@@ -7,6 +7,11 @@ import {
   account,
   verification,
 } from "@/server/db/auth-schema";
+import { sendEmail } from "@/server/email/resend";
+import {
+  verificationEmail,
+  passwordResetEmail,
+} from "@/server/email/templates";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
@@ -15,10 +20,45 @@ export const auth = betterAuth({
     provider: "pg",
     schema: { user, session, account, verification },
   }),
+  user: {
+    additionalFields: {
+      // role is server-controlled — never settable from a sign-up request.
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "customer",
+        input: false,
+      },
+      phone: { type: "string", required: false, input: true },
+      marketingOptIn: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+        input: true,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
-    disableSignUp: true, // the admin is created by the seed, no public sign-up
+    disableSignUp: false, // customers can sign up; admin is created by the seed
     minPasswordLength: 8,
+    requireEmailVerification: true,
+    resetPasswordTokenExpiresIn: 60 * 60, // 1 hour
+    sendResetPassword: async ({ user, url }) => {
+      const { subject, html } = passwordResetEmail(user.name, url);
+      const ok = await sendEmail({ to: user.email, subject, html });
+      if (!ok) console.warn("[auth] reset email not sent (Resend off?)");
+    },
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    expiresIn: 60 * 60 * 24, // 24 hours
+    sendVerificationEmail: async ({ user, url }) => {
+      const { subject, html } = verificationEmail(user.name, url);
+      const ok = await sendEmail({ to: user.email, subject, html });
+      if (!ok) console.warn("[auth] verification email not sent (Resend off?)");
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
@@ -31,6 +71,9 @@ export const auth = betterAuth({
     max: 30, // requests per window per IP
     customRules: {
       "/sign-in/email": { window: 60, max: 5 }, // throttle brute-force
+      "/sign-up/email": { window: 60, max: 5 },
+      "/request-password-reset": { window: 300, max: 3 },
+      "/send-verification-email": { window: 300, max: 3 },
     },
   },
   advanced: {

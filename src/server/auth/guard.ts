@@ -8,12 +8,32 @@ export const getSession = cache(async () => {
   return auth.api.getSession({ headers: await headers() });
 });
 
+/** The signed-in user, or null. */
+export async function getCurrentUser() {
+  const session = await getSession();
+  return session?.user ?? null;
+}
+
 /**
- * Require an authenticated admin. Redirects to /admin/login when absent.
- * Returns the session user for convenience.
+ * Require an authenticated **admin**. Redirects to /admin/login when absent or
+ * when the user isn't an admin (a logged-in customer must not reach admin).
  */
 export async function requireAdmin() {
   const session = await getSession();
-  if (!session?.user) redirect("/admin/login");
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  if (!session?.user || role !== "admin") redirect("/admin/login");
+  return session.user;
+}
+
+/**
+ * Require any authenticated user (customer or admin). Redirects to /login with
+ * a `next` param so they return where they were going.
+ */
+export async function requireUser(nextPath?: string) {
+  const session = await getSession();
+  if (!session?.user) {
+    const next = nextPath ? `?next=${encodeURIComponent(nextPath)}` : "";
+    redirect(`/login${next}`);
+  }
   return session.user;
 }

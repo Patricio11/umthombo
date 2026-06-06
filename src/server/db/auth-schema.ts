@@ -9,7 +9,10 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
-  role: text("role").notNull().default("admin"),
+  // Customers default to "customer"; the seeded admin is explicitly "admin".
+  role: text("role").notNull().default("customer"),
+  phone: text("phone"),
+  marketingOptIn: boolean("marketing_opt_in").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

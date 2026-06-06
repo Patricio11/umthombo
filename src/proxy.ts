@@ -2,28 +2,32 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
 /**
- * Optimistic auth gate for /admin/*  a fast cookie check at the edge.
- * The real verification still happens server-side via requireAdmin() on
- * each protected page/action.
+ * Optimistic auth gate at the edge — a fast cookie check for /admin/* and
+ * /account/*. The real verification still happens server-side via
+ * requireAdmin() / requireUser() on each protected page/action.
  */
 export function proxy(request: NextRequest) {
-  const isLogin = request.nextUrl.pathname === "/admin/login";
+  const path = request.nextUrl.pathname;
 
-  // Never gate the login page itself  otherwise a stale/invalid session
-  // cookie can bounce login ↔ dashboard forever (the real session check in
-  // requireAdmin() rejects it, sending us back to login).
-  if (isLogin) return NextResponse.next();
+  // Never gate the admin login page itself — a stale/invalid cookie could
+  // otherwise bounce login ↔ dashboard forever (the server check rejects it).
+  if (path === "/admin/login") return NextResponse.next();
 
   const sessionCookie = getSessionCookie(request);
-  if (!sessionCookie) {
-    const url = new URL("/admin/login", request.url);
-    url.searchParams.set("from", request.nextUrl.pathname);
+  if (sessionCookie) return NextResponse.next();
+
+  // Not signed in → send to the right login for the area.
+  if (path.startsWith("/account")) {
+    const url = new URL("/login", request.url);
+    url.searchParams.set("next", path);
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const url = new URL("/admin/login", request.url);
+  url.searchParams.set("from", path);
+  return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/account/:path*"],
 };

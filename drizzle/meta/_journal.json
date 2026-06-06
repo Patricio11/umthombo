@@ -78,6 +78,13 @@
       "when": 1780749189309,
       "tag": "0010_social_toggles",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1780767922983,
+      "tag": "0011_customer_user_fields",
+      "breakpoints": true
     }
   ]
 }
