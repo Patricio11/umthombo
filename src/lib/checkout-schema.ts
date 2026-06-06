@@ -28,6 +28,9 @@ export const createPendingOrderSchema = z
     serviceCode: z.string().trim().max(80).optional(),
     note: z.string().trim().max(500).optional(),
     ownContainer: z.boolean().default(false),
+    // Account hooks (logged-out: offer account creation; logged-in: save address)
+    createAccount: z.boolean().optional().default(false),
+    saveAddress: z.boolean().optional().default(false),
     items: z.array(checkoutItemSchema).min(1, "Your selection is empty."),
   })
   .refine((d) => d.method !== "delivery" || !!d.address, {

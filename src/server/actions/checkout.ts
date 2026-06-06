@@ -15,6 +15,10 @@ import { createPaymentLink } from "@/server/payments/yetopay";
 import { getSiteSettings } from "@/server/db/settings";
 import { getOrderConfirmation } from "@/server/db/order-public";
 import { getCurrentUser } from "@/server/auth/guard";
+import {
+  createDeferredAccount,
+  saveCheckoutAddress,
+} from "@/server/auth/account";
 import { ZA_PROVINCES } from "@/lib/integrations";
 import {
   createPendingOrderSchema,
@@ -242,6 +246,29 @@ export async function placeOrder(
   }
   const { orderId, orderNumber } = created;
   const total = created.totalZAR ?? 0;
+
+  // Account side-effects (best-effort; never block the order/payment).
+  const sessionUser = await getCurrentUser();
+  if (!sessionUser && input.createAccount && input.email) {
+    await createDeferredAccount({
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+    });
+  }
+  if (
+    sessionUser &&
+    input.saveAddress &&
+    input.method === "delivery" &&
+    input.address
+  ) {
+    await saveCheckoutAddress(
+      sessionUser.id,
+      input.address as DeliveryAddress,
+      input.name,
+      input.phone ?? null
+    );
+  }
 
   // 1. Online payment (primary when configured).
   const yeto = await getYetopayConfig();

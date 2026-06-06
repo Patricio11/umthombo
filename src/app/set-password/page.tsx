@@ -2,9 +2,10 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { resetPassword } from "@/lib/auth-client";
+import { setMyPassword } from "@/server/actions/account";
 import { passwordOk } from "@/lib/password";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordInput } from "@/components/auth/PasswordInput";
@@ -19,9 +20,10 @@ export default function SetPasswordPage() {
 }
 
 function SetPasswordForm() {
+  const router = useRouter();
   const params = useSearchParams();
-  const token = params.get("token");
-  const error0 = params.get("error");
+  const token = params.get("token"); // present = password-reset; absent = deferred setup
+  const linkError = params.get("error");
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -29,7 +31,7 @@ function SetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  if (!token || error0) {
+  if (linkError) {
     return (
       <AuthShell title="Link expired">
         <p className="rounded-xl bg-clay/10 px-4 py-3 text-center text-sm text-clay">
@@ -56,13 +58,27 @@ function SetPasswordForm() {
       return;
     }
     setLoading(true);
-    const { error } = await resetPassword({ newPassword: password, token });
-    setLoading(false);
-    if (error) {
-      setError(error.message || "We couldn’t set your password. Try a new link.");
-      return;
+
+    if (token) {
+      // Forgot-password reset flow.
+      const { error } = await resetPassword({ newPassword: password, token });
+      setLoading(false);
+      if (error) {
+        setError(error.message || "We couldn’t set your password. Try a new link.");
+        return;
+      }
+      setDone(true);
+    } else {
+      // Deferred setup: the customer verified their email and is signed in.
+      const res = await setMyPassword(password);
+      setLoading(false);
+      if (!res.ok) {
+        setError(res.error ?? "We couldn’t set your password.");
+        return;
+      }
+      router.push("/account");
+      router.refresh();
     }
-    setDone(true);
   };
 
   if (done) {

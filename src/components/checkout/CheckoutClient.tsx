@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Truck, Store, Check, X } from "lucide-react";
+import { Loader2, Truck, Store, Check, X, Plus } from "lucide-react";
 import { useCart, selectSubtotal, selectTotal } from "@/store/cart";
 import { ZA_PROVINCES } from "@/lib/integrations";
 import { rateEta, type DeliveryAddress, type RateOption } from "@/lib/shipping";
+import type { AddressView } from "@/lib/address-schema";
 import { getDeliveryRates } from "@/server/actions/shipping";
 import { placeOrder } from "@/server/actions/checkout";
 import { formatZAR } from "@/lib/format";
@@ -24,12 +25,31 @@ const EMPTY_ADDRESS: DeliveryAddress = {
   country: "ZA",
 };
 
+const addressToDelivery = (a: AddressView): DeliveryAddress => ({
+  company: a.company ?? "",
+  streetAddress: a.streetAddress,
+  localArea: a.localArea ?? "",
+  city: a.city,
+  zone: a.zone,
+  code: a.code,
+  country: a.country || "ZA",
+});
+
+const oneLine = (a: AddressView) =>
+  [a.company, a.streetAddress, a.localArea, a.city, a.code]
+    .filter(Boolean)
+    .join(", ");
+
 export function CheckoutClient({
   deliveryEnabled,
   collectionInfo,
+  account,
+  savedAddresses,
 }: {
   deliveryEnabled: boolean;
   collectionInfo: string;
+  account: { name: string; email: string; phone: string } | null;
+  savedAddresses: AddressView[];
 }) {
   const router = useRouter();
   const items = useCart((s) => s.items);
@@ -41,14 +61,25 @@ export function CheckoutClient({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(account?.name ?? "");
+  const [email, setEmail] = useState(account?.email ?? "");
+  const [phone, setPhone] = useState(account?.phone ?? "");
   const [method, setMethod] = useState<Method>(
     deliveryEnabled ? "delivery" : "collection"
   );
   const [address, setAddress] = useState<DeliveryAddress>(EMPTY_ADDRESS);
   const [note, setNote] = useState("");
+
+  // Saved-address picker (logged-in customers)
+  const hasSaved = savedAddresses.length > 0;
+  const [addrMode, setAddrMode] = useState<"saved" | "new">(
+    hasSaved ? "saved" : "new"
+  );
+  const [selectedAddrId, setSelectedAddrId] = useState<string | null>(
+    savedAddresses.find((a) => a.isPrimary)?.id ?? savedAddresses[0]?.id ?? null
+  );
+  const [saveAddress, setSaveAddress] = useState(false);
+  const [createAccount, setCreateAccount] = useState(false);
 
   const [rates, setRates] = useState<RateOption[] | null>(null);
   const [ratesLoading, setRatesLoading] = useState(false);
@@ -62,13 +93,32 @@ export function CheckoutClient({
     orderNumber: string;
   } | null>(null);
 
-  const setAddr = (k: keyof DeliveryAddress, v: string) => {
-    setAddress((a) => ({ ...a, [k]: v }));
-    // Any address change invalidates previously fetched rates.
+  // Any address change/selection invalidates previously fetched rates.
+  const invalidateRates = () => {
     setRates(null);
     setServiceCode(null);
     setRatesError(null);
   };
+
+  const setAddr = (k: keyof DeliveryAddress, v: string) => {
+    setAddress((a) => ({ ...a, [k]: v }));
+    invalidateRates();
+  };
+
+  const selectedSaved =
+    addrMode === "saved"
+      ? savedAddresses.find((a) => a.id === selectedAddrId) ?? null
+      : null;
+
+  // The address actually used for rating + the order.
+  const effectiveAddress: DeliveryAddress | null =
+    method !== "delivery"
+      ? null
+      : addrMode === "saved"
+      ? selectedSaved
+        ? addressToDelivery(selectedSaved)
+        : null
+      : address;
 
   const selectedRate = rates?.find((r) => r.serviceCode === serviceCode) ?? null;
   const deliveryFee =
@@ -76,13 +126,16 @@ export function CheckoutClient({
   const total = goodsTotal + deliveryFee;
 
   const addressReady =
-    address.streetAddress.trim().length >= 3 &&
-    address.city.trim().length >= 2 &&
-    address.zone.trim().length >= 2 &&
-    address.code.trim().length >= 4;
+    method === "delivery" &&
+    (addrMode === "saved"
+      ? !!selectedSaved
+      : address.streetAddress.trim().length >= 3 &&
+        address.city.trim().length >= 2 &&
+        address.zone.trim().length >= 2 &&
+        address.code.trim().length >= 4);
 
   const fetchRates = async () => {
-    if (!addressReady) {
+    if (!addressReady || !effectiveAddress) {
       setRatesError("Please complete the address first.");
       return;
     }
@@ -92,7 +145,7 @@ export function CheckoutClient({
     setServiceCode(null);
     const res = await getDeliveryRates({
       items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
-      address,
+      address: effectiveAddress,
     });
     setRatesLoading(false);
     if (res.ok && res.rates) {
@@ -119,10 +172,13 @@ export function CheckoutClient({
       email,
       phone,
       method,
-      address: method === "delivery" ? address : undefined,
+      address:
+        method === "delivery" ? effectiveAddress ?? undefined : undefined,
       serviceCode: method === "delivery" ? serviceCode ?? undefined : undefined,
       note: note.trim() || undefined,
       ownContainer,
+      createAccount: !account && createAccount,
+      saveAddress: !!account && addrMode === "new" && saveAddress,
       items: items.map((i) => ({
         slug: i.slug,
         variant: i.variant ?? null,
@@ -212,6 +268,20 @@ export function CheckoutClient({
                   />
                 </Field>
               </div>
+              {!account && (
+                <label className="flex items-start gap-2.5 rounded-xl bg-cream-2/50 px-4 py-3 text-sm text-ink-soft">
+                  <input
+                    type="checkbox"
+                    checked={createAccount}
+                    onChange={(e) => setCreateAccount(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-olive"
+                  />
+                  <span>
+                    Create an account with this email — we’ll send a link to set
+                    your password, so you can track orders and reorder faster.
+                  </span>
+                </label>
+              )}
             </Panel>
 
             {/* Method */}
@@ -245,6 +315,24 @@ export function CheckoutClient({
             {/* Delivery address + rates */}
             {method === "delivery" && (
               <Panel title="Delivery address">
+                {hasSaved && (
+                  <SavedAddressPicker
+                    addresses={savedAddresses}
+                    selectedId={selectedAddrId}
+                    mode={addrMode}
+                    onSelect={(id) => {
+                      setAddrMode("saved");
+                      setSelectedAddrId(id);
+                      invalidateRates();
+                    }}
+                    onNew={() => {
+                      setAddrMode("new");
+                      invalidateRates();
+                    }}
+                  />
+                )}
+                {(!hasSaved || addrMode === "new") && (
+                  <>
                 <Field label="Company (optional)">
                   <input
                     value={address.company}
@@ -298,6 +386,19 @@ export function CheckoutClient({
                     />
                   </Field>
                 </div>
+                {account && (
+                  <label className="flex items-center gap-2.5 text-sm text-ink-soft">
+                    <input
+                      type="checkbox"
+                      checked={saveAddress}
+                      onChange={(e) => setSaveAddress(e.target.checked)}
+                      className="h-4 w-4 accent-olive"
+                    />
+                    <span>Save this address to my account</span>
+                  </label>
+                )}
+                  </>
+                )}
 
                 {/* Rates */}
                 <div className="mt-2">
@@ -524,6 +625,68 @@ function PaymentFrame({
 /* ------------------------------------------------------------------ */
 const inputCls =
   "w-full rounded-xl border border-cream-3 bg-cream px-4 py-3 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-olive focus:outline-none";
+
+function SavedAddressPicker({
+  addresses,
+  selectedId,
+  mode,
+  onSelect,
+  onNew,
+}: {
+  addresses: AddressView[];
+  selectedId: string | null;
+  mode: "saved" | "new";
+  onSelect: (id: string) => void;
+  onNew: () => void;
+}) {
+  return (
+    <div className="space-y-2.5">
+      {addresses.map((a) => {
+        const active = mode === "saved" && selectedId === a.id;
+        return (
+          <button
+            key={a.id}
+            type="button"
+            onClick={() => onSelect(a.id)}
+            className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${
+              active ? "border-olive bg-olive/5" : "border-cream-3 hover:border-olive/40"
+            }`}
+          >
+            <span
+              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                active ? "border-olive bg-olive text-cream" : "border-cream-3"
+              }`}
+            >
+              {active && <Check size={12} />}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-medium text-ink">
+                {a.label || a.recipientName}
+                {a.isPrimary && (
+                  <span className="ml-2 text-xs font-normal text-olive">Primary</span>
+                )}
+              </span>
+              <span className="block truncate text-xs text-ink-soft">
+                {oneLine(a)}
+              </span>
+            </span>
+          </button>
+        );
+      })}
+      <button
+        type="button"
+        onClick={onNew}
+        className={`flex w-full items-center gap-2 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition-all ${
+          mode === "new"
+            ? "border-olive bg-olive/5 text-olive"
+            : "border-cream-3 text-ink-soft hover:border-olive/40"
+        }`}
+      >
+        <Plus size={16} /> Use a new address
+      </button>
+    </div>
+  );
+}
 
 function Panel({
   title,

@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { nextCookies } from "better-auth/next-js";
 import { db } from "@/server/db";
 import {
   user,
@@ -81,6 +82,8 @@ export const auth = betterAuth({
     // a production build (Secure cookies aren't sent over http).
     useSecureCookies: (process.env.BETTER_AUTH_URL ?? "").startsWith("https"),
   },
+  // Lets auth.api.* calls set cookies from Next.js server actions / handlers.
+  plugins: [nextCookies()],
 });
 
 export type Session = typeof auth.$Infer.Session;
