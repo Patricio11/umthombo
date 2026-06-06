@@ -12,6 +12,7 @@ import {
   Tags,
   Quote,
   Settings,
+  Plug,
   ExternalLink,
   LogOut,
   Menu,
@@ -28,6 +29,7 @@ const nav = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: Tags },
   { href: "/admin/testimonials", label: "Testimonials", icon: Quote },
+  { href: "/admin/integrations", label: "Integrations", icon: Plug },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

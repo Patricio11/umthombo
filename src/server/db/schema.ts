@@ -162,6 +162,25 @@ export const settings = pgTable("settings", {
 });
 
 /* ------------------------------------------------------------------ */
+/*  Integrations (BobGo, YetoEFT, Resend, WhatsApp) — admin-managed    */
+/*  credential bags, toggled on/off. `config` is a per-key jsonb bag.   */
+/* ------------------------------------------------------------------ */
+export const integrations = pgTable("integrations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  key: text("key").notNull().unique(), // bobgo | yetopay | resend | whatsapp
+  name: text("name").notNull(),
+  category: text("category").notNull(), // shipping | payment | email | channel
+  enabled: boolean("enabled").notNull().default(false),
+  config: jsonb("config")
+    .$type<Record<string, unknown>>()
+    .notNull()
+    .default(sql`'{}'::jsonb`),
+  ...timestamps,
+});
+
+export type Integration = typeof integrations.$inferSelect;
+
+/* ------------------------------------------------------------------ */
 /*  Relations                                                         */
 /* ------------------------------------------------------------------ */
 export const categoriesRelations = relations(categories, ({ many }) => ({

@@ -13,11 +13,13 @@ import {
   categories,
   products,
   testimonials,
+  integrations,
   user as userTable,
   account as accountTable,
 } from "../src/server/db/schema";
 import { categoryMeta, products as seedProducts } from "../src/data/products";
 import { testimonials as seedTestimonials } from "../src/data/testimonials";
+import { INTEGRATION_META, type IntegrationKey } from "../src/lib/integrations";
 import { auth } from "../src/server/auth/auth";
 
 const categoryImages: Record<string, string> = {
@@ -120,6 +122,26 @@ async function seedTestimonialRows() {
   console.log(`  testimonials: ${seedTestimonials.length}`);
 }
 
+async function seedIntegrations() {
+  const keys = Object.keys(INTEGRATION_META) as IntegrationKey[];
+  let created = 0;
+  for (const key of keys) {
+    const meta = INTEGRATION_META[key];
+    await db
+      .insert(integrations)
+      .values({
+        key,
+        name: meta.name,
+        category: meta.category,
+        enabled: false,
+        config: {},
+      })
+      .onConflictDoNothing({ target: integrations.key });
+    created++;
+  }
+  console.log(`  integrations: ${created} ensured`);
+}
+
 async function seedAdmin() {
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
@@ -163,6 +185,7 @@ async function main() {
   const slugToId = await seedCategories();
   await seedProductRows(slugToId);
   await seedTestimonialRows();
+  await seedIntegrations();
   await seedAdmin();
   console.log("Done ✓");
   process.exit(0);
