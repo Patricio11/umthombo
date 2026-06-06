@@ -96,8 +96,9 @@ export async function getProducts(opts?: {
       ? and(eq(products.status, "active"), eq(products.categoryId, categoryId))
       : eq(products.status, "active"),
     with: { category: true },
-    // Manual sortOrder wins (lets the admin pin items); otherwise newest first.
-    orderBy: [asc(products.sortOrder), desc(products.createdAt)],
+    // Newest first; sortOrder (a creation counter) only breaks ties when two
+    // products share a createdAt timestamp (e.g. a seeded batch).
+    orderBy: [desc(products.createdAt), desc(products.sortOrder)],
   });
   return (rows as ProductRow[]).map(toProductView);
 }
@@ -108,8 +109,9 @@ export async function getFeaturedProducts(
   const rows = await db.query.products.findMany({
     where: and(eq(products.status, "active"), eq(products.featured, true)),
     with: { category: true },
-    // Manual sortOrder wins (lets the admin pin items); otherwise newest first.
-    orderBy: [asc(products.sortOrder), desc(products.createdAt)],
+    // Newest first; sortOrder (a creation counter) only breaks ties when two
+    // products share a createdAt timestamp (e.g. a seeded batch).
+    orderBy: [desc(products.createdAt), desc(products.sortOrder)],
     limit,
   });
   return (rows as ProductRow[]).map(toProductView);
@@ -119,8 +121,9 @@ export async function getCustomisableProducts(): Promise<ProductView[]> {
   const rows = await db.query.products.findMany({
     where: and(eq(products.status, "active"), eq(products.customisable, true)),
     with: { category: true },
-    // Manual sortOrder wins (lets the admin pin items); otherwise newest first.
-    orderBy: [asc(products.sortOrder), desc(products.createdAt)],
+    // Newest first; sortOrder (a creation counter) only breaks ties when two
+    // products share a createdAt timestamp (e.g. a seeded batch).
+    orderBy: [desc(products.createdAt), desc(products.sortOrder)],
   });
   return (rows as ProductRow[]).map(toProductView);
 }
@@ -188,8 +191,9 @@ export async function getRelatedProducts(
       ne(products.id, product.id)
     ),
     with: { category: true },
-    // Manual sortOrder wins (lets the admin pin items); otherwise newest first.
-    orderBy: [asc(products.sortOrder), desc(products.createdAt)],
+    // Newest first; sortOrder (a creation counter) only breaks ties when two
+    // products share a createdAt timestamp (e.g. a seeded batch).
+    orderBy: [desc(products.createdAt), desc(products.sortOrder)],
     limit,
   });
   return (rows as ProductRow[]).map(toProductView);
