@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import type { ProductView } from "@/lib/view-types";
 import { useCart } from "@/store/cart";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { accentClasses } from "@/lib/accents";
 
 export function AddToOrder({ product }: { product: ProductView }) {
@@ -65,12 +66,7 @@ export function AddToOrder({ product }: { product: ProductView }) {
       {/* Pack option */}
       {product.packPriceZAR && (
         <label className="flex cursor-pointer items-center gap-3 rounded-2xl bg-cream-2 px-4 py-3 text-sm">
-          <input
-            type="checkbox"
-            checked={pack}
-            onChange={(e) => setPack(e.target.checked)}
-            className="h-4 w-4 accent-olive"
-          />
+          <Checkbox checked={pack} onChange={setPack} />
           <span>
             Make it a <span className="font-medium">pack of two</span>  better
             value

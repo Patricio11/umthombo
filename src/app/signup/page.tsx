@@ -8,6 +8,7 @@ import { passwordOk } from "@/lib/password";
 import { AuthShell, authInputCls } from "@/components/auth/AuthShell";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -113,11 +114,10 @@ export default function SignupPage() {
         />
 
         <label className="flex items-start gap-2.5 pt-1 text-sm text-ink-soft">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={marketingOptIn}
-            onChange={(e) => setMarketingOptIn(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-olive"
+            onChange={setMarketingOptIn}
+            className="mt-0.5"
           />
           <span>Email me about new products and occasional offers.</span>
         </label>

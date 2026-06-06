@@ -188,11 +188,7 @@ export function Textarea(
   );
 }
 
-export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select {...props} className={cn(inputClass, "pr-8", props.className)} />
-  );
-}
+export { Select } from "@/components/ui/Select";
 
 export function Switch({
   checked,

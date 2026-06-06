@@ -12,6 +12,8 @@ import { getDeliveryRates } from "@/server/actions/shipping";
 import { placeOrder } from "@/server/actions/checkout";
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 type Method = "delivery" | "collection";
 
@@ -270,11 +272,10 @@ export function CheckoutClient({
               </div>
               {!account && (
                 <label className="flex items-start gap-2.5 rounded-xl bg-cream-2/50 px-4 py-3 text-sm text-ink-soft">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={createAccount}
-                    onChange={(e) => setCreateAccount(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 accent-olive"
+                    onChange={setCreateAccount}
+                    className="mt-0.5"
                   />
                   <span>
                     Create an account with this email — we’ll send a link to set
@@ -364,18 +365,15 @@ export function CheckoutClient({
                     />
                   </Field>
                   <Field label="Province">
-                    <select
+                    <Select
                       value={address.zone}
-                      onChange={(e) => setAddr("zone", e.target.value)}
-                      className={inputCls}
-                    >
-                      <option value="">Choose…</option>
-                      {ZA_PROVINCES.map((p) => (
-                        <option key={p.code} value={p.code}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(v) => setAddr("zone", v)}
+                      options={ZA_PROVINCES.map((p) => ({
+                        value: p.code,
+                        label: p.name,
+                      }))}
+                      placeholder="Choose…"
+                    />
                   </Field>
                   <Field label="Postal code">
                     <input
@@ -388,12 +386,7 @@ export function CheckoutClient({
                 </div>
                 {account && (
                   <label className="flex items-center gap-2.5 text-sm text-ink-soft">
-                    <input
-                      type="checkbox"
-                      checked={saveAddress}
-                      onChange={(e) => setSaveAddress(e.target.checked)}
-                      className="h-4 w-4 accent-olive"
-                    />
+                    <Checkbox checked={saveAddress} onChange={setSaveAddress} />
                     <span>Save this address to my account</span>
                   </label>
                 )}

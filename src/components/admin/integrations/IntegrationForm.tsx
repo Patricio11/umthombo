@@ -208,13 +208,11 @@ export function IntegrationForm({
                 <Input value={f.city} onChange={(e) => set("city", e.target.value)} />
               </Field>
               <Field label="Province">
-                <Select value={f.zone} onChange={(e) => set("zone", e.target.value)}>
-                  {ZA_PROVINCES.map((p) => (
-                    <option key={p.code} value={p.code}>
-                      {p.name}
-                    </option>
-                  ))}
-                </Select>
+                <Select
+                  value={f.zone}
+                  onChange={(v) => set("zone", v)}
+                  options={ZA_PROVINCES.map((p) => ({ value: p.code, label: p.name }))}
+                />
               </Field>
               <Field label="Postal code">
                 <Input value={f.code} onChange={(e) => set("code", e.target.value)} />
@@ -276,10 +274,14 @@ export function IntegrationForm({
               />
             </Field>
             <Field label="Default payment method">
-              <Select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as "eft_direct" | "card")}>
-                <option value="eft_direct">Instant EFT</option>
-                <option value="card">Card</option>
-              </Select>
+              <Select
+                value={paymentMethod}
+                onChange={(v) => setPaymentMethod(v as "eft_direct" | "card")}
+                options={[
+                  { value: "eft_direct", label: "Instant EFT" },
+                  { value: "card", label: "Card" },
+                ]}
+              />
             </Field>
             <Field
               label="Checkout display"
@@ -287,13 +289,12 @@ export function IntegrationForm({
             >
               <Select
                 value={displayMode}
-                onChange={(e) =>
-                  setDisplayMode(e.target.value as "redirect" | "iframe")
-                }
-              >
-                <option value="redirect">Full-page redirect</option>
-                <option value="iframe">Embedded iFrame (stay on site)</option>
-              </Select>
+                onChange={(v) => setDisplayMode(v as "redirect" | "iframe")}
+                options={[
+                  { value: "redirect", label: "Full-page redirect" },
+                  { value: "iframe", label: "Embedded iFrame (stay on site)" },
+                ]}
+              />
             </Field>
           </Card>
 

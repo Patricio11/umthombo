@@ -137,32 +137,23 @@ export function OrderForm({
                 <Field label="Product" className="min-w-[180px] flex-1">
                   <Select
                     value={it.productId}
-                    onChange={(e) =>
-                      setItem(i, { productId: e.target.value, variant: "" })
-                    }
-                  >
-                    <option value="">Choose a product…</option>
-                    {products.map((pr) => (
-                      <option key={pr.id} value={pr.id}>
-                        {pr.name}  {formatZAR(pr.priceZAR)}
-                      </option>
-                    ))}
-                  </Select>
+                    onChange={(v) => setItem(i, { productId: v, variant: "" })}
+                    placeholder="Choose a product…"
+                    options={products.map((pr) => ({
+                      value: pr.id,
+                      label: `${pr.name}  ${formatZAR(pr.priceZAR)}`,
+                    }))}
+                  />
                 </Field>
 
                 {p && p.variants.length > 0 && (
                   <Field label="Variant" className="min-w-[140px]">
                     <Select
                       value={it.variant}
-                      onChange={(e) => setItem(i, { variant: e.target.value })}
-                    >
-                      <option value=""></option>
-                      {p.variants.map((v) => (
-                        <option key={v} value={v}>
-                          {v}
-                        </option>
-                      ))}
-                    </Select>
+                      onChange={(v) => setItem(i, { variant: v })}
+                      placeholder="—"
+                      options={p.variants.map((v) => ({ value: v, label: v }))}
+                    />
                   </Field>
                 )}
 
@@ -250,13 +241,12 @@ export function OrderForm({
           <Field label="Method">
             <Select
               value={method}
-              onChange={(e) =>
-                setMethod(e.target.value as "delivery" | "collection")
-              }
-            >
-              <option value="delivery">Delivery</option>
-              <option value="collection">Collection</option>
-            </Select>
+              onChange={(v) => setMethod(v as "delivery" | "collection")}
+              options={[
+                { value: "delivery", label: "Delivery" },
+                { value: "collection", label: "Collection" },
+              ]}
+            />
           </Field>
           {method === "delivery" && (
             <>
@@ -301,32 +291,26 @@ export function OrderForm({
           <Field label="Order status">
             <Select
               value={status}
-              onChange={(e) =>
-                setStatus(e.target.value as (typeof ORDER_STATUSES)[number])
+              onChange={(v) =>
+                setStatus(v as (typeof ORDER_STATUSES)[number])
               }
-            >
-              {ORDER_STATUSES.map((s) => (
-                <option key={s} value={s} className="capitalize">
-                  {s}
-                </option>
-              ))}
-            </Select>
+              options={ORDER_STATUSES.map((s) => ({
+                value: s,
+                label: s.charAt(0).toUpperCase() + s.slice(1),
+              }))}
+            />
           </Field>
           <Field label="Payment" hint="Mark paid to send confirmation + create the shipment">
             <Select
               value={paymentStatus}
-              onChange={(e) =>
-                setPaymentStatus(
-                  e.target.value as (typeof PAYMENT_STATUSES)[number]
-                )
+              onChange={(v) =>
+                setPaymentStatus(v as (typeof PAYMENT_STATUSES)[number])
               }
-            >
-              {PAYMENT_STATUSES.map((s) => (
-                <option key={s} value={s} className="capitalize">
-                  {s}
-                </option>
-              ))}
-            </Select>
+              options={PAYMENT_STATUSES.map((s) => ({
+                value: s,
+                label: s.charAt(0).toUpperCase() + s.slice(1),
+              }))}
+            />
           </Field>
           <label className="flex items-center justify-between gap-3">
             <span className="text-sm font-medium">Own container (10% off)</span>

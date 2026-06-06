@@ -7,6 +7,8 @@ import { ZA_PROVINCES } from "@/lib/integrations";
 import type { AddressView } from "@/lib/address-schema";
 import { authInputCls } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
+import { Checkbox } from "@/components/ui/Checkbox";
 import {
   createAddress,
   updateAddress,
@@ -224,12 +226,12 @@ function AddressForm({
           <input value={f.city} onChange={(e) => set("city", e.target.value)} className={authInputCls} required />
         </Field>
         <Field label="Province">
-          <select value={f.zone} onChange={(e) => set("zone", e.target.value)} className={authInputCls} required>
-            <option value="">Choose…</option>
-            {ZA_PROVINCES.map((p) => (
-              <option key={p.code} value={p.code}>{p.name}</option>
-            ))}
-          </select>
+          <Select
+            value={f.zone}
+            onChange={(v) => set("zone", v)}
+            options={ZA_PROVINCES.map((p) => ({ value: p.code, label: p.name }))}
+            placeholder="Choose…"
+          />
         </Field>
         <Field label="Postal code">
           <input value={f.code} onChange={(e) => set("code", e.target.value)} inputMode="numeric" className={authInputCls} required />
@@ -238,7 +240,7 @@ function AddressForm({
 
       {canSetPrimary && (
         <label className="flex items-center gap-2.5 text-sm text-ink-soft">
-          <input type="checkbox" checked={isPrimary} onChange={(e) => setIsPrimary(e.target.checked)} className="h-4 w-4 accent-olive" />
+          <Checkbox checked={isPrimary} onChange={setIsPrimary} />
           <span>Set as my primary address</span>
         </label>
       )}

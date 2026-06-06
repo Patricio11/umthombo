@@ -157,14 +157,9 @@ export function ProductForm({
                 <Select
                   id="category"
                   value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.label}
-                    </option>
-                  ))}
-                </Select>
+                  onChange={setCategoryId}
+                  options={categories.map((c) => ({ value: c.id, label: c.label }))}
+                />
               </Field>
             </div>
             <Field label="Tagline" htmlFor="tagline" hint="A short editorial line">
@@ -254,11 +249,12 @@ export function ProductForm({
               <Select
                 id="status"
                 value={status}
-                onChange={(e) => setStatus(e.target.value as "draft" | "active")}
-              >
-                <option value="active">Active</option>
-                <option value="draft">Draft</option>
-              </Select>
+                onChange={(v) => setStatus(v as "draft" | "active")}
+                options={[
+                  { value: "active", label: "Active" },
+                  { value: "draft", label: "Draft" },
+                ]}
+              />
             </Field>
             <label className="flex items-center justify-between gap-3">
               <span className="text-sm font-medium">Featured on home</span>

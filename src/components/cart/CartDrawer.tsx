@@ -16,6 +16,7 @@ import {
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { CartLine } from "@/components/cart/CartLine";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -124,11 +125,10 @@ export function CartDrawer() {
                   {mounted && items.length > 0 && (
                     <footer className="border-t border-cream-2 px-6 py-5">
                       <label className="flex cursor-pointer items-start gap-3 rounded-2xl bg-cream-2 p-3.5 text-sm">
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={ownContainer}
-                          onChange={(e) => setOwnContainer(e.target.checked)}
-                          className="mt-0.5 h-4 w-4 accent-olive"
+                          onChange={setOwnContainer}
+                          className="mt-0.5"
                         />
                         <span className="text-ink-soft">
                           Bringing your own jar?{" "}

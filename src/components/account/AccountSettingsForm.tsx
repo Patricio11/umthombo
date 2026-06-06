@@ -7,6 +7,7 @@ import { passwordOk } from "@/lib/password";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { authInputCls } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 
 function Card({
   title,
@@ -134,11 +135,10 @@ export function AccountSettingsForm({
             <input value={email} disabled className={`${authInputCls} opacity-60`} />
           </Field>
           <label className="flex items-start gap-2.5 text-sm text-ink-soft">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={marketing}
-              onChange={(e) => setMarketing(e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-olive"
+              onChange={setMarketing}
+              className="mt-0.5"
             />
             <span>Email me about new products and occasional offers.</span>
           </label>
