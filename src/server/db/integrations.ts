@@ -90,7 +90,13 @@ export async function getYetopayConfig(): Promise<YetopayConfig | null> {
   const c = (row.config ?? {}) as Partial<YetopayConfig>;
   if (!isConfigured("yetopay", c)) return null;
   return {
-    baseUrl: str(c.baseUrl).replace(/\/+$/, ""),
+    // Accept the site root (e.g. https://www.yetopay.co.za); tolerate a pasted
+    // trailing slash or "/api[/payment-links]" so we never double the path.
+    baseUrl: str(c.baseUrl)
+      .trim()
+      .replace(/\/+$/, "")
+      .replace(/\/api(\/payment-links)?$/i, "")
+      .replace(/\/+$/, ""),
     apiKey: str(c.apiKey),
     apiSecret: str(c.apiSecret),
     merchantId: str(c.merchantId),

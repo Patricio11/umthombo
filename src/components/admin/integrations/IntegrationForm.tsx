@@ -199,8 +199,15 @@ export function IntegrationForm({
         <>
           <Card className="space-y-5">
             <h2 className="font-display text-lg">Credentials</h2>
-            <Field label="API base URL" hint="From your YetoPay dashboard">
-              <Input value={f.baseUrl} onChange={(e) => set("baseUrl", e.target.value)} placeholder="https://api.yetopay.co.za" />
+            <Field
+              label="Base URL"
+              hint="Your YetoPay site URL — no path. The API path is added automatically."
+            >
+              <Input
+                value={f.baseUrl}
+                onChange={(e) => set("baseUrl", e.target.value)}
+                placeholder="https://www.yetopay.co.za"
+              />
             </Field>
             <Field label="Merchant ID">
               <Input value={f.merchantId} onChange={(e) => set("merchantId", e.target.value)} />
