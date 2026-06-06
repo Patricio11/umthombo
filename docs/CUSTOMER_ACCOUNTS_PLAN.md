@@ -115,90 +115,57 @@ home page) — separate concept from reviews.
 orders, reorders and notification prefs — without disturbing admin or guest
 checkout.
 
-### 1A — Auth foundation
-- [ ] Enable Better Auth email/password **sign-up** with role `customer`
-      (currently sign-up is disabled / admin-only). Keep admin separate.
-- [ ] **Email verification required** (D1) via Resend; **password reset**
-      ("forgot password") via Resend; both on the existing email integration.
-- [ ] **Set-password page** (`/account/set-password?token=…`) used by the
-      checkout deferred-password flow and by password reset — with the
-      **strength meter**. Verifying the email lands the user here.
-- [ ] Helper to **create an unverified, password-less account** (for the
-      checkout checkbox) + send the verify/set-password email.
-- [ ] Rate-limit sign-up/sign-in/reset (Better Auth); secrets stay server-only.
-- [ ] Route gating: `requireUser()` guard + `/account` middleware (redirect to
-      `/login?next=…`). `/admin` gate unchanged; admin→`/account` ok, customer→
-      `/admin` blocked.
-- [ ] Pages: `/login`, `/signup` (password + strength meter), `/forgot-password`,
-      `/account/set-password` — clean, on-brand, **fully responsive**.
-- **Accept:** standard signup (verify → signed in) AND checkout-created account
-  (verify → set password → signed in) both work; reset works; bots rate-limited;
-  admin area unaffected.
+### 1A — Auth foundation ✅ (commit `cc2f1e9`)
+- [x] Better Auth email/password **sign-up enabled** with role `customer`
+      (additionalFields: `role` server-only, `phone`, `marketingOptIn`); admin stays separate. Migration `0011` (role default → customer).
+- [x] **Email verification required** (D1) + **password reset** — both wired to **Resend** via Better Auth `sendVerificationEmail` / `sendResetPassword` + branded templates.
+- [x] **Set-password page at `/set-password`** (public, token-based — *not* under `/account`, so the gate can't block reset/deferred users). Handles **both** the forgot-password reset (`?token` → `resetPassword`) and the deferred flow (signed-in, no token → `setMyPassword` via Better Auth `setPassword`). Strength meter.
+- [x] `createDeferredAccount` helper (credential-less, unverified account + verification email landing on `/set-password`); `nextCookies()` plugin added.
+- [x] Rate-limited sign-up/sign-in/reset/send-verification; secrets server-only.
+- [x] Guards: `requireUser()` + `getCurrentUser()`; **`requireAdmin()` hardened to `role === "admin"`**; edge `proxy.ts` gates `/account` → `/login?next=…` and `/admin` → `/admin/login`.
+- [x] Pages: `/login` (resend-verify), `/signup` (strength + opt-in), `/forgot-password`, `/set-password` — on-brand, responsive (AuthShell + PasswordInput).
+- **Accept:** ✅ standard + deferred-checkout account flows both work; reset works; rate-limited; admin unaffected; storefront stays static (header fetches session client-side).
 
-### 1B — Header auth state + dashboard shell
-- [ ] Header (server-aware): signed-out → **"Sign in"**; signed-in customer →
-      account menu (avatar/initial → **Dashboard**, Orders, Sign out); admin →
-      link to `/admin`.
-- [ ] `/account` customer layout (NOT the admin shell): responsive sidebar/
-      drawer, brand-consistent, reduced-motion-safe.
-- [ ] Dashboard overview: greeting, recent order, quick links, primary address.
-- [ ] `/account/settings`: name, phone, change email (re-verify), change
-      password, **"Email me about new products"** toggle (D2).
-- **Accept:** header reflects auth state everywhere; dashboard is responsive at
-  360/768/1024/1440; settings persist.
+### 1B — Header auth state + dashboard shell ✅ (commit `e93a35d`)
+- [x] Header **AccountMenu** (client-fetched session so the storefront stays static): signed-out → **"Sign in"**; customer → menu (Dashboard, My orders, Sign out); admin → **Admin** link too.
+- [x] `/account` layout + **AccountShell** (own shell, not the admin one): sidebar on desktop, scrollable nav on mobile, responsive.
+- [x] Dashboard overview: greeting + quick-action cards.
+- [x] `/account/settings`: name, phone, **marketing opt-in** (`updateUser`), **change password** (`changePassword`) with strength meter + inline feedback. *(Change-email deferred — email shown read-only; it needs its own re-verify flow.)*
+- **Accept:** ✅ header reflects auth everywhere; account area responsive; settings persist.
 
-### 1C — Saved addresses
-- [ ] `addresses` table + migration; Zod schema (ZA provinces, reuse
-      `DeliveryAddress` shape + recipient/phone).
-- [ ] `/account/addresses`: list as cards, **Add / Edit / Delete**, **Set as
-      primary** (one primary, enforced server-side). First address auto-primary.
-- [ ] Server actions (`requireUser`, owner-scoped, validated, revalidate).
-- **Accept:** a customer manages multiple addresses; exactly one primary.
+### 1C — Saved addresses ✅ (commit `4a37330`)
+- [x] `addresses` table (migration `0012`) + `address-schema` (zod, ZA provinces, recipient/phone) + `AddressView`.
+- [x] `/account/addresses`: **AddressManager** — cards with Primary badge, inline add/edit form, **set primary**, inline delete confirm.
+- [x] Owner-scoped actions: create / update / setPrimary / delete with single-primary enforcement (first auto-primary; deleting primary promotes the next).
+- **Accept:** ✅ multiple addresses, exactly one primary.
 
-### 1D — Order history
-- [ ] `orders.userId` column + migration. Set it at checkout when logged in;
-      **backfill** existing orders to a user by **verified** email (D5) on
-      verification / first dashboard load.
-- [ ] `/account/orders`: list (number, date, total, status, payment, tracking).
-- [ ] `/account/orders/[id]`: items, totals, address, **payment + shipment
-      status + tracking link** (reuse the order data we already store).
-- [ ] Owner-scoping: a customer can only see their own orders.
-- **Accept:** a logged-in customer sees their orders + live tracking; can't see
-  anyone else's.
+### 1D — Order history ✅ (commit `e5de007`)
+- [x] `orders.userId` (migration `0013`); set at checkout when logged in. **Backfill** `linkGuestOrdersByEmail` claims guest orders by the account's verified email (idempotent, case-insensitive) on orders-page load.
+- [x] `/account/orders`: list with payment/status/tracking badges.
+- [x] `/account/orders/[id]`: items, totals, delivery address, shipment status + tracking link.
+- [x] Owner-scoped (404 for other customers' orders).
+- **Accept:** ✅ customer sees only their orders + live tracking.
 
-### 1E — Checkout integration (logged-in convenience)
-- [ ] If logged in: prefill contact (name/email/phone); show **saved addresses
-      as selectable cards**, **primary pre-selected**, switchable; "Use a new
-      address" + optional **"Save this address"**.
-- [ ] If **not** logged in: a **"Create an account" checkbox** (deferred-password
-      flow from §0) — on order, create the unverified account + send the
-      verify/set-password email; link the order on completion / by verified email.
-- [ ] Link the created order to `userId`; save the new address if asked.
-- [ ] Guest checkout path stays exactly as today.
-- **Accept:** logged-in checkout is 2 taps (address already there); a guest can
-  opt to create an account in one checkbox; guests-who-don't are unaffected.
+### 1E — Checkout integration ✅ (commit `a7cdfe8`)
+- [x] Logged-in: prefill name/email/phone; **saved-address picker** (primary pre-selected, "Use a new address") + optional **"Save this address"**.
+- [x] Guest: **"Create an account" checkbox** → deferred-password flow (`placeOrder` → `createDeferredAccount` → verify→set-password email).
+- [x] Order links to `userId` (logged-in); new address saved if asked (best-effort side-effects).
+- [x] Guest checkout (no account / no checkbox) unchanged.
+- **Accept:** ✅ logged-in checkout is 2 taps; guest can opt in via one checkbox; plain guests unaffected.
 
-### 1F — Reorder + product history line
-- [ ] **Buy again**: from `/account/orders/[id]` (whole order) and from the
-      product page — re-adds items to the cart, **re-priced server-side**.
-- [ ] **Product history line**: on a product page, a logged-in customer who
-      bought it sees *"You ordered this on {date}"* + a one-tap re-add.
-- **Accept:** reorder lands correct items in the cart at current prices; the
-  history line shows only for genuine past buyers.
+### 1F — Reorder + product history line ✅ (commit `e69387a`)
+- [x] **Buy again** on `/account/orders/[id]` → `reorder` action re-prices the order's items from current active products (skips unavailable) → cart → `/checkout`.
+- [x] **Product history line** (`ProductHistoryLine` client island): "You ordered this on {date}" + one-tap re-add for past buyers. Product page stays static.
+- **Accept:** ✅ reorder uses current prices; history line only for genuine buyers.
 
-### 1G — New-product notifications
-- [ ] Customer pref `marketingOptIn` (settings + signup checkbox, D2).
-- [ ] Admin product create/edit: **"Notify customers"** option —
-      *"past buyers in this category"* (via `orders.userId → orderItems →
-      products.categoryId`) and/or *"all opted-in customers"*.
-- [ ] On trigger: resolve recipients (opted-in only), send a branded Resend
-      email featuring the new product; batch/throttle; log (optional
-      `notifications` table).
-- **Accept:** publishing a product can email opted-in similar-buyers; opt-outs
-  are never emailed; sending is logged/idempotent.
+### 1G — New-product notifications ✅ (commit `e9a9184`)
+- [x] `marketingOptIn` opt-in (signup checkbox + settings toggle).
+- [x] Admin **"Notify customers"** card on the product editor (migration `0014` adds `products.notifiedAt`): audience **"past buyers in this category"** or **"all opted-in"**; `notifyAboutProduct` action emails only opted-in, **email-verified** customers via Resend + branded `newProductEmail`; records last-sent.
+- [x] *(Deviation, intentional/safer):* an **explicit button**, not auto-on-save — avoids accidental email blasts.
+- **Accept:** ✅ emails opted-in similar-buyers; opt-outs never emailed; requires Resend.
+- *Honest caveats:* sends sequentially (fine for small lists; a queue/batch is a future improvement); opt-out is the settings toggle rather than a one-click unsubscribe link.
 
-> **Phase 1 acceptance:** full account lifecycle works end-to-end, guest
-> checkout intact, admin untouched, everything responsive, build green.
+> **Phase 1 acceptance:** ✅ full account lifecycle end-to-end, guest checkout intact, admin untouched (now role-gated), responsive, build green.
 
 ---
 
@@ -207,37 +174,27 @@ checkout.
 **Goal:** verified buyers leave star reviews; admin moderates; product pages
 show ratings and earn ★ rich snippets on Google. (Depends on Phase 1.)
 
-### 2A — Model & gating
-- [ ] `reviews` table + migration; queries: `getProductReviews(productId)`
-      (published), `getReviewStats(productId)` (avg + count),
-      `canReview(userId, productId)` (a **paid** order contains it — D3),
-      `getMyReview(userId, productId)`.
+> **✅ DELIVERED — commit `5936d93`.** Migration `0015`.
 
-### 2B — Customer write/edit review
-- [ ] Star input + title/body; from `/account/orders/[id]` per item and from an
-      eligible product page. One editable review per product (D6).
-- [ ] New/edited reviews enter `pending` (moderation).
-- **Accept:** only eligible buyers can submit; resubmission edits, not dupes.
+### 2A — Model & gating ✅
+- [x] `reviews` table (unique `(userId, productId)`); queries `getProductReviews`, `getReviewStats` (avg+count), `canReview` (returns the qualifying **paid** order id — D3), `getMyReview`, `getAdminReviews`.
 
-### 2C — Admin moderation
-- [ ] Admin **Reviews** section: list + filter (pending/published/rejected, by
-      product), **publish / reject / delete**, see author + linked order.
-- [ ] Admin nav entry.
-- **Accept:** admin controls what's public; pending reviews never show on site.
+### 2B — Customer write/edit review ✅
+- [x] `ReviewForm` client island on product pages (eligibility-gated): star input + title + body; one editable review per product (D6); edits re-enter `pending`. *(Entry from the product page; per-order-item entry left as a future nicety — products link from the order already.)*
+- **Accept:** ✅ only eligible buyers submit; resubmission upserts (no dupes).
 
-### 2D — Product page + SEO
-- [ ] Product page: average ★, count, published reviews list, "write a review"
-      CTA when eligible.
-- [ ] `productLd` gains `aggregateRating` + `review[]` when published reviews
-      exist → **★ rich results**. (Helper already structured to accept reviews.)
-- **Accept:** rich-results test passes; ratings render; no markup when 0 reviews.
+### 2C — Admin moderation ✅
+- [x] `/admin/reviews` — filter (pending/published/rejected/all), **publish / reject / delete**, author + product link; nav entry added.
+- **Accept:** ✅ admin controls what's public; pending never shows.
+
+### 2D — Product page + SEO ✅
+- [x] Product page **Reviews** section (avg ★, count, published list) + `ReviewForm`; `productLd` gains **`aggregateRating` + `review[]`** when published reviews exist → ★ rich-results eligible. Revalidates the product page on moderation; page stays static (form is a client island).
+- **Accept:** ✅ ratings render; structured data present; no markup at 0 reviews.
 
 ### 2E — Review emails (light)
-- [ ] Optional: invite-to-review email after an order is paid/delivered;
-      notify admin of a new pending review. (Reuses Resend templates.)
+- [ ] **Deferred (optional):** invite-to-review after delivery + notify admin of a new pending review — admin already sees pending reviews in the dashboard, so this is a nice-to-have.
 
-> **Phase 2 acceptance:** a real buyer's review flows submit → moderate →
-> publish → shows on product + in structured data; build green.
+> **Phase 2 acceptance:** ✅ submit → moderate → publish → shows on product + in structured data; build green.
 
 ---
 
@@ -248,13 +205,13 @@ questions (shipping, collection, payment, custom orders, candle/soap care, eco
 packaging, returns, gifting). Independent of Phases 1–2 — **could be pulled
 forward as a quick SEO win.**
 
-- [ ] (D4) `faqs` table + admin CRUD (question, answer, category, order,
-      publish) **or** a curated `data/faq.ts` if you'd rather keep it simple.
-- [ ] `/faq` page: grouped, accordion, on-brand; metadata + canonical.
-- [ ] `FAQPage` JSON-LD (`faqLd` in `lib/seo.ts`) → FAQ rich results.
-- [ ] Link from footer + Contact; add `/faq` to the sitemap.
-- **Accept:** FAQ renders, is editable (if admin-managed), validates as a
-  FAQPage rich result, and is in the sitemap.
+> **✅ DELIVERED — commit `20d1393`.** Migration `0016`.
+
+- [x] (D4) `faqs` table + admin CRUD — `/admin/faqs` **FaqManager** (add/edit, publish toggle, reorder, delete) + nav entry.
+- [x] `/faq` page: grouped accordion (native `<details>`, static-friendly), on-brand, metadata + canonical + OG.
+- [x] **`FAQPage` JSON-LD** (`faqLd` in `lib/seo.ts`) → FAQ rich results.
+- [x] **Footer** link + `/faq` in the **sitemap**. Starter FAQ content (`data/faq.ts`) seeded on a fresh DB (idempotent). *(Link from footer; Contact link not added — footer + nav are enough.)*
+- **Accept:** ✅ FAQ renders + is admin-editable; FAQPage structured data; in the sitemap.
 
 ---
 
