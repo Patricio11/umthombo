@@ -11,7 +11,7 @@ export default async function IntegrationsPage() {
     <>
       <AdminPageHeader
         title="Integrations"
-        subtitle="Connect shipping, payments and email — switch each on when you're ready."
+        subtitle="Connect shipping, payments and email  switch each on when you're ready."
       />
       <IntegrationsList integrations={integrations} />
     </>

@@ -103,7 +103,7 @@ export function IntegrationForm({
   };
 
   const secretPlaceholder = (field: string) =>
-    detail.secretsSet[field] ? "•••••••• (saved — leave blank to keep)" : "";
+    detail.secretsSet[field] ? "•••••••• (saved  leave blank to keep)" : "";
 
   return (
     <form onSubmit={onSubmit} className="max-w-2xl space-y-6">
@@ -156,7 +156,7 @@ export function IntegrationForm({
           <Card className="space-y-5">
             <h2 className="font-display text-lg">Collection address</h2>
             <p className="text-xs text-ink-soft">
-              Where couriers collect parcels — used as the origin for rates.
+              Where couriers collect parcels  used as the origin for rates.
             </p>
             <Field label="Company">
               <Input value={f.company} onChange={(e) => set("company", e.target.value)} />
@@ -201,7 +201,7 @@ export function IntegrationForm({
             <h2 className="font-display text-lg">Credentials</h2>
             <Field
               label="Base URL"
-              hint="Your YetoPay site URL — no path. The API path is added automatically."
+              hint="Your YetoPay site URL  no path. The API path is added automatically."
             >
               <Input
                 value={f.baseUrl}

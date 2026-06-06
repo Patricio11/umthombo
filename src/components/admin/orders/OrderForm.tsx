@@ -144,7 +144,7 @@ export function OrderForm({
                     <option value="">Choose a product…</option>
                     {products.map((pr) => (
                       <option key={pr.id} value={pr.id}>
-                        {pr.name} — {formatZAR(pr.priceZAR)}
+                        {pr.name}  {formatZAR(pr.priceZAR)}
                       </option>
                     ))}
                   </Select>
@@ -156,7 +156,7 @@ export function OrderForm({
                       value={it.variant}
                       onChange={(e) => setItem(i, { variant: e.target.value })}
                     >
-                      <option value="">—</option>
+                      <option value=""></option>
                       {p.variants.map((v) => (
                         <option key={v} value={v}>
                           {v}
@@ -180,7 +180,7 @@ export function OrderForm({
 
                 <div className="flex items-center gap-2 pb-2.5">
                   <span className="w-20 text-right text-sm tabular-nums">
-                    {p ? formatZAR(p.priceZAR * it.qty) : "—"}
+                    {p ? formatZAR(p.priceZAR * it.qty) : ""}
                   </span>
                   <button
                     type="button"

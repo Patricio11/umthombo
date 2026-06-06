@@ -61,7 +61,7 @@ export function isConfigured(key: IntegrationKey, config: Cfg): boolean {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Typed config getters — null when disabled or not configured        */
+/*  Typed config getters  null when disabled or not configured        */
 /* ------------------------------------------------------------------ */
 export async function getBobgoConfig(): Promise<BobgoConfig | null> {
   const row = await getIntegrationRow("bobgo");

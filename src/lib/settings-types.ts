@@ -1,5 +1,5 @@
 /** Resolved site settings (DB overrides merged over data/site defaults).
- *  Client-safe — no server imports. */
+ *  Client-safe  no server imports. */
 export interface SiteSettings {
   name: string;
   url: string;

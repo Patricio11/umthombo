@@ -118,14 +118,14 @@ export const orders = pgTable("orders", {
   deliveryFeeZAR: integer("delivery_fee_zar").notNull().default(0),
   totalZAR: integer("total_zar").notNull().default(0),
   status: orderStatusEnum("status").notNull().default("new"),
-  // Shipping (BobGo) — selected at checkout, tracking filled by the webhook
+  // Shipping (BobGo)  selected at checkout, tracking filled by the webhook
   shippingService: text("shipping_service"),
   shippingServiceCode: text("shipping_service_code"),
   bobgoOrderId: text("bobgo_order_id"),
   trackingReference: text("tracking_reference"),
   trackingUrl: text("tracking_url"),
   shipmentStatus: text("shipment_status"), // BobGo method_status
-  // Payment (YetoEFT) — webhook is authoritative
+  // Payment (YetoEFT)  webhook is authoritative
   paymentProvider: text("payment_provider"), // yetopay | whatsapp | manual
   paymentReference: text("payment_reference"), // YetoPay transactionId
   paymentStatus: paymentStatusEnum("payment_status").notNull().default("pending"),
@@ -206,7 +206,7 @@ export const settings = pgTable("settings", {
 });
 
 /* ------------------------------------------------------------------ */
-/*  Integrations (BobGo, YetoEFT, Resend, WhatsApp) — admin-managed    */
+/*  Integrations (BobGo, YetoEFT, Resend, WhatsApp)  admin-managed    */
 /*  credential bags, toggled on/off. `config` is a per-key jsonb bag.   */
 /* ------------------------------------------------------------------ */
 export const integrations = pgTable("integrations", {

@@ -1,6 +1,6 @@
 # Umthombo Creations
 
-A bespoke, editorial storefront **and admin system** for **Umthombo Creations** — a Cape Town handcrafted-candle & skincare business (est. 2020). Built around the idea of *Umthombo* — a spring, a source of renewal and flow.
+A bespoke, editorial storefront **and admin system** for **Umthombo Creations**  a Cape Town handcrafted-candle & skincare business (est. 2020). Built around the idea of *Umthombo*  a spring, a source of renewal and flow.
 
 The public site is DB-backed and the whole catalogue, testimonials and orders are managed through a polished, fully-responsive admin.
 
@@ -12,7 +12,7 @@ The public site is DB-backed and the whole catalogue, testimonials and orders ar
 - **Better Auth** (email/password, admin-only, sessions in Postgres)
 - **Supabase Storage** for product images
 - **Zustand** (cart) · **React Hook Form + Zod** · **Embla** (testimonials) · **Radix Dialog**
-- **next/font** — Bricolage Grotesque (display) + Hanken Grotesk (body)
+- **next/font**  Bricolage Grotesque (display) + Hanken Grotesk (body)
 
 ## Getting started
 
@@ -38,7 +38,7 @@ ADMIN_PASSWORD=change-me             # used once by the seed
 NEXT_PUBLIC_APP_URL=http://localhost:3000   # public origin; used for payment return + webhook URLs
 ```
 
-> Shipping, payments and email credentials are **not** environment variables — they're
+> Shipping, payments and email credentials are **not** environment variables  they're
 > configured in the admin at **/admin/integrations** (stored in the DB, secrets masked).
 > See [Integrations & webhooks](#integrations--webhooks).
 
@@ -105,7 +105,7 @@ The 10% reusable-container discount is applied server-side. Every integration de
 
 ## Integrations & webhooks
 
-Configure everything in **/admin/integrations** — each provider is a card you toggle on/off with a masked-secrets config form. Nothing here is an env var.
+Configure everything in **/admin/integrations**  each provider is a card you toggle on/off with a masked-secrets config form. Nothing here is an env var.
 
 | Integration | What it does | Key config |
 |---|---|---|
@@ -114,26 +114,26 @@ Configure everything in **/admin/integrations** — each provider is a card you 
 | **Resend** | Transactional email | API key, from-email, from-name |
 | **WhatsApp** | Secondary "order over WhatsApp" fallback | on/off (number from Settings) |
 
-**Products** carry shipping dimensions (weight kg, L×W×H cm) under the product editor's *Shipping* card — these feed BobGo's rate calculation.
+**Products** carry shipping dimensions (weight kg, L×W×H cm) under the product editor's *Shipping* card  these feed BobGo's rate calculation.
 
 **Webhook URLs to register in the providers' dashboards** (replace the host with your `NEXT_PUBLIC_APP_URL`):
 
-- **YetoPay** → `https://<your-domain>/api/webhooks/yetopay` — authenticated per-delivery by the `X-Webhook-Signature` HMAC (raw-body, constant-time compare); replays are idempotent via the `payment_events` table.
-- **BobGo** → `https://<your-domain>/api/webhooks/bobgo` — a plain, trusted URL (BobGo sends no token/HMAC). Subscribe to the **fulfilment-update** event. It only ever updates an existing order matched by `channel_order_number` and only writes shipping/tracking fields.
+- **YetoPay** → `https://<your-domain>/api/webhooks/yetopay`  authenticated per-delivery by the `X-Webhook-Signature` HMAC (raw-body, constant-time compare); replays are idempotent via the `payment_events` table.
+- **BobGo** → `https://<your-domain>/api/webhooks/bobgo`  a plain, trusted URL (BobGo sends no token/HMAC). Subscribe to the **fulfilment-update** event. It only ever updates an existing order matched by `channel_order_number` and only writes shipping/tracking fields.
 
-> **Sandbox / gaps:** BobGo has a sandbox toggle in its config (uses `api.sandbox.bobgo.co.za`). For YetoPay, confirm the production base URL, a sandbox/test key, and (optionally) a verify-transaction endpoint with the provider — the build is **webhook-authoritative**, so it works without the latter.
+> **Sandbox / gaps:** BobGo has a sandbox toggle in its config (uses `api.sandbox.bobgo.co.za`). For YetoPay, confirm the production base URL, a sandbox/test key, and (optionally) a verify-transaction endpoint with the provider  the build is **webhook-authoritative**, so it works without the latter.
 
 ## Admin
 
 `/admin` (sign in with the seeded credentials). Fully responsive (sidebar on desktop, drawer on mobile), brand-consistent, with toasts, confirm dialogs and reduced-motion-safe motion.
 
-- **Dashboard** — counts + recent orders
-- **Analytics** — revenue (defaults to **paid** orders), best sellers, status/method split, custom range, CSV export
-- **Orders** — list/filter (status + **paid/unpaid**), detail with **payment & shipping** card (provider, tracking, shipment status) and manual **Mark as paid** / **Create BobGo shipment**, status switcher, reply-on-WhatsApp
-- **Products** — search/filter, full editor (variants, gallery, **shipping dimensions**, featured/draft) with **drag-and-drop Supabase uploads**
-- **Categories** — CRUD + reorder (delete blocked while products reference it)
-- **Testimonials** — CRUD + publish toggle + reorder
-- **Integrations** — toggle + configure BobGo / YetoEFT / Resend / WhatsApp (masked secrets)
+- **Dashboard**  counts + recent orders
+- **Analytics**  revenue (defaults to **paid** orders), best sellers, status/method split, custom range, CSV export
+- **Orders**  list/filter (status + **paid/unpaid**), detail with **payment & shipping** card (provider, tracking, shipment status) and manual **Mark as paid** / **Create BobGo shipment**, status switcher, reply-on-WhatsApp
+- **Products**  search/filter, full editor (variants, gallery, **shipping dimensions**, featured/draft) with **drag-and-drop Supabase uploads**
+- **Categories**  CRUD + reorder (delete blocked while products reference it)
+- **Testimonials**  CRUD + publish toggle + reorder
+- **Integrations**  toggle + configure BobGo / YetoEFT / Resend / WhatsApp (masked secrets)
 
 Security: public sign-up disabled; every admin mutation is guarded by `requireAdmin()` + Zod; sign-in is rate-limited; the `service_role` key never reaches the browser. Integration secrets are stored in the DB, **masked** in the UI (never sent to the client), and webhooks are verified (YetoPay HMAC) or trusted-by-construction (BobGo, order-scoped writes only).
 

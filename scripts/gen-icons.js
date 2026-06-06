@@ -20,14 +20,14 @@ const mark = (fg) => `
   <path d="M10 56 C 20 48, 26 64, 32 56 C 38 48, 44 64, 54 56" stroke="${fg}" stroke-width="3.2" stroke-linecap="round" fill="none"/>
   <circle cx="32" cy="48" r="2.4" fill="${fg}"/>`;
 
-// App icon — olive rounded square, cream mark.
+// App icon  olive rounded square, cream mark.
 const iconSquare = (rounded) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <rect width="512" height="512" ${rounded ? 'rx="116"' : ""} fill="${OLIVE}"/>
   <g transform="translate(120,103) scale(4.25)">${mark(CREAM)}</g>
 </svg>`;
 
-// Apple icon — square (iOS masks corners itself), a touch more padding.
+// Apple icon  square (iOS masks corners itself), a touch more padding.
 const appleSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <rect width="512" height="512" fill="${OLIVE}"/>
   <g transform="translate(136,120) scale(3.75)">${mark(CREAM)}</g>
@@ -37,7 +37,7 @@ const appleSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" 
 const markOnly = (fg) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" width="64" height="72">${mark(fg)}</svg>`;
 
-// Social / Open Graph image — 1200x630, cream paper, olive mark + wordmark.
+// Social / Open Graph image  1200x630, cream paper, olive mark + wordmark.
 const og = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="${CREAM}"/>
   <circle cx="1140" cy="120" r="320" fill="${OLIVE}" opacity="0.08"/>

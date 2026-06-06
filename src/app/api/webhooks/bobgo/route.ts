@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     .where(eq(orders.orderNumber, channelOrderNumber))
     .limit(1);
   if (!order) {
-    // Unknown order — acknowledge so BobGo stops retrying.
+    // Unknown order  acknowledge so BobGo stops retrying.
     return Response.json({ ok: true, unmatched: true });
   }
 

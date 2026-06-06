@@ -1,5 +1,5 @@
 /** Client-safe integration metadata, config shapes, and secret-field map.
- *  No server imports — shared by the admin forms and the server layer. */
+ *  No server imports  shared by the admin forms and the server layer. */
 
 export type IntegrationKey = "bobgo" | "yetopay" | "resend" | "whatsapp";
 export type IntegrationCategory = "shipping" | "payment" | "email" | "channel";
@@ -37,7 +37,7 @@ export interface ResendConfig {
   fromName: string;
 }
 
-/** Config keys that are secrets — never sent to the client; blank-on-save keeps the existing value. */
+/** Config keys that are secrets  never sent to the client; blank-on-save keeps the existing value. */
 export const SECRET_FIELDS: Record<IntegrationKey, string[]> = {
   bobgo: ["apiKey"],
   yetopay: ["apiKey", "apiSecret", "webhookSecret"],
@@ -57,7 +57,7 @@ export const INTEGRATION_META: Record<
   yetopay: {
     name: "YetoEFT",
     category: "payment",
-    blurb: "Take payment online — instant EFT and card via YetoPay.",
+    blurb: "Take payment online  instant EFT and card via YetoPay.",
   },
   resend: {
     name: "Resend",

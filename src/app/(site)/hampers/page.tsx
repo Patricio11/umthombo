@@ -12,7 +12,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Hampers",
   description:
-    "Curated Umthombo gift hampers — the Collective Box and the Loved Up Box. Soft, beautiful things, assembled with love and wrapped in eco-friendly packaging.",
+    "Curated Umthombo gift hampers  the Collective Box and the Loved Up Box. Soft, beautiful things, assembled with love and wrapped in eco-friendly packaging.",
 };
 
 export default async function HampersPage() {

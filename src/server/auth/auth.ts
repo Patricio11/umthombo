@@ -34,7 +34,7 @@ export const auth = betterAuth({
     },
   },
   advanced: {
-    // Secure only on real https origins — never on http://localhost, even in
+    // Secure only on real https origins  never on http://localhost, even in
     // a production build (Secure cookies aren't sent over http).
     useSecureCookies: (process.env.BETTER_AUTH_URL ?? "").startsWith("https"),
   },

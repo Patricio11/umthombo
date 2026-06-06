@@ -161,7 +161,7 @@ export async function createPendingOrder(
     if (!chosen) {
       return {
         ok: false,
-        error: "That delivery option is no longer available — please refresh.",
+        error: "That delivery option is no longer available  please refresh.",
       };
     }
     deliveryFee = chosen.priceZAR;
@@ -209,7 +209,7 @@ export async function createPendingOrder(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Place order — create the pending order, then route to payment      */
+/*  Place order  create the pending order, then route to payment      */
 /* ------------------------------------------------------------------ */
 export interface PlaceOrderResult {
   ok: boolean;
@@ -285,7 +285,7 @@ export async function placeOrder(
     return { ok: true, mode: "whatsapp", whatsappUrl, orderNumber };
   }
 
-  // 3. Manual — order recorded, owner follows up.
+  // 3. Manual  order recorded, owner follows up.
   await db
     .update(orders)
     .set({ paymentProvider: "manual" })

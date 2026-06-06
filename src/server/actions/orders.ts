@@ -215,7 +215,7 @@ export async function createOrderAdmin(
   return { ok: true, id };
 }
 
-/** Admin: edit an order — replaces items and recomputes totals atomically. */
+/** Admin: edit an order  replaces items and recomputes totals atomically. */
 export async function updateOrderAdmin(
   id: string,
   input: AdminOrderInput
@@ -267,7 +267,7 @@ export async function updateOrderAdmin(
 }
 
 /** Admin: mark an order paid manually (e.g. a confirmed EFT or WhatsApp order)
- *  — fires the same paid-order flow (customer/admin emails + BobGo shipment). */
+ *   fires the same paid-order flow (customer/admin emails + BobGo shipment). */
 export async function markOrderPaid(id: string): Promise<ActionResult> {
   await requireAdmin();
   const [row] = await db

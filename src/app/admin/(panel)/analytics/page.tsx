@@ -64,7 +64,7 @@ export default async function AnalyticsPage({
     <>
       <AdminPageHeader
         title="Analytics"
-        subtitle={`A read on how the shop is doing — ${a.range.label.toLowerCase()}.`}
+        subtitle={`A read on how the shop is doing  ${a.range.label.toLowerCase()}.`}
         action={
           <a
             href={`/admin/analytics/export?${qp({})}`}

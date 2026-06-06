@@ -22,7 +22,7 @@ export default function AdminError({
       </div>
       <h1 className="font-display text-2xl">Something went wrong</h1>
       <p className="mt-2 max-w-sm text-sm text-ink-soft">
-        That screen hit a snag. Try again — if it keeps happening, check the
+        That screen hit a snag. Try again  if it keeps happening, check the
         server logs.
       </p>
       <Button className="mt-6" onClick={reset}>

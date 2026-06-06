@@ -21,14 +21,14 @@ function init(): DB {
 }
 
 /**
- * Drizzle client over Neon's serverless (WebSocket) driver — supports
+ * Drizzle client over Neon's serverless (WebSocket) driver  supports
  * interactive transactions (`db.transaction(...)`). Lazily initialised so
  * importing this module never throws when env is absent.
  */
 export const db = new Proxy({} as DB, {
   get(_target, prop) {
     if (!instance) instance = init();
-    // @ts-expect-error — index into the drizzle instance
+    // @ts-expect-error  index into the drizzle instance
     return instance[prop];
   },
 });

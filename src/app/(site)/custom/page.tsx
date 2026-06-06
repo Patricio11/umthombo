@@ -12,7 +12,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Made for you",
   description:
-    "Custom candles and care from Umthombo Creations — your scent, your colour, your vessel, your moment. Sculptural forms, intention candles and bespoke gifts, made to order in Cape Town.",
+    "Custom candles and care from Umthombo Creations  your scent, your colour, your vessel, your moment. Sculptural forms, intention candles and bespoke gifts, made to order in Cape Town.",
 };
 
 const showcase = [

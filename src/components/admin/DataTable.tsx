@@ -15,7 +15,7 @@ export interface Column<T> {
 
 /**
  * Responsive data section: a single white panel (like the dashboard cards)
- * holding an optional toolbar (filters/search) above the data — a real table
+ * holding an optional toolbar (filters/search) above the data  a real table
  * on ≥sm, stacked rows on mobile. Cells may contain interactive elements.
  */
 export function DataTable<T>({

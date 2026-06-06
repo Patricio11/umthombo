@@ -73,7 +73,7 @@
     cursor: pointer;
   }
 
-  /* Labels that wrap a checkbox/radio — separate so :has() can't drop the
+  /* Labels that wrap a checkbox/radio  separate so :has() can't drop the
      rule above in older browsers. */
   label:has(> input[type="checkbox"]),
   label:has(> input[type="radio"]) {

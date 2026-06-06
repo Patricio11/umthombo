@@ -1,4 +1,4 @@
-/** Client-safe shipping types + parcel defaults — shared by the checkout UI
+/** Client-safe shipping types + parcel defaults  shared by the checkout UI
  *  and the server BobGo service. No server imports. */
 
 /** A delivery address as captured at checkout (BobGo "delivery_address" shape). */

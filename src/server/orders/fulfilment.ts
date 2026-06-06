@@ -84,7 +84,7 @@ function toEmailData(order: OrderRow, items: FulfilmentItem[]): OrderEmailData {
 /**
  * Runs once when an order first becomes paid: notify the customer + admin,
  * and (for a delivery order with BobGo on) create the courier order so the
- * owner can fulfil it. Best-effort — never throws into the webhook.
+ * owner can fulfil it. Best-effort  never throws into the webhook.
  */
 export async function handleOrderPaid(orderId: string): Promise<void> {
   try {

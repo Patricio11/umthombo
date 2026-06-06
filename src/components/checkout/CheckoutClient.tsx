@@ -236,7 +236,7 @@ export function CheckoutClient({
               </div>
               {!deliveryEnabled && (
                 <p className="mt-3 rounded-xl bg-cream-2/60 px-4 py-3 text-sm text-ink-soft">
-                  Online delivery isn’t available right now — choose collection,
+                  Online delivery isn’t available right now  choose collection,
                   or get in touch and we’ll arrange it.
                 </p>
               )}
@@ -448,7 +448,7 @@ export function CheckoutClient({
           onFailed={() => {
             setPayFrame(null);
             setSubmitError(
-              "Your payment wasn’t completed. Your selection is saved — you can try again."
+              "Your payment wasn’t completed. Your selection is saved  you can try again."
             );
           }}
           onClose={() => setPayFrame(null)}
@@ -459,7 +459,7 @@ export function CheckoutClient({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Inline (iframe) payment overlay — webhook stays authoritative      */
+/*  Inline (iframe) payment overlay  webhook stays authoritative      */
 /* ------------------------------------------------------------------ */
 function PaymentFrame({
   url,

@@ -6,7 +6,7 @@ import { site } from "@/data/site";
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} — ${site.tagline}`,
+    default: `${site.name}  ${site.tagline}`,
     template: `%s · ${site.name}`,
   },
   description:
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_ZA",
-    title: `${site.name} — ${site.tagline}`,
+    title: `${site.name}  ${site.tagline}`,
     description:
       "Handcrafted candles, soaps, body care and diffusers from Cape Town. Made with love and inspired by nature.",
     siteName: site.name,

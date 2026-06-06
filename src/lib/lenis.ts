@@ -2,7 +2,7 @@ import type Lenis from "lenis";
 
 /**
  * Tiny global controller for the site-wide Lenis instance so overlays
- * (cart drawer, order modal) can pause smooth scroll while open — otherwise
+ * (cart drawer, order modal) can pause smooth scroll while open  otherwise
  * Lenis keeps scrolling the page *behind* the overlay. Reference-counted so
  * nested overlays (modal opened over the drawer) unlock correctly.
  */

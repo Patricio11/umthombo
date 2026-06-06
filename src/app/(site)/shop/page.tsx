@@ -22,7 +22,7 @@ export default async function ShopPage() {
       <PageHeader
         eyebrow="The whole collection"
         title="Everything we make, in one place."
-        blurb="Small batches, real ingredients, and a quiet kind of beauty. Filter by what you're after — or wander."
+        blurb="Small batches, real ingredients, and a quiet kind of beauty. Filter by what you're after  or wander."
       />
       <ShopExplorer products={products} categories={categories} />
     </>

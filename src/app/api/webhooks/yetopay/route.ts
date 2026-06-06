@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
   const config = await getYetopayConfig();
   if (!config?.webhookSecret) {
-    // Disabled or no secret configured — nothing we can verify. Ack so the
+    // Disabled or no secret configured  nothing we can verify. Ack so the
     // provider doesn't keep retrying.
     return Response.json({ ok: true, ignored: true });
   }

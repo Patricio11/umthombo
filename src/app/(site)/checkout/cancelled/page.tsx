@@ -24,7 +24,7 @@ export default async function CheckoutCancelledPage({
         <h1 className="mt-2 font-display text-4xl sm:text-5xl">No worries.</h1>
         <p className="mt-3 text-ink-soft">
           Your payment wasn’t completed and you haven’t been charged. Your
-          selection is still saved — you can try again whenever you’re ready.
+          selection is still saved  you can try again whenever you’re ready.
         </p>
         {order && (
           <p className="mt-4 inline-block rounded-full bg-cream-2 px-4 py-1.5 text-sm">

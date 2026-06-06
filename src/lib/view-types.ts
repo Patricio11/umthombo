@@ -1,6 +1,6 @@
 import type { Accent } from "@/lib/accents";
 
-/** Shared view models for products/categories/testimonials — safe to import
+/** Shared view models for products/categories/testimonials  safe to import
  *  from both server queries and client components (types only). */
 
 export interface ProductView {

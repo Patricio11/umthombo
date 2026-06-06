@@ -50,7 +50,7 @@ export function CategoryTiles({ categories }: { categories: CategoryView[] }) {
                       className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105"
                     />
                   )}
-                  {/* System-green wash — clearly tinted, lightens on hover to
+                  {/* System-green wash  clearly tinted, lightens on hover to
                       reveal the photo */}
                   <div className="absolute inset-0 bg-olive/55 transition-colors duration-500 group-hover:bg-olive/25" />
                   {/* Darken the foot for legible text */}

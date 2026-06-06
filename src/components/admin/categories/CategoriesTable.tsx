@@ -102,7 +102,7 @@ export function CategoriesTable({
           </div>
           <div className="min-w-0">
             <p className="font-medium">{c.label}</p>
-            <p className="text-xs text-ink-soft">{c.eyebrow || "—"}</p>
+            <p className="text-xs text-ink-soft">{c.eyebrow || ""}</p>
           </div>
         </div>
       ),

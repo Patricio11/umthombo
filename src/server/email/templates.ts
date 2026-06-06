@@ -79,9 +79,9 @@ export function orderConfirmationEmail(d: OrderEmailData): {
   const address =
     d.method === "delivery" && d.addressText
       ? `<p style="margin:18px 0 0;font-size:13px;color:${SOFT};">Delivering to: ${escapeHtml(d.addressText)}</p>`
-      : `<p style="margin:18px 0 0;font-size:13px;color:${SOFT};">Ready for collection — we’ll confirm a time.</p>`;
+      : `<p style="margin:18px 0 0;font-size:13px;color:${SOFT};">Ready for collection  we’ll confirm a time.</p>`;
   return {
-    subject: `Order ${d.orderNumber} confirmed — thank you!`,
+    subject: `Order ${d.orderNumber} confirmed  thank you!`,
     html: layout(
       "Thank you for your order",
       `Hi ${escapeHtml(firstName(d.customerName))}, we’ve received your payment and we’re getting everything ready.`,
@@ -96,7 +96,7 @@ export function adminOrderEmail(d: OrderEmailData): {
   html: string;
 } {
   return {
-    subject: `New paid order ${d.orderNumber} — ${formatZAR(d.totalZAR)}`,
+    subject: `New paid order ${d.orderNumber}  ${formatZAR(d.totalZAR)}`,
     html: layout(
       "New paid order",
       `${escapeHtml(d.customerName)} just paid for order ${d.orderNumber}.`,

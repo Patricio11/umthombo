@@ -10,7 +10,7 @@ export interface SendEmailInput {
 
 /**
  * Send an email through Resend if the integration is enabled & configured.
- * No-ops gracefully (returns false) when email is off — callers shouldn't
+ * No-ops gracefully (returns false) when email is off  callers shouldn't
  * fail because notifications are unavailable.
  */
 export async function sendEmail(input: SendEmailInput): Promise<boolean> {

@@ -102,7 +102,7 @@ export function OrdersTable({ orders }: { orders: AdminOrderRow[] }) {
 
   return (
     <div className="space-y-5">
-      {/* Stats widget — also the status filter */}
+      {/* Stats widget  also the status filter */}
       <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
         {tabs.map((s) => {
           const active = status === s;

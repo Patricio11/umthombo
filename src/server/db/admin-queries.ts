@@ -166,7 +166,7 @@ export async function getAdminProducts(): Promise<AdminProductRow[]> {
     .from(products)
     .leftJoin(categories, eq(products.categoryId, categories.id))
     .orderBy(asc(products.sortOrder), asc(products.name));
-  return rows.map((r) => ({ ...r, categoryLabel: r.categoryLabel ?? "—" }));
+  return rows.map((r) => ({ ...r, categoryLabel: r.categoryLabel ?? "" }));
 }
 
 export type AdminProductDetail = typeof products.$inferSelect;

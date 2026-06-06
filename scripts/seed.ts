@@ -146,7 +146,7 @@ async function seedAdmin() {
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
   if (!email || !password) {
-    console.warn("  ! ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping admin");
+    console.warn("  ! ADMIN_EMAIL/ADMIN_PASSWORD not set  skipping admin");
     return;
   }
   const existing = await db

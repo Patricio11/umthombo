@@ -11,7 +11,7 @@ let client: SupabaseClient | null = null;
 function supa(): SupabaseClient {
   if (!url || !key) {
     throw new Error(
-      "Supabase env missing — set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
+      "Supabase env missing  set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
     );
   }
   if (!client) {
@@ -36,7 +36,7 @@ export async function uploadProductImage(file: File): Promise<string> {
     throw new Error("Please upload a JPEG, PNG, WebP or AVIF image.");
   }
   if (file.size > MAX_IMAGE_BYTES) {
-    throw new Error("That image is over 6MB — please use a smaller one.");
+    throw new Error("That image is over 6MB  please use a smaller one.");
   }
   const ext = file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
   const path = `products/${randomUUID()}.${ext}`;
