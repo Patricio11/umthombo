@@ -8,6 +8,7 @@ import { canonical, productLd, breadcrumbLd } from "@/lib/seo";
 import { accentClasses } from "@/lib/accents";
 import { Gallery } from "@/components/product/Gallery";
 import { AddToOrder } from "@/components/product/AddToOrder";
+import { ProductHistoryLine } from "@/components/product/ProductHistoryLine";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Reveal } from "@/components/motion/Reveal";
 import {
@@ -166,6 +167,16 @@ export default async function ProductPage({
             <div className="mt-9">
               <AddToOrder product={product} />
             </div>
+
+            <ProductHistoryLine
+              productId={product.id}
+              cartItem={{
+                slug: product.slug,
+                name: product.name,
+                unitPriceZAR: product.priceZAR,
+                image: product.image,
+              }}
+            />
           </div>
         </div>
 

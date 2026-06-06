@@ -4,6 +4,7 @@ import { ArrowLeft, Truck, MapPin } from "lucide-react";
 import { requireUser } from "@/server/auth/guard";
 import { getUserOrder } from "@/server/db/account-orders";
 import { StatusBadge, PaymentBadge } from "@/components/admin/primitives";
+import { ReorderButton } from "@/components/account/ReorderButton";
 import { formatZAR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +56,8 @@ export default async function AccountOrderDetailPage({
           </div>
         </div>
       </div>
+
+      <ReorderButton orderId={order.id} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Items + totals */}
