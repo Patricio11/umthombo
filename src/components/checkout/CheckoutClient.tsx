@@ -193,7 +193,10 @@ export function CheckoutClient({
       setSubmitError(res.error ?? "Something went wrong. Please try again.");
       return;
     }
-    // Payment keeps the cart until the webhook confirms.
+    // The order is saved server-side now — empty the basket on every path so
+    // it never lingers in the header after checkout. (Payment status is still
+    // tracked by the webhook, which is authoritative for paid/unpaid.)
+    clearCart();
     if (res.mode === "payment" && res.redirectUrl) {
       if (res.paymentDisplay === "iframe") {
         // Present the hosted page inline; the webhook is authoritative.
@@ -204,7 +207,6 @@ export function CheckoutClient({
       window.location.href = res.redirectUrl;
       return;
     }
-    clearCart();
     if (res.mode === "whatsapp" && res.whatsappUrl) {
       window.open(res.whatsappUrl, "_blank", "noopener,noreferrer");
     }
