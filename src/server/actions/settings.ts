@@ -32,8 +32,10 @@ export async function updateSettings(
     whatsappDisplay: nullify(d.whatsappDisplay),
     instagramHandle: nullify(d.instagramHandle),
     instagramUrl: nullify(d.instagramUrl),
+    instagramEnabled: d.instagramEnabled,
     facebookHandle: nullify(d.facebookHandle),
     facebookUrl: nullify(d.facebookUrl),
+    facebookEnabled: d.facebookEnabled,
     email: nullify(d.email),
   };
   await db

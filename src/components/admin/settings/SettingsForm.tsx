@@ -4,7 +4,13 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import type { Settings } from "@/server/db/schema";
-import { Card, Field, Input, Textarea } from "@/components/admin/primitives";
+import {
+  Card,
+  Field,
+  Input,
+  Textarea,
+  Switch,
+} from "@/components/admin/primitives";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/admin/Toast";
 import { updateSettings } from "@/server/actions/settings";
@@ -23,8 +29,10 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
     whatsappDisplay: settings?.whatsappDisplay ?? "",
     instagramHandle: settings?.instagramHandle ?? "",
     instagramUrl: settings?.instagramUrl ?? "",
+    instagramEnabled: settings?.instagramEnabled ?? true,
     facebookHandle: settings?.facebookHandle ?? "",
     facebookUrl: settings?.facebookUrl ?? "",
+    facebookEnabled: settings?.facebookEnabled ?? true,
     email: settings?.email ?? "",
   });
 
@@ -134,37 +142,71 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
       )}
 
       {tab === "social" && (
-      <Card className="space-y-5">
+      <Card className="space-y-6">
         <h2 className="font-display text-lg">Social</h2>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Instagram handle">
-            <Input
-              value={form.instagramHandle}
-              onChange={(e) => set("instagramHandle", e.target.value)}
-              placeholder={site.instagram.handle}
+        <p className="-mt-3 text-sm text-ink-soft">
+          Switch a channel off to hide it across the site until you&rsquo;re
+          ready to show it.
+        </p>
+
+        {/* Instagram */}
+        <div className="space-y-4 rounded-2xl border border-cream-3 p-4">
+          <label className="flex items-center justify-between gap-3">
+            <span className="font-medium">Instagram</span>
+            <Switch
+              checked={form.instagramEnabled}
+              onChange={(v) => set("instagramEnabled", v)}
+              label="Show Instagram"
             />
-          </Field>
-          <Field label="Instagram URL">
-            <Input
-              value={form.instagramUrl}
-              onChange={(e) => set("instagramUrl", e.target.value)}
-              placeholder={site.instagram.href}
+          </label>
+          {form.instagramEnabled && (
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Handle">
+                <Input
+                  value={form.instagramHandle}
+                  onChange={(e) => set("instagramHandle", e.target.value)}
+                  placeholder={site.instagram.handle}
+                />
+              </Field>
+              <Field label="URL">
+                <Input
+                  value={form.instagramUrl}
+                  onChange={(e) => set("instagramUrl", e.target.value)}
+                  placeholder={site.instagram.href}
+                />
+              </Field>
+            </div>
+          )}
+        </div>
+
+        {/* Facebook */}
+        <div className="space-y-4 rounded-2xl border border-cream-3 p-4">
+          <label className="flex items-center justify-between gap-3">
+            <span className="font-medium">Facebook</span>
+            <Switch
+              checked={form.facebookEnabled}
+              onChange={(v) => set("facebookEnabled", v)}
+              label="Show Facebook"
             />
-          </Field>
-          <Field label="Facebook handle">
-            <Input
-              value={form.facebookHandle}
-              onChange={(e) => set("facebookHandle", e.target.value)}
-              placeholder={site.facebook.handle}
-            />
-          </Field>
-          <Field label="Facebook URL">
-            <Input
-              value={form.facebookUrl}
-              onChange={(e) => set("facebookUrl", e.target.value)}
-              placeholder={site.facebook.href}
-            />
-          </Field>
+          </label>
+          {form.facebookEnabled && (
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Handle">
+                <Input
+                  value={form.facebookHandle}
+                  onChange={(e) => set("facebookHandle", e.target.value)}
+                  placeholder={site.facebook.handle}
+                />
+              </Field>
+              <Field label="URL">
+                <Input
+                  value={form.facebookUrl}
+                  onChange={(e) => set("facebookUrl", e.target.value)}
+                  placeholder={site.facebook.href}
+                />
+              </Field>
+            </div>
+          )}
         </div>
       </Card>
       )}

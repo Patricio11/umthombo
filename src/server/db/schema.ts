@@ -194,8 +194,10 @@ export const settings = pgTable("settings", {
   whatsappDisplay: text("whatsapp_display"),
   instagramHandle: text("instagram_handle"),
   instagramUrl: text("instagram_url"),
+  instagramEnabled: boolean("instagram_enabled"), // null = on (default)
   facebookHandle: text("facebook_handle"),
   facebookUrl: text("facebook_url"),
+  facebookEnabled: boolean("facebook_enabled"), // null = on (default)
   email: text("email"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()

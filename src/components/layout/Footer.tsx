@@ -67,28 +67,32 @@ export async function Footer() {
                 WhatsApp {s.whatsapp.display}
               </a>
             </li>
-            <li>
-              <a
-                href={s.instagram.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 text-cream/80 transition-colors hover:text-cream"
-              >
-                <InstagramIcon size={18} className="text-olive" />
-                {s.instagram.handle}
-              </a>
-            </li>
-            <li>
-              <a
-                href={s.facebook.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 text-cream/80 transition-colors hover:text-cream"
-              >
-                <FacebookIcon size={18} className="text-olive" />
-                {s.facebook.handle}
-              </a>
-            </li>
+            {s.instagram.enabled && (
+              <li>
+                <a
+                  href={s.instagram.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 text-cream/80 transition-colors hover:text-cream"
+                >
+                  <InstagramIcon size={18} className="text-olive" />
+                  {s.instagram.handle}
+                </a>
+              </li>
+            )}
+            {s.facebook.enabled && (
+              <li>
+                <a
+                  href={s.facebook.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 text-cream/80 transition-colors hover:text-cream"
+                >
+                  <FacebookIcon size={18} className="text-olive" />
+                  {s.facebook.handle}
+                </a>
+              </li>
+            )}
             <li className="inline-flex items-start gap-3 text-cream/60">
               <MapPin size={18} className="mt-0.5 shrink-0 text-olive" />
               {s.collection}

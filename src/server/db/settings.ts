@@ -37,10 +37,12 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     instagram: {
       handle: pick(row?.instagramHandle, site.instagram.handle),
       href: pick(row?.instagramUrl, site.instagram.href),
+      enabled: row?.instagramEnabled ?? true,
     },
     facebook: {
       handle: pick(row?.facebookHandle, site.facebook.handle),
       href: pick(row?.facebookUrl, site.facebook.href),
+      enabled: row?.facebookEnabled ?? true,
     },
   };
 });

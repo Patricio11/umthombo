@@ -26,7 +26,10 @@ export default async function SiteLayout({
       addressCountry: "ZA",
     },
     areaServed: "South Africa",
-    sameAs: [s.instagram.href, s.facebook.href],
+    sameAs: [
+      s.instagram.enabled ? s.instagram.href : null,
+      s.facebook.enabled ? s.facebook.href : null,
+    ].filter(Boolean),
     foundingDate: String(s.since),
   };
 

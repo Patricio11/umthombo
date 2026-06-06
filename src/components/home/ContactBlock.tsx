@@ -44,27 +44,33 @@ export async function ContactBlock() {
             <p className="mt-3 text-sm text-cream/70">{site.whatsapp.display}</p>
           </Reveal>
 
-          <Reveal
-            delay={0.12}
-            className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm"
-          >
-            <a
-              href={site.instagram.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-cream/80 transition-colors hover:text-cream"
+          {(site.instagram.enabled || site.facebook.enabled) && (
+            <Reveal
+              delay={0.12}
+              className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm"
             >
-              <InstagramIcon size={18} /> {site.instagram.handle}
-            </a>
-            <a
-              href={site.facebook.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-cream/80 transition-colors hover:text-cream"
-            >
-              <FacebookIcon size={18} /> {site.facebook.handle}
-            </a>
-          </Reveal>
+              {site.instagram.enabled && (
+                <a
+                  href={site.instagram.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-cream/80 transition-colors hover:text-cream"
+                >
+                  <InstagramIcon size={18} /> {site.instagram.handle}
+                </a>
+              )}
+              {site.facebook.enabled && (
+                <a
+                  href={site.facebook.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-cream/80 transition-colors hover:text-cream"
+                >
+                  <FacebookIcon size={18} /> {site.facebook.handle}
+                </a>
+              )}
+            </Reveal>
+          )}
 
           <Reveal
             delay={0.16}

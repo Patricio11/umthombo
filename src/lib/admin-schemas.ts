@@ -103,8 +103,10 @@ export const settingsSchema = z.object({
   whatsappDisplay: optionalStr(30),
   instagramHandle: optionalStr(60),
   instagramUrl: optionalStr(200),
+  instagramEnabled: z.boolean().default(true),
   facebookHandle: optionalStr(60),
   facebookUrl: optionalStr(200),
+  facebookEnabled: z.boolean().default(true),
   email: optionalStr(120),
 });
 

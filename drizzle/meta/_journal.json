@@ -71,6 +71,13 @@
       "when": 1780733216395,
       "tag": "0009_order_payment_shipping",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1780749189309,
+      "tag": "0010_social_toggles",
+      "breakpoints": true
     }
   ]
 }

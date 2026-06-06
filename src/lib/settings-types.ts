@@ -11,6 +11,6 @@ export interface SiteSettings {
   collection: string;
   email: string;
   whatsapp: { number: string; display: string; href: string };
-  instagram: { handle: string; href: string };
-  facebook: { handle: string; href: string };
+  instagram: { handle: string; href: string; enabled: boolean };
+  facebook: { handle: string; href: string; enabled: boolean };
 }
