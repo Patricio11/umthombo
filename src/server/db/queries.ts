@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/server/db";
 import { products, categories, testimonials } from "@/server/db/schema";
 import type { Accent } from "@/lib/accents";
@@ -96,7 +96,8 @@ export async function getProducts(opts?: {
       ? and(eq(products.status, "active"), eq(products.categoryId, categoryId))
       : eq(products.status, "active"),
     with: { category: true },
-    orderBy: [asc(products.sortOrder), asc(products.name)],
+    // Manual sortOrder wins (lets the admin pin items); otherwise newest first.
+    orderBy: [asc(products.sortOrder), desc(products.createdAt)],
   });
   return (rows as ProductRow[]).map(toProductView);
 }
@@ -107,7 +108,8 @@ export async function getFeaturedProducts(
   const rows = await db.query.products.findMany({
     where: and(eq(products.status, "active"), eq(products.featured, true)),
     with: { category: true },
-    orderBy: [asc(products.sortOrder), asc(products.name)],
+    // Manual sortOrder wins (lets the admin pin items); otherwise newest first.
+    orderBy: [asc(products.sortOrder), desc(products.createdAt)],
     limit,
   });
   return (rows as ProductRow[]).map(toProductView);
@@ -117,7 +119,8 @@ export async function getCustomisableProducts(): Promise<ProductView[]> {
   const rows = await db.query.products.findMany({
     where: and(eq(products.status, "active"), eq(products.customisable, true)),
     with: { category: true },
-    orderBy: [asc(products.sortOrder), asc(products.name)],
+    // Manual sortOrder wins (lets the admin pin items); otherwise newest first.
+    orderBy: [asc(products.sortOrder), desc(products.createdAt)],
   });
   return (rows as ProductRow[]).map(toProductView);
 }
@@ -185,7 +188,8 @@ export async function getRelatedProducts(
       ne(products.id, product.id)
     ),
     with: { category: true },
-    orderBy: [asc(products.sortOrder), asc(products.name)],
+    // Manual sortOrder wins (lets the admin pin items); otherwise newest first.
+    orderBy: [asc(products.sortOrder), desc(products.createdAt)],
     limit,
   });
   return (rows as ProductRow[]).map(toProductView);
