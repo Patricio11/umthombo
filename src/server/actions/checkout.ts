@@ -14,6 +14,7 @@ import { getRatesAtCheckout, type ShipItem } from "@/server/shipping/bobgo";
 import { createPaymentLink } from "@/server/payments/yetopay";
 import { getSiteSettings } from "@/server/db/settings";
 import { getOrderConfirmation } from "@/server/db/order-public";
+import { getCurrentUser } from "@/server/auth/guard";
 import { ZA_PROVINCES } from "@/lib/integrations";
 import {
   createPendingOrderSchema,
@@ -174,12 +175,14 @@ export async function createPendingOrder(
   const total = goodsTotal + deliveryFee;
   const orderNumber = genOrderNumber();
   const orderId = randomUUID();
+  const sessionUser = await getCurrentUser();
 
   try {
     await db.transaction(async (tx) => {
       await tx.insert(orders).values({
         id: orderId,
         orderNumber,
+        userId: sessionUser?.id ?? null,
         customerName: data.name,
         customerEmail: data.email,
         customerPhone: data.phone,

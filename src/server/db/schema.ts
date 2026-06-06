@@ -104,6 +104,9 @@ export const products = pgTable("products", {
 export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
   orderNumber: text("order_number").notNull().unique(),
+  // Linked to a customer account when known (logged-in checkout, or backfilled
+  // by verified email). Null for guest orders.
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
   customerName: text("customer_name").notNull(),
   customerEmail: text("customer_email").notNull(),
   customerPhone: text("customer_phone").notNull(),
