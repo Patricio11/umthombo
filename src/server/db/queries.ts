@@ -34,7 +34,6 @@ function toProductView(row: ProductRow): ProductView {
     packPriceZAR: row.packPriceZAR,
     customisable: row.customisable,
     featured: row.featured,
-    deliveryFeeZAR: row.deliveryFeeZAR,
     status: row.status,
     image: row.image,
     gallery: row.gallery ?? [],

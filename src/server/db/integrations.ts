@@ -1,0 +1,181 @@
+import "server-only";
+import { cache } from "react";
+import { asc, eq } from "drizzle-orm";
+import { db } from "@/server/db";
+import { integrations } from "@/server/db/schema";
+import {
+  INTEGRATION_META,
+  SECRET_FIELDS,
+  type IntegrationKey,
+  type IntegrationCategory,
+  type BobgoConfig,
+  type YetopayConfig,
+  type ResendConfig,
+} from "@/lib/integrations";
+
+type Row = typeof integrations.$inferSelect;
+type Cfg = Record<string, unknown>;
+
+/** Raw integration row (server-only). Cached per request. */
+export const getIntegrationRow = cache(async (key: IntegrationKey) => {
+  const [row] = await db
+    .select()
+    .from(integrations)
+    .where(eq(integrations.key, key))
+    .limit(1);
+  return row ?? null;
+});
+
+export async function isIntegrationEnabled(key: IntegrationKey): Promise<boolean> {
+  const row = await getIntegrationRow(key);
+  return !!row?.enabled;
+}
+
+const str = (v: unknown, fallback = "") =>
+  typeof v === "string" ? v : fallback;
+
+/** Is the integration's config complete enough to use? */
+export function isConfigured(key: IntegrationKey, config: Cfg): boolean {
+  switch (key) {
+    case "bobgo": {
+      const c = config as Partial<BobgoConfig>;
+      return !!(
+        c.apiKey &&
+        c.collection?.streetAddress &&
+        c.collection?.city &&
+        c.collection?.zone &&
+        c.collection?.code
+      );
+    }
+    case "yetopay": {
+      const c = config as Partial<YetopayConfig>;
+      return !!(c.baseUrl && c.apiKey && c.apiSecret && c.merchantId);
+    }
+    case "resend": {
+      const c = config as Partial<ResendConfig>;
+      return !!(c.apiKey && c.fromEmail);
+    }
+    case "whatsapp":
+      return true;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Typed config getters — null when disabled or not configured        */
+/* ------------------------------------------------------------------ */
+export async function getBobgoConfig(): Promise<BobgoConfig | null> {
+  const row = await getIntegrationRow("bobgo");
+  if (!row?.enabled) return null;
+  const c = (row.config ?? {}) as Partial<BobgoConfig>;
+  if (!isConfigured("bobgo", c)) return null;
+  const col = c.collection ?? ({} as BobgoConfig["collection"]);
+  return {
+    apiKey: str(c.apiKey),
+    sandbox: c.sandbox === true,
+    collection: {
+      company: str(col.company),
+      streetAddress: str(col.streetAddress),
+      localArea: str(col.localArea),
+      city: str(col.city),
+      zone: str(col.zone),
+      country: str(col.country, "ZA"),
+      code: str(col.code),
+    },
+  };
+}
+
+export async function getYetopayConfig(): Promise<YetopayConfig | null> {
+  const row = await getIntegrationRow("yetopay");
+  if (!row?.enabled) return null;
+  const c = (row.config ?? {}) as Partial<YetopayConfig>;
+  if (!isConfigured("yetopay", c)) return null;
+  return {
+    baseUrl: str(c.baseUrl).replace(/\/+$/, ""),
+    apiKey: str(c.apiKey),
+    apiSecret: str(c.apiSecret),
+    merchantId: str(c.merchantId),
+    webhookSecret: str(c.webhookSecret),
+    paymentMethod: c.paymentMethod === "card" ? "card" : "eft_direct",
+  };
+}
+
+export async function getResendConfig(): Promise<ResendConfig | null> {
+  const row = await getIntegrationRow("resend");
+  if (!row?.enabled) return null;
+  const c = (row.config ?? {}) as Partial<ResendConfig>;
+  if (!isConfigured("resend", c)) return null;
+  return {
+    apiKey: str(c.apiKey),
+    fromEmail: str(c.fromEmail),
+    fromName: str(c.fromName, "Umthombo Creations"),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Admin views (secrets stripped)                                     */
+/* ------------------------------------------------------------------ */
+export interface AdminIntegrationListItem {
+  key: IntegrationKey;
+  name: string;
+  category: IntegrationCategory;
+  enabled: boolean;
+  configured: boolean;
+}
+
+export async function getAdminIntegrations(): Promise<AdminIntegrationListItem[]> {
+  const rows = await db
+    .select()
+    .from(integrations)
+    .orderBy(asc(integrations.category), asc(integrations.name));
+  return rows.map((r) => toListItem(r));
+}
+
+function toListItem(r: Row): AdminIntegrationListItem {
+  const key = r.key as IntegrationKey;
+  return {
+    key,
+    name: r.name,
+    category: r.category as IntegrationCategory,
+    enabled: r.enabled,
+    configured: isConfigured(key, (r.config ?? {}) as Cfg),
+  };
+}
+
+export interface AdminIntegrationDetail {
+  key: IntegrationKey;
+  name: string;
+  category: IntegrationCategory;
+  enabled: boolean;
+  /** Non-secret config values, safe to send to the client. */
+  config: Cfg;
+  /** Which secret fields currently have a value (so the form can show "saved"). */
+  secretsSet: Record<string, boolean>;
+}
+
+export async function getAdminIntegration(
+  key: IntegrationKey
+): Promise<AdminIntegrationDetail | null> {
+  const row = await getIntegrationRow(key);
+  if (!row) return null;
+  const full = (row.config ?? {}) as Cfg;
+  const secrets = SECRET_FIELDS[key];
+  const safe: Cfg = {};
+  const secretsSet: Record<string, boolean> = {};
+  for (const [k, v] of Object.entries(full)) {
+    if (secrets.includes(k)) {
+      secretsSet[k] = typeof v === "string" ? v.length > 0 : !!v;
+    } else {
+      safe[k] = v;
+    }
+  }
+  return {
+    key,
+    name: row.name,
+    category: row.category as IntegrationCategory,
+    enabled: row.enabled,
+    config: safe,
+    secretsSet,
+  };
+}
+
+export { INTEGRATION_META };

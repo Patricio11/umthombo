@@ -1,0 +1,561 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2, Truck, Store, Check } from "lucide-react";
+import { useCart, selectSubtotal, selectTotal } from "@/store/cart";
+import { ZA_PROVINCES } from "@/lib/integrations";
+import { rateEta, type DeliveryAddress, type RateOption } from "@/lib/shipping";
+import { getDeliveryRates } from "@/server/actions/shipping";
+import { createPendingOrder } from "@/server/actions/checkout";
+import { formatZAR } from "@/lib/format";
+import { Button } from "@/components/ui/Button";
+
+type Method = "delivery" | "collection";
+
+const EMPTY_ADDRESS: DeliveryAddress = {
+  company: "",
+  streetAddress: "",
+  localArea: "",
+  city: "",
+  zone: "",
+  code: "",
+  country: "ZA",
+};
+
+export function CheckoutClient({
+  deliveryEnabled,
+  collectionInfo,
+}: {
+  deliveryEnabled: boolean;
+  collectionInfo: string;
+}) {
+  const router = useRouter();
+  const items = useCart((s) => s.items);
+  const ownContainer = useCart((s) => s.ownContainer);
+  const subtotal = useCart(selectSubtotal);
+  const goodsTotal = useCart(selectTotal); // after own-container discount
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [method, setMethod] = useState<Method>(
+    deliveryEnabled ? "delivery" : "collection"
+  );
+  const [address, setAddress] = useState<DeliveryAddress>(EMPTY_ADDRESS);
+  const [note, setNote] = useState("");
+
+  const [rates, setRates] = useState<RateOption[] | null>(null);
+  const [ratesLoading, setRatesLoading] = useState(false);
+  const [ratesError, setRatesError] = useState<string | null>(null);
+  const [serviceCode, setServiceCode] = useState<string | null>(null);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const setAddr = (k: keyof DeliveryAddress, v: string) => {
+    setAddress((a) => ({ ...a, [k]: v }));
+    // Any address change invalidates previously fetched rates.
+    setRates(null);
+    setServiceCode(null);
+    setRatesError(null);
+  };
+
+  const selectedRate = rates?.find((r) => r.serviceCode === serviceCode) ?? null;
+  const deliveryFee =
+    method === "delivery" ? selectedRate?.priceZAR ?? 0 : 0;
+  const total = goodsTotal + deliveryFee;
+
+  const addressReady =
+    address.streetAddress.trim().length >= 3 &&
+    address.city.trim().length >= 2 &&
+    address.zone.trim().length >= 2 &&
+    address.code.trim().length >= 4;
+
+  const fetchRates = async () => {
+    if (!addressReady) {
+      setRatesError("Please complete the address first.");
+      return;
+    }
+    setRatesLoading(true);
+    setRatesError(null);
+    setRates(null);
+    setServiceCode(null);
+    const res = await getDeliveryRates({
+      items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
+      address,
+    });
+    setRatesLoading(false);
+    if (res.ok && res.rates) {
+      setRates(res.rates);
+      if (res.rates.length === 1) setServiceCode(res.rates[0].serviceCode);
+    } else {
+      setRatesError(res.error ?? "Couldn’t fetch delivery options.");
+    }
+  };
+
+  const placeOrder = async () => {
+    setSubmitError(null);
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      setSubmitError("Please fill in your contact details.");
+      return;
+    }
+    if (method === "delivery" && !serviceCode) {
+      setSubmitError("Please choose a delivery option.");
+      return;
+    }
+    setSubmitting(true);
+    const res = await createPendingOrder({
+      name,
+      email,
+      phone,
+      method,
+      address: method === "delivery" ? address : undefined,
+      serviceCode: method === "delivery" ? serviceCode ?? undefined : undefined,
+      note: note.trim() || undefined,
+      ownContainer,
+      items: items.map((i) => ({
+        slug: i.slug,
+        variant: i.variant ?? null,
+        qty: i.qty,
+        unitPriceZAR: i.unitPriceZAR,
+      })),
+    });
+    if (res.ok && res.orderNumber) {
+      router.push(`/checkout/success?order=${res.orderNumber}`);
+    } else {
+      setSubmitting(false);
+      setSubmitError(res.error ?? "Something went wrong. Please try again.");
+    }
+  };
+
+  if (mounted && items.length === 0) {
+    return (
+      <section className="px-5 py-24 text-center sm:px-8">
+        <p className="editorial-italic text-2xl text-ink">
+          Your selection is empty.
+        </p>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-ink-soft">
+          Add a few things you love, then come back to check out.
+        </p>
+        <Link
+          href="/shop"
+          className="mt-8 inline-flex items-center justify-center rounded-full border border-ink/25 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-olive hover:text-olive"
+        >
+          Explore the shop
+        </Link>
+      </section>
+    );
+  }
+
+  return (
+    <section className="px-5 py-12 sm:px-8 lg:py-16">
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-10">
+          <p className="eyebrow text-olive">Almost yours</p>
+          <h1 className="mt-2 font-display text-4xl sm:text-5xl">Checkout</h1>
+        </header>
+
+        <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:gap-12">
+          {/* ---------- Form column ---------- */}
+          <div className="space-y-6">
+            {/* Contact */}
+            <Panel title="Your details">
+              <Field label="Name">
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                  className={inputCls}
+                />
+              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Email">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@email.com"
+                    className={inputCls}
+                  />
+                </Field>
+                <Field label="Phone">
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+27 or 0…"
+                    className={inputCls}
+                  />
+                </Field>
+              </div>
+            </Panel>
+
+            {/* Method */}
+            <Panel title="Delivery or collection">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {deliveryEnabled && (
+                  <MethodCard
+                    active={method === "delivery"}
+                    onClick={() => setMethod("delivery")}
+                    icon={<Truck size={20} />}
+                    title="Delivery"
+                    sub="Courier, nationwide"
+                  />
+                )}
+                <MethodCard
+                  active={method === "collection"}
+                  onClick={() => setMethod("collection")}
+                  icon={<Store size={20} />}
+                  title="Collection"
+                  sub={collectionInfo || "Cape Town"}
+                />
+              </div>
+              {!deliveryEnabled && (
+                <p className="mt-3 rounded-xl bg-cream-2/60 px-4 py-3 text-sm text-ink-soft">
+                  Online delivery isn’t available right now — choose collection,
+                  or get in touch and we’ll arrange it.
+                </p>
+              )}
+            </Panel>
+
+            {/* Delivery address + rates */}
+            {method === "delivery" && (
+              <Panel title="Delivery address">
+                <Field label="Company (optional)">
+                  <input
+                    value={address.company}
+                    onChange={(e) => setAddr("company", e.target.value)}
+                    className={inputCls}
+                  />
+                </Field>
+                <Field label="Street address">
+                  <input
+                    value={address.streetAddress}
+                    onChange={(e) => setAddr("streetAddress", e.target.value)}
+                    placeholder="12 Main Road"
+                    className={inputCls}
+                  />
+                </Field>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Suburb / area">
+                    <input
+                      value={address.localArea}
+                      onChange={(e) => setAddr("localArea", e.target.value)}
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field label="City">
+                    <input
+                      value={address.city}
+                      onChange={(e) => setAddr("city", e.target.value)}
+                      className={inputCls}
+                    />
+                  </Field>
+                  <Field label="Province">
+                    <select
+                      value={address.zone}
+                      onChange={(e) => setAddr("zone", e.target.value)}
+                      className={inputCls}
+                    >
+                      <option value="">Choose…</option>
+                      {ZA_PROVINCES.map((p) => (
+                        <option key={p.code} value={p.code}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Postal code">
+                    <input
+                      value={address.code}
+                      onChange={(e) => setAddr("code", e.target.value)}
+                      inputMode="numeric"
+                      className={inputCls}
+                    />
+                  </Field>
+                </div>
+
+                {/* Rates */}
+                <div className="mt-2">
+                  {!rates && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={fetchRates}
+                      disabled={ratesLoading || !addressReady}
+                      className="w-full sm:w-auto"
+                    >
+                      {ratesLoading && (
+                        <Loader2 size={16} className="animate-spin" />
+                      )}
+                      {ratesLoading ? "Finding couriers…" : "Get delivery options"}
+                    </Button>
+                  )}
+                  {ratesError && (
+                    <p className="mt-3 rounded-xl bg-clay/10 px-4 py-3 text-sm text-clay">
+                      {ratesError}
+                    </p>
+                  )}
+                  {rates && rates.length > 0 && (
+                    <div className="space-y-2.5">
+                      <p className="text-sm font-medium text-ink">
+                        Choose a courier
+                      </p>
+                      {rates.map((r) => (
+                        <RateRow
+                          key={r.serviceCode}
+                          rate={r}
+                          active={serviceCode === r.serviceCode}
+                          onSelect={() => setServiceCode(r.serviceCode)}
+                        />
+                      ))}
+                      <button
+                        type="button"
+                        onClick={fetchRates}
+                        className="link-underline text-xs text-ink-soft"
+                      >
+                        Refresh options
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </Panel>
+            )}
+
+            {/* Note */}
+            <Panel title="A note (optional)">
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={3}
+                placeholder="Personalisation, scent, colour, gift message…"
+                className={`${inputCls} resize-none`}
+              />
+            </Panel>
+          </div>
+
+          {/* ---------- Summary column ---------- */}
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-3xl border border-cream-3 bg-cream-2/40 p-6">
+              <h2 className="font-display text-2xl">Order summary</h2>
+
+              <ul className="mt-5 space-y-3 border-b border-cream-3 pb-5">
+                {mounted &&
+                  items.map((i) => (
+                    <li
+                      key={`${i.slug}-${i.variant ?? ""}`}
+                      className="flex justify-between gap-3 text-sm"
+                    >
+                      <span className="text-ink">
+                        {i.qty} × {i.name}
+                        {i.variant ? (
+                          <span className="text-ink-soft"> · {i.variant}</span>
+                        ) : null}
+                      </span>
+                      <span className="shrink-0 tabular-nums text-ink-soft">
+                        {formatZAR(i.unitPriceZAR * i.qty)}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+
+              <div className="space-y-2 py-5 text-sm">
+                <Row label="Subtotal" value={formatZAR(subtotal)} muted />
+                {ownContainer && (
+                  <Row
+                    label="Own container · 10% off"
+                    value={`−${formatZAR(subtotal - goodsTotal)}`}
+                    accent
+                  />
+                )}
+                {method === "delivery" && (
+                  <Row
+                    label="Delivery"
+                    value={
+                      selectedRate
+                        ? formatZAR(deliveryFee)
+                        : rates
+                        ? "Select an option"
+                        : "Enter address"
+                    }
+                    muted
+                  />
+                )}
+                {method === "collection" && (
+                  <Row label="Collection" value="Free" muted />
+                )}
+              </div>
+
+              <div className="flex items-baseline justify-between border-t border-cream-3 pt-4">
+                <span className="font-medium text-ink">Total</span>
+                <span className="font-display text-3xl">{formatZAR(total)}</span>
+              </div>
+
+              {submitError && (
+                <p className="mt-4 rounded-xl bg-clay/10 px-4 py-3 text-sm text-clay">
+                  {submitError}
+                </p>
+              )}
+
+              <Button
+                size="lg"
+                className="mt-5 w-full"
+                onClick={placeOrder}
+                disabled={submitting || (mounted && items.length === 0)}
+              >
+                {submitting && <Loader2 size={16} className="animate-spin" />}
+                {submitting ? "Placing your order…" : "Place order"}
+              </Button>
+              <p className="mt-3 text-center text-xs text-ink-soft">
+                You’ll confirm payment on the next step.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Small presentational helpers                                       */
+/* ------------------------------------------------------------------ */
+const inputCls =
+  "w-full rounded-xl border border-cream-3 bg-cream px-4 py-3 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-olive focus:outline-none";
+
+function Panel({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-3xl border border-cream-3 bg-cream p-6 sm:p-7">
+      <h2 className="mb-4 font-display text-xl">{title}</h2>
+      <div className="space-y-4">{children}</div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-medium text-ink">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function MethodCard({
+  active,
+  onClick,
+  icon,
+  title,
+  sub,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  title: string;
+  sub: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all ${
+        active
+          ? "border-olive bg-olive/5"
+          : "border-cream-3 bg-cream hover:border-olive/40"
+      }`}
+    >
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+          active ? "bg-olive text-cream" : "bg-cream-2 text-olive"
+        }`}
+      >
+        {icon}
+      </span>
+      <span className="min-w-0">
+        <span className="block font-medium text-ink">{title}</span>
+        <span className="block truncate text-xs text-ink-soft">{sub}</span>
+      </span>
+    </button>
+  );
+}
+
+function RateRow({
+  rate,
+  active,
+  onSelect,
+}: {
+  rate: RateOption;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  const eta = rateEta(rate);
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${
+        active ? "border-olive bg-olive/5" : "border-cream-3 hover:border-olive/40"
+      }`}
+    >
+      <span className="flex items-center gap-3">
+        <span
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+            active ? "border-olive bg-olive text-cream" : "border-cream-3"
+          }`}
+        >
+          {active && <Check size={12} />}
+        </span>
+        <span>
+          <span className="block text-sm font-medium text-ink">
+            {rate.serviceName}
+          </span>
+          {eta && (
+            <span className="block text-xs text-ink-soft">Arrives {eta}</span>
+          )}
+        </span>
+      </span>
+      <span className="shrink-0 font-display text-lg tabular-nums">
+        {formatZAR(rate.priceZAR)}
+      </span>
+    </button>
+  );
+}
+
+function Row({
+  label,
+  value,
+  muted,
+  accent,
+}: {
+  label: string;
+  value: string;
+  muted?: boolean;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={`flex justify-between ${
+        accent ? "text-olive" : muted ? "text-ink-soft" : "text-ink"
+      }`}
+    >
+      <span>{label}</span>
+      <span className="tabular-nums">{value}</span>
+    </div>
+  );
+}

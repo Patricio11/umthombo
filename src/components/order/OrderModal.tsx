@@ -10,8 +10,7 @@ import { orderFormSchema, type OrderFormInput } from "@/lib/order-schema";
 import { buildWhatsAppOrder } from "@/lib/whatsapp";
 import { createOrder } from "@/server/actions/orders";
 import { useSiteSettings } from "@/components/SiteSettingsProvider";
-import { useCart, selectTotal, selectSubtotal } from "@/store/cart";
-import { computeDeliveryFee } from "@/lib/delivery";
+import { useCart, selectTotal } from "@/store/cart";
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { OrderSuccess, type OrderReceipt } from "@/components/order/OrderSuccess";
@@ -31,7 +30,6 @@ export function OrderModal({
   const items = useCart((s) => s.items);
   const ownContainer = useCart((s) => s.ownContainer);
   const goodsTotal = useCart(selectTotal); // after own-container discount
-  const subtotal = useCart(selectSubtotal); // before discount
   const clear = useCart((s) => s.clear);
   const closeCart = useCart((s) => s.closeCart);
 
@@ -39,7 +37,9 @@ export function OrderModal({
   const [receipt, setReceipt] = useState<OrderReceipt | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const deliveryEnabled = site.delivery.enabled;
+  // Delivery is always offered on the WhatsApp flow; the courier cost is
+  // confirmed in the conversation (live BobGo rates live on /checkout).
+  const deliveryEnabled = true;
 
   // Pause Lenis while the modal is open so scrolling stays inside the modal,
   // not the page behind it.
@@ -61,10 +61,7 @@ export function OrderModal({
   });
 
   const method = watch("method");
-  const deliveryFee =
-    method === "delivery"
-      ? computeDeliveryFee(items, subtotal, site.delivery)
-      : 0;
+  const deliveryFee = 0; // quoted on WhatsApp
   const total = goodsTotal + deliveryFee;
 
   const onSubmit = async (data: OrderFormInput) => {
@@ -281,9 +278,7 @@ export function OrderModal({
                           {method === "delivery" && (
                             <div className="flex justify-between text-ink-soft">
                               <span>Delivery</span>
-                              <span className="tabular-nums">
-                                {deliveryFee > 0 ? formatZAR(deliveryFee) : "Free"}
-                              </span>
+                              <span className="text-xs">Quoted on WhatsApp</span>
                             </div>
                           )}
                           <div className="flex items-baseline justify-between border-t border-cream-3 pt-1.5">

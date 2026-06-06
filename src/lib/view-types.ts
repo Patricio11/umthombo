@@ -21,7 +21,6 @@ export interface ProductView {
   packPriceZAR: number | null;
   customisable: boolean;
   featured: boolean;
-  deliveryFeeZAR: number | null;
   status: "draft" | "active";
   image: string;
   gallery: string[];

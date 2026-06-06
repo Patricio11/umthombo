@@ -113,8 +113,10 @@ export function OrderSuccess({
           {receipt.method === "delivery" && (
             <div className="flex justify-between text-ink-soft">
               <span>Delivery</span>
-              <span className="tabular-nums">
-                {receipt.deliveryFee > 0 ? formatZAR(receipt.deliveryFee) : "Free"}
+              <span className={receipt.deliveryFee > 0 ? "tabular-nums" : "text-xs"}>
+                {receipt.deliveryFee > 0
+                  ? formatZAR(receipt.deliveryFee)
+                  : "To be confirmed"}
               </span>
             </div>
           )}

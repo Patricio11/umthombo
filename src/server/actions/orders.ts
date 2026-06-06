@@ -6,8 +6,6 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/server/db";
 import { orders, orderItems, products } from "@/server/db/schema";
 import { requireAdmin } from "@/server/auth/guard";
-import { getSiteSettings } from "@/server/db/settings";
-import { computeDeliveryFee } from "@/lib/delivery";
 import {
   createOrderSchema,
   adminOrderSchema,
@@ -96,14 +94,9 @@ export async function createOrder(
 
   const goodsTotal = data.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
   const discount = subtotal - goodsTotal;
-  const settings = await getSiteSettings();
-  const deliveryItems = data.items.map((it) => ({
-    deliveryFeeZAR: bySlug.get(it.slug)?.deliveryFeeZAR ?? null,
-  }));
-  const deliveryFee =
-    data.method === "delivery"
-      ? computeDeliveryFee(deliveryItems, subtotal, settings.delivery)
-      : 0;
+  // Real delivery cost is quoted live via BobGo at the dedicated checkout;
+  // the WhatsApp order flow leaves it to be confirmed in the conversation.
+  const deliveryFee = 0;
   const total = goodsTotal + deliveryFee;
   const orderNumber = genOrderNumber();
   const orderId = randomUUID();
@@ -161,7 +154,6 @@ async function buildLines(items: AdminOrderInput["items"]) {
   const rows = await db.select().from(products).where(inArray(products.id, ids));
   const byId = new Map(rows.map((r) => [r.id, r]));
   const lines: Omit<typeof orderItems.$inferInsert, "orderId">[] = [];
-  const deliveryItems: { deliveryFeeZAR: number | null }[] = [];
   let subtotal = 0;
   for (const it of items) {
     const p = byId.get(it.productId);
@@ -176,9 +168,8 @@ async function buildLines(items: AdminOrderInput["items"]) {
       unitPriceZAR: p.priceZAR,
       lineTotalZAR: lineTotal,
     });
-    deliveryItems.push({ deliveryFeeZAR: p.deliveryFeeZAR ?? null });
   }
-  return { lines, subtotal, deliveryItems };
+  return { lines, subtotal };
 }
 
 /** Admin: create an order manually (e.g. a phone or walk-in order). */
@@ -191,13 +182,9 @@ export async function createOrderAdmin(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
   }
   const d = parsed.data;
-  const { lines, subtotal, deliveryItems } = await buildLines(d.items);
+  const { lines, subtotal } = await buildLines(d.items);
   const goods = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
-  const settings = await getSiteSettings();
-  const deliveryFee =
-    d.method === "delivery"
-      ? computeDeliveryFee(deliveryItems, subtotal, settings.delivery)
-      : 0;
+  const deliveryFee = d.method === "delivery" ? d.deliveryFeeZAR : 0;
   const total = goods + deliveryFee;
   const id = randomUUID();
   await db.transaction(async (tx) => {
@@ -233,13 +220,9 @@ export async function updateOrderAdmin(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
   }
   const d = parsed.data;
-  const { lines, subtotal, deliveryItems } = await buildLines(d.items);
+  const { lines, subtotal } = await buildLines(d.items);
   const goods = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
-  const settings = await getSiteSettings();
-  const deliveryFee =
-    d.method === "delivery"
-      ? computeDeliveryFee(deliveryItems, subtotal, settings.delivery)
-      : 0;
+  const deliveryFee = d.method === "delivery" ? d.deliveryFeeZAR : 0;
   const total = goods + deliveryFee;
   await db.transaction(async (tx) => {
     await tx

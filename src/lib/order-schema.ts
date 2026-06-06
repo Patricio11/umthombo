@@ -56,6 +56,7 @@ export const adminOrderSchema = orderSchema.extend({
   ownContainer: z.boolean().default(false),
   address: z.string().trim().max(400).optional().default(""),
   status: z.enum(ORDER_STATUSES),
+  deliveryFeeZAR: z.number().int().min(0).optional().default(0),
   items: z.array(adminOrderItemSchema).min(1, "Add at least one item."),
 });
 

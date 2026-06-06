@@ -272,7 +272,6 @@ export interface OrderableProduct {
   name: string;
   priceZAR: number;
   variants: string[];
-  deliveryFeeZAR: number | null;
 }
 
 export async function getOrderableProducts(): Promise<OrderableProduct[]> {
@@ -282,7 +281,6 @@ export async function getOrderableProducts(): Promise<OrderableProduct[]> {
       name: products.name,
       priceZAR: products.priceZAR,
       variants: products.variants,
-      deliveryFeeZAR: products.deliveryFeeZAR,
     })
     .from(products)
     .where(eq(products.status, "active"))

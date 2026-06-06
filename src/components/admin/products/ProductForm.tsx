@@ -27,6 +27,14 @@ const num = (s: string): number | null => {
   return Number.isFinite(n) ? Math.round(n) : null;
 };
 
+// Decimal parser for shipping weight (kg) and dimensions (cm).
+const numF = (s: string): number | null => {
+  const t = s.trim();
+  if (t === "") return null;
+  const n = Number(t);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+};
+
 export function ProductForm({
   product,
   categories,
@@ -56,8 +64,17 @@ export function ProductForm({
   const [packPrice, setPackPrice] = useState(
     product?.packPriceZAR != null ? String(product.packPriceZAR) : ""
   );
-  const [deliveryFee, setDeliveryFee] = useState(
-    product?.deliveryFeeZAR != null ? String(product.deliveryFeeZAR) : ""
+  const [weightKg, setWeightKg] = useState(
+    product?.weightKg != null ? String(product.weightKg) : ""
+  );
+  const [lengthCm, setLengthCm] = useState(
+    product?.lengthCm != null ? String(product.lengthCm) : ""
+  );
+  const [widthCm, setWidthCm] = useState(
+    product?.widthCm != null ? String(product.widthCm) : ""
+  );
+  const [heightCm, setHeightCm] = useState(
+    product?.heightCm != null ? String(product.heightCm) : ""
   );
   const [variants, setVariants] = useState<string[]>(product?.variants ?? []);
   const [customisable, setCustomisable] = useState(
@@ -89,7 +106,10 @@ export function ProductForm({
       priceZAR: num(price) as number, // null → schema "A price is required."
       priceMaxZAR: num(priceMax),
       packPriceZAR: num(packPrice),
-      deliveryFeeZAR: num(deliveryFee),
+      weightKg: numF(weightKg),
+      lengthCm: numF(lengthCm),
+      widthCm: numF(widthCm),
+      heightCm: numF(heightCm),
       customisable,
       featured,
       status,
@@ -266,19 +286,34 @@ export function ProductForm({
                 <Input id="packPrice" inputMode="numeric" value={packPrice} onChange={(e) => setPackPrice(e.target.value)} />
               </Field>
             </div>
-            <Field
-              label="Delivery fee (ZAR)"
-              htmlFor="deliveryFee"
-              hint="Optional — overrides the global delivery fee for this product"
-            >
+          </Card>
+
+          <Card className="space-y-5">
+            <h2 className="font-display text-lg">Shipping</h2>
+            <p className="text-xs text-ink-soft">
+              Used to calculate live courier rates at checkout. Enter the packed
+              weight and parcel size.
+            </p>
+            <Field label="Weight (kg)" htmlFor="weightKg" hint="Packed, e.g. 0.35">
               <Input
-                id="deliveryFee"
-                inputMode="numeric"
-                value={deliveryFee}
-                onChange={(e) => setDeliveryFee(e.target.value)}
-                placeholder="Use global"
+                id="weightKg"
+                inputMode="decimal"
+                value={weightKg}
+                onChange={(e) => setWeightKg(e.target.value)}
+                placeholder="0.35"
               />
             </Field>
+            <div className="grid gap-5 sm:grid-cols-3">
+              <Field label="Length (cm)" htmlFor="lengthCm">
+                <Input id="lengthCm" inputMode="decimal" value={lengthCm} onChange={(e) => setLengthCm(e.target.value)} placeholder="10" />
+              </Field>
+              <Field label="Width (cm)" htmlFor="widthCm">
+                <Input id="widthCm" inputMode="decimal" value={widthCm} onChange={(e) => setWidthCm(e.target.value)} placeholder="10" />
+              </Field>
+              <Field label="Height (cm)" htmlFor="heightCm">
+                <Input id="heightCm" inputMode="decimal" value={heightCm} onChange={(e) => setHeightCm(e.target.value)} placeholder="10" />
+              </Field>
+            </div>
           </Card>
         </div>
       </div>

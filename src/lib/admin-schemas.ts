@@ -29,6 +29,13 @@ const optionalInt = z
   .transform((v) => (v == null ? null : Math.round(v)))
   .refine((v) => v == null || v >= 0, "Must be 0 or more.");
 
+/** Optional positive decimal (e.g. weight in kg, dimensions in cm). */
+const optionalFloat = z
+  .union([z.number(), z.null()])
+  .optional()
+  .transform((v) => (v == null || !Number.isFinite(v) ? null : v))
+  .refine((v) => v == null || v >= 0, "Must be 0 or more.");
+
 const optionalText = z
   .string()
   .trim()
@@ -53,7 +60,10 @@ export const productSchema = z.object({
   packPriceZAR: optionalInt,
   customisable: z.boolean().default(false),
   featured: z.boolean().default(false),
-  deliveryFeeZAR: optionalInt,
+  weightKg: optionalFloat,
+  lengthCm: optionalFloat,
+  widthCm: optionalFloat,
+  heightCm: optionalFloat,
   status: z.enum(["draft", "active"]),
   image: z.string().trim().default(""),
   gallery: z.array(z.string()).default([]),
@@ -96,11 +106,6 @@ export const settingsSchema = z.object({
   facebookHandle: optionalStr(60),
   facebookUrl: optionalStr(200),
   email: optionalStr(120),
-  deliveryEnabled: z.boolean().default(true),
-  deliveryChargeEnabled: z.boolean().default(true),
-  deliveryFeeType: z.enum(["flat", "percent"]).default("flat"),
-  deliveryFlatZAR: optionalStr(10),
-  deliveryPercent: optionalStr(5),
 });
 
 export type SettingsInput = z.infer<typeof settingsSchema>;

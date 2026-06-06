@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -15,12 +16,12 @@ import {
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { CartLine } from "@/components/cart/CartLine";
-import { OrderModal } from "@/components/order/OrderModal";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function CartDrawer() {
+  const router = useRouter();
   const reduce = useReducedMotion();
   const isOpen = useCart((s) => s.isOpen);
   const closeCart = useCart((s) => s.closeCart);
@@ -31,7 +32,10 @@ export function CartDrawer() {
   const ownContainer = useCart((s) => s.ownContainer);
   const setOwnContainer = useCart((s) => s.setOwnContainer);
 
-  const [orderOpen, setOrderOpen] = useState(false);
+  const goToCheckout = () => {
+    closeCart();
+    router.push("/checkout");
+  };
 
   // Don't render persisted contents until mounted (hydration safety).
   const [mounted, setMounted] = useState(false);
@@ -158,13 +162,12 @@ export function CartDrawer() {
                       <Button
                         size="lg"
                         className="mt-4 w-full"
-                        onClick={() => setOrderOpen(true)}
+                        onClick={goToCheckout}
                       >
-                        Place your order
+                        Checkout
                       </Button>
                       <p className="mt-3 text-center text-xs text-ink-soft">
-                        No payment now  we&rsquo;ll confirm everything over
-                        WhatsApp.
+                        Choose delivery or collection on the next step.
                       </p>
                     </footer>
                   )}
@@ -174,8 +177,6 @@ export function CartDrawer() {
           )}
         </AnimatePresence>
       </Dialog.Root>
-
-      <OrderModal open={orderOpen} onClose={() => setOrderOpen(false)} />
     </>
   );
 }

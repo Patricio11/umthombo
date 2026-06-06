@@ -5,7 +5,6 @@ import {
   getAdminOrder,
   getOrderableProducts,
 } from "@/server/db/admin-queries";
-import { getSiteSettings } from "@/server/db/settings";
 import { AdminPageHeader } from "@/components/admin/primitives";
 import { OrderForm } from "@/components/admin/orders/OrderForm";
 
@@ -18,10 +17,9 @@ export default async function EditOrderPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [order, products, settings] = await Promise.all([
+  const [order, products] = await Promise.all([
     getAdminOrder(id),
     getOrderableProducts(),
-    getSiteSettings(),
   ]);
   if (!order) notFound();
 
@@ -34,11 +32,7 @@ export default async function EditOrderPage({
         <ArrowLeft size={16} /> {order.orderNumber}
       </Link>
       <AdminPageHeader title="Edit order" subtitle="Update items, customer or status." />
-      <OrderForm
-        order={order}
-        products={products}
-        deliveryConfig={settings.delivery}
-      />
+      <OrderForm order={order} products={products} />
     </>
   );
 }

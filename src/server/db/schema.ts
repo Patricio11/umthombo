@@ -5,6 +5,7 @@ import {
   uuid,
   text,
   integer,
+  real,
   boolean,
   jsonb,
   timestamp,
@@ -27,6 +28,12 @@ export const orderStatusEnum = pgEnum("order_status", [
 export const orderMethodEnum = pgEnum("order_method", [
   "delivery",
   "collection",
+]);
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "pending",
+  "paid",
+  "failed",
+  "cancelled",
 ]);
 
 const timestamps = {
@@ -74,7 +81,11 @@ export const products = pgTable("products", {
   packPriceZAR: integer("pack_price_zar"),
   customisable: boolean("customisable").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
-  deliveryFeeZAR: integer("delivery_fee_zar"), // per-product override (null = use global)
+  // Shipping dimensions for live BobGo rates (null = not yet captured)
+  weightKg: real("weight_kg"),
+  lengthCm: real("length_cm"),
+  widthCm: real("width_cm"),
+  heightCm: real("height_cm"),
   status: productStatusEnum("status").notNull().default("active"),
   image: text("image").notNull().default(""),
   gallery: jsonb("gallery").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
@@ -96,13 +107,29 @@ export const orders = pgTable("orders", {
   customerEmail: text("customer_email").notNull(),
   customerPhone: text("customer_phone").notNull(),
   method: orderMethodEnum("method").notNull().default("delivery"),
-  shippingAddress: text("shipping_address"),
+  shippingAddress: text("shipping_address"), // flattened, human-readable
+  // Structured delivery address (DeliveryAddress) for BobGo fulfilment
+  shippingAddressJson: jsonb("shipping_address_json").$type<
+    Record<string, unknown>
+  >(),
   note: text("note"),
   ownContainer: boolean("own_container").notNull().default(false),
   subtotalZAR: integer("subtotal_zar").notNull().default(0),
   deliveryFeeZAR: integer("delivery_fee_zar").notNull().default(0),
   totalZAR: integer("total_zar").notNull().default(0),
   status: orderStatusEnum("status").notNull().default("new"),
+  // Shipping (BobGo) — selected at checkout, tracking filled by the webhook
+  shippingService: text("shipping_service"),
+  shippingServiceCode: text("shipping_service_code"),
+  bobgoOrderId: text("bobgo_order_id"),
+  trackingReference: text("tracking_reference"),
+  trackingUrl: text("tracking_url"),
+  shipmentStatus: text("shipment_status"), // BobGo method_status
+  // Payment (YetoEFT) — webhook is authoritative
+  paymentProvider: text("payment_provider"), // yetopay | whatsapp | manual
+  paymentReference: text("payment_reference"), // YetoPay transactionId
+  paymentStatus: paymentStatusEnum("payment_status").notNull().default("pending"),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
   ...timestamps,
 });
 
@@ -120,6 +147,26 @@ export const orderItems = pgTable("order_items", {
   unitPriceZAR: integer("unit_price_zar").notNull(),
   lineTotalZAR: integer("line_total_zar").notNull(),
 });
+
+/* ------------------------------------------------------------------ */
+/*  Payment / fulfilment webhook events (idempotency + audit)          */
+/* ------------------------------------------------------------------ */
+export const paymentEvents = pgTable("payment_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  provider: text("provider").notNull(), // yetopay | bobgo
+  eventId: text("event_id").notNull().unique(), // webhook delivery id
+  orderId: uuid("order_id").references(() => orders.id, {
+    onDelete: "set null",
+  }),
+  type: text("type"),
+  status: text("status"),
+  raw: jsonb("raw").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type PaymentEvent = typeof paymentEvents.$inferSelect;
 
 /* ------------------------------------------------------------------ */
 /*  Testimonials                                                      */
@@ -150,11 +197,6 @@ export const settings = pgTable("settings", {
   facebookHandle: text("facebook_handle"),
   facebookUrl: text("facebook_url"),
   email: text("email"),
-  deliveryEnabled: boolean("delivery_enabled"), // offer delivery at all
-  deliveryChargeEnabled: boolean("delivery_charge_enabled"), // charge a fee (off = free)
-  deliveryFeeType: text("delivery_fee_type"), // "flat" | "percent"
-  deliveryFeeZAR: integer("delivery_fee_zar"), // flat amount
-  deliveryPercent: integer("delivery_percent"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()

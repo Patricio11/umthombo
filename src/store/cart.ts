@@ -10,7 +10,6 @@ export interface CartItem {
   qty: number;
   unitPriceZAR: number;
   image: string;
-  deliveryFeeZAR?: number | null;
 }
 
 interface CartState {

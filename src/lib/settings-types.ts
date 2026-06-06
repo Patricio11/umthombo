@@ -1,5 +1,3 @@
-import type { DeliveryConfig } from "@/lib/delivery";
-
 /** Resolved site settings (DB overrides merged over data/site defaults).
  *  Client-safe — no server imports. */
 export interface SiteSettings {
@@ -12,7 +10,6 @@ export interface SiteSettings {
   story: string;
   collection: string;
   email: string;
-  delivery: DeliveryConfig;
   whatsapp: { number: string; display: string; href: string };
   instagram: { handle: string; href: string };
   facebook: { handle: string; href: string };

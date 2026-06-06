@@ -50,6 +50,27 @@
       "when": 1780729540504,
       "tag": "0006_integrations",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1780731861683,
+      "tag": "0007_drop_delivery_model",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1780731875954,
+      "tag": "0008_product_shipping_dims",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1780733216395,
+      "tag": "0009_order_payment_shipping",
+      "breakpoints": true
     }
   ]
 }

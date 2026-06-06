@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getOrderableProducts } from "@/server/db/admin-queries";
-import { getSiteSettings } from "@/server/db/settings";
 import { AdminPageHeader } from "@/components/admin/primitives";
 import { OrderForm } from "@/components/admin/orders/OrderForm";
 
@@ -9,10 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "New order" };
 
 export default async function NewOrderPage() {
-  const [products, settings] = await Promise.all([
-    getOrderableProducts(),
-    getSiteSettings(),
-  ]);
+  const products = await getOrderableProducts();
   return (
     <>
       <Link
@@ -22,7 +18,7 @@ export default async function NewOrderPage() {
         <ArrowLeft size={16} /> Orders
       </Link>
       <AdminPageHeader title="New order" subtitle="Record a phone or walk-in order." />
-      <OrderForm products={products} deliveryConfig={settings.delivery} />
+      <OrderForm products={products} />
     </>
   );
 }

@@ -89,8 +89,8 @@ Seeded keys: **`bobgo`** (shipping), **`yetopay`** (payment), **`resend`** (emai
 
 **`settings`** — **remove** `deliveryEnabled, deliveryChargeEnabled, deliveryFeeType, deliveryFeeZAR, deliveryPercent` (Shipping tab dropped from Settings; lives in Integrations now).
 
-**`orders`** — add:
-`shippingAddress` → **jsonb** (structured: company?, street, suburb, city, province, postalCode); keep `deliveryFeeZAR` (now the chosen rate); add `shippingService (text)`, `shippingServiceCode (text)`, `bobgoOrderId (text)`, `trackingReference (text)`, `trackingUrl (text)`, **`shipmentStatus (text)`** (BobGo `method_status`, updated on each webhook), `paymentProvider (text)`, `paymentReference (text)` (YetoPay transactionId), `paymentStatus (enum: pending|paid|failed|cancelled, default pending)`, `paidAt (timestamp)`.
+**`orders`** — add (migration `0009_order_payment_shipping`):
+keep `shippingAddress` as **text** (flattened, human-readable for admin/WhatsApp) and add **`shippingAddressJson` jsonb** (structured `DeliveryAddress`: company?, streetAddress, localArea, city, zone, code, country — for BobGo fulfilment); keep `deliveryFeeZAR` (now the chosen rate); add `shippingService (text)`, `shippingServiceCode (text)`, `bobgoOrderId (text)`, `trackingReference (text)`, `trackingUrl (text)`, **`shipmentStatus (text)`** (BobGo `method_status`, updated on each webhook), `paymentProvider (text)`, `paymentReference (text)` (YetoPay transactionId), `paymentStatus (enum: pending|paid|failed|cancelled, default pending)`, `paidAt (timestamptz)`.
 
 **New table `payment_events`** (idempotency + audit of webhook deliveries): `id, provider, eventId (unique), orderId, type, status, raw (jsonb), createdAt`.
 
@@ -114,28 +114,30 @@ Delete `src/lib/delivery.ts` (computeDeliveryFee) and all its callers.
 
 ### Phase 2 — Remove old delivery model + product shipping dimensions
 **Goal:** delete the flat/%/per-product fee system; products carry parcel data for BobGo.
-- [ ] Migration: add `products.weightKg/lengthCm/widthCm/heightCm`; drop `products.deliveryFeeZAR`; drop the 5 `settings.delivery*` columns
-- [ ] Delete `lib/delivery.ts`; remove `computeDeliveryFee` usage from order actions, OrderModal, OrderForm; remove `deliveryFeeZAR` from cart item + ProductView + product schema/form
-- [ ] Remove the **Shipping** tab from Settings (SettingsForm + settings schema/action/getSiteSettings)
-- [ ] Product form: a **Shipping** section (weight kg, L×W×H cm) with sensible defaults; product list unaffected
-- [ ] Order create/edit temporarily compute delivery = 0 (real value comes from BobGo selection in Phase 4)
-- **Acceptance:** old delivery settings gone; products store dimensions; build green; checkout still works (collection-only for now).
+- [x] Migrations `0007_drop_delivery_model` (drop `products.deliveryFeeZAR` + the 5 `settings.delivery*` columns) and `0008_product_shipping_dims` (add `products.weightKg/lengthCm/widthCm/heightCm` as `real`) — generated + applied
+- [x] Deleted `lib/delivery.ts`; removed `computeDeliveryFee`/`DeliveryConfig` from order actions, OrderModal, admin OrderForm; removed `deliveryFeeZAR` from cart item, ProductView, queries, product schema/form, AddToOrder, useQuickAdd
+- [x] Removed the **Shipping** tab from Settings (SettingsForm + settings schema/action + `getSiteSettings.delivery`)
+- [x] Product form: a **Shipping** card (weight kg, L×W×H cm)
+- [x] Public WhatsApp/OrderModal flow → delivery = 0, shown as "Quoted on WhatsApp" / "to be confirmed"; admin OrderForm gets a **manual Shipping (ZAR)** input (added `adminOrderSchema.deliveryFeeZAR`); `orders.deliveryFeeZAR` column kept (holds the BobGo-selected rate later)
+- **Acceptance:** ✅ old delivery settings gone; products store dimensions; build green; WhatsApp order + admin order still work.
 
 ### Phase 3 — BobGo shipping service (server)
 **Goal:** fetch live delivery rates for a cart + address.
-- [ ] `server/shipping/bobgo.ts`: base URL by `sandbox`, Bearer auth, `getRatesAtCheckout({deliveryAddress, items, declaredValue})` → typed `RateOption[]`; `createBobgoOrder(order)` → `{id, ...}`; ZA province normaliser
-- [ ] `server/actions/shipping.ts`: `getDeliveryRates({cart:[{slug,qty}], address})` — `requireIntegration('bobgo')`, re-price + dimension items from DB, call BobGo, return `{ok, rates}` or graceful error
-- [ ] Map products → BobGo items (`weight_kg`, `*_cm`, price, qty); handle missing dimensions with defaults; collection address from integration config
-- **Acceptance:** with a (mock or real) key, the action returns rate options for an address; disabled → clean "delivery unavailable".
+- [x] `server/shipping/bobgo.ts`: base URL by `sandbox`, Bearer auth, `getRatesAtCheckout(config, {deliveryAddress, items, declaredValueZAR})` → typed `RateOption[]` (rounded to whole rand, sorted cheapest-first); `createBobgoOrder(config, input)` → `{id, raw}` (ready for Phase 6); `normalizeZone()` province normaliser
+- [x] `server/actions/shipping.ts`: `getDeliveryRates({items:[{slug,qty}], address})` — zod-validated address, `getBobgoConfig()` (null → graceful "Delivery isn’t available right now."), re-price + dimension items from DB, call BobGo, return `{ok, rates}` or graceful error
+- [x] Map products → BobGo items (`weight_kg`, `*_cm`, price, qty); missing dimensions fall back to `PARCEL_DEFAULTS` (0.5 kg, 15³ cm); collection address from integration config
+- [x] Client-safe `lib/shipping.ts` — `DeliveryAddress`, `RateOption`, `PARCEL_DEFAULTS`, `rateEta()` helper
+- **Acceptance:** ✅ action returns sorted rate options for an address; disabled/unconfigured → clean "delivery unavailable"; build green.
 
 ### Phase 4 — Checkout page (public)
 **Goal:** the multi-step checkout that ends at "Pay".
-- [ ] `/checkout` page reads the cart; step 1 contact, step 2 method (collection/delivery; delivery only if BobGo enabled)
-- [ ] Delivery step: structured address form (province select) → "Get delivery options" → rate cards (courier, ETA, price) → select
-- [ ] Live summary: items, selected delivery (or free collection), total = goods − 10% (own container) + delivery
-- [ ] Cart drawer "Place your order" → navigate to `/checkout`; keep the cart contents
-- [ ] `createPendingOrder` server action: re-price everything from DB, validate address + selected rate (re-verify the chosen rate's price against BobGo when delivery), persist order (`paymentStatus: pending`, shipping fields, structured address), return `{orderId, orderNumber}`
-- **Acceptance:** a customer can go cart → checkout → pick a delivery option → see a correct total; order row is created server-priced.
+- [x] `/checkout` page (`(site)/checkout`) reads the cart; contact + method (delivery only if BobGo enabled); structured address form (province select) → "Get delivery options" → courier rate cards (name, ETA via `rateEta`, price) → select; cheapest pre-selected when only one
+- [x] Live sticky summary: items, own-container −10%, delivery (selected rate / "Enter address" / "Select an option" / Free collection), total; address edits invalidate fetched rates
+- [x] Cart drawer "Place your order" → **"Checkout"** → `router.push('/checkout')` (cart kept); removed the WhatsApp `OrderModal` trigger (fallback returns in Phase 5)
+- [x] `createPendingOrder` action: re-prices from DB, for delivery **re-verifies the chosen rate against BobGo** (stale/unavailable → refresh error), persists order (`paymentStatus: pending`, shipping service/code, text + jsonb address), returns `{orderId, orderNumber, totalZAR}`
+- [x] `/checkout/success?order=…` confirmation page (`getOrderConfirmation` minimal non-sensitive summary) — doubles as the post-payment return page in Phase 5
+- [x] Migration `0009_order_payment_shipping` (order shipping/payment columns + `payment_status` enum + `payment_events` table) generated + applied
+- **Acceptance:** ✅ cart → checkout → pick a delivery option → correct total; order row created server-priced (`pending`); build green.
 
 ### Phase 5 — YetoEFT payment
 **Goal:** pay online; webhook confirms.

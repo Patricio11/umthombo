@@ -41,6 +41,8 @@ export function buildWhatsAppOrder(
   }
   if (deliveryFee > 0) {
     lines.push(`Delivery: ${formatZAR(deliveryFee)}`);
+  } else if (details.method === "delivery") {
+    lines.push(`Delivery: to be confirmed`);
   }
   lines.push(`Total: ${formatZAR(total)}`);
   lines.push("");

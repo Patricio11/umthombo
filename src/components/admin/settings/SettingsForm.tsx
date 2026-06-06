@@ -4,14 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import type { Settings } from "@/server/db/schema";
-import {
-  Card,
-  Field,
-  Input,
-  Textarea,
-  Select,
-  Switch,
-} from "@/components/admin/primitives";
+import { Card, Field, Input, Textarea } from "@/components/admin/primitives";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/admin/Toast";
 import { updateSettings } from "@/server/actions/settings";
@@ -33,15 +26,6 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
     facebookHandle: settings?.facebookHandle ?? "",
     facebookUrl: settings?.facebookUrl ?? "",
     email: settings?.email ?? "",
-    deliveryEnabled: settings?.deliveryEnabled ?? true,
-    deliveryChargeEnabled: settings?.deliveryChargeEnabled ?? true,
-    deliveryFeeType: (settings?.deliveryFeeType === "percent"
-      ? "percent"
-      : "flat") as "flat" | "percent",
-    deliveryFlatZAR:
-      settings?.deliveryFeeZAR != null ? String(settings.deliveryFeeZAR) : "",
-    deliveryPercent:
-      settings?.deliveryPercent != null ? String(settings.deliveryPercent) : "",
   });
 
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
@@ -50,7 +34,6 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
   const TABS = [
     { key: "brand", label: "Brand" },
     { key: "contact", label: "Contact" },
-    { key: "shipping", label: "Shipping" },
     { key: "social", label: "Social" },
   ] as const;
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("brand");
@@ -147,86 +130,6 @@ export function SettingsForm({ settings }: { settings: Settings | null }) {
             placeholder={site.collection}
           />
         </Field>
-      </Card>
-      )}
-
-      {tab === "shipping" && (
-      <Card className="space-y-5">
-        <h2 className="font-display text-lg">Shipping</h2>
-        <label className="flex items-center justify-between gap-3">
-          <span className="text-sm font-medium">
-            Offer delivery
-            <span className="mt-0.5 block text-xs font-normal text-ink-soft">
-              Turn off for collection-only (delivery is hidden at checkout)
-            </span>
-          </span>
-          <Switch
-            checked={form.deliveryEnabled}
-            onChange={(v) => set("deliveryEnabled", v)}
-            label="Offer delivery"
-          />
-        </label>
-
-        {form.deliveryEnabled && (
-          <>
-            <label className="flex items-center justify-between gap-3 border-t border-cream-2 pt-4">
-              <span className="text-sm font-medium">
-                Charge for delivery
-                <span className="mt-0.5 block text-xs font-normal text-ink-soft">
-                  Turn off for free delivery
-                </span>
-              </span>
-              <Switch
-                checked={form.deliveryChargeEnabled}
-                onChange={(v) => set("deliveryChargeEnabled", v)}
-                label="Charge for delivery"
-              />
-            </label>
-
-            {form.deliveryChargeEnabled ? (
-              <>
-                <Field label="Fee type">
-                  <Select
-                    value={form.deliveryFeeType}
-                    onChange={(e) =>
-                      set("deliveryFeeType", e.target.value as "flat" | "percent")
-                    }
-                  >
-                    <option value="flat">Flat amount (ZAR)</option>
-                    <option value="percent">Percentage of order</option>
-                  </Select>
-                </Field>
-                {form.deliveryFeeType === "flat" ? (
-                  <Field label="Delivery fee (ZAR)">
-                    <Input
-                      inputMode="numeric"
-                      value={form.deliveryFlatZAR}
-                      onChange={(e) => set("deliveryFlatZAR", e.target.value)}
-                      placeholder="0"
-                    />
-                  </Field>
-                ) : (
-                  <Field label="Delivery fee (%)" hint="Percentage of the goods subtotal">
-                    <Input
-                      inputMode="numeric"
-                      value={form.deliveryPercent}
-                      onChange={(e) => set("deliveryPercent", e.target.value)}
-                      placeholder="10"
-                    />
-                  </Field>
-                )}
-                <p className="text-xs text-ink-soft">
-                  A product can override this with its own delivery fee. When an
-                  order has several items, the highest fee applies.
-                </p>
-              </>
-            ) : (
-              <p className="rounded-xl bg-olive/8 px-4 py-3 text-sm text-olive">
-                Delivery is free — no fee is charged.
-              </p>
-            )}
-          </>
-        )}
       </Card>
       )}
 
