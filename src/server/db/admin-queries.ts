@@ -161,11 +161,11 @@ export async function getAdminProducts(): Promise<AdminProductRow[]> {
       featured: products.featured,
       status: products.status,
       image: products.image,
-      sortOrder: products.sortOrder,
+      createdAt: products.createdAt,
     })
     .from(products)
     .leftJoin(categories, eq(products.categoryId, categories.id))
-    .orderBy(asc(products.sortOrder), asc(products.name));
+    .orderBy(desc(products.createdAt));
   return rows.map((r) => ({ ...r, categoryLabel: r.categoryLabel ?? "" }));
 }
 
