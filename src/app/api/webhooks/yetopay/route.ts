@@ -15,15 +15,23 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const raw = await req.text();
 
+  console.log("[yetopay webhook] received", { bytes: raw.length });
+
   const config = await getYetopayConfig();
   if (!config?.webhookSecret) {
     // Disabled or no secret configured  nothing we can verify. Ack so the
     // provider doesn't keep retrying.
+    console.warn(
+      "[yetopay webhook] IGNORED - YetoEFT disabled or webhook secret not set in /admin/integrations"
+    );
     return Response.json({ ok: true, ignored: true });
   }
 
   const signature = req.headers.get("x-webhook-signature");
   if (!verifyWebhookSignature(config.webhookSecret, raw, signature)) {
+    console.warn(
+      "[yetopay webhook] SIGNATURE MISMATCH - webhook secret does not match YetoPay's"
+    );
     return new Response("Invalid signature", { status: 401 });
   }
 
@@ -83,8 +91,14 @@ export async function POST(req: Request) {
 
   if (!orderRow) {
     // Recorded for audit, but we don't know the order.
+    console.warn(
+      "[yetopay webhook] NO ORDER MATCHED for reference",
+      reference
+    );
     return Response.json({ ok: true, unmatched: true });
   }
+
+  console.log("[yetopay webhook] event", { type, reference, status });
 
   const isPaid = type === "payment.completed" || status === "completed";
   const isFailed = type === "payment.failed" || status === "failed";
@@ -103,6 +117,7 @@ export async function POST(req: Request) {
       .where(eq(orders.id, orderRow.id));
     // First paid → notify customer/admin + create the BobGo courier order.
     await handleOrderPaid(orderRow.id);
+    console.log("[yetopay webhook] ORDER MARKED PAID", orderRow.orderNumber);
   } else if (isFailed) {
     await db
       .update(orders)
