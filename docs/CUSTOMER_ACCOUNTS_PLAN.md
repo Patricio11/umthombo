@@ -1,5 +1,11 @@
 # Customer Accounts, Reviews & FAQ — Build Plan
 
+> **✅ DELIVERED (2026-06-06).** All three phases built and committed:
+> Phase 1 (accounts 1A–1G), Phase 2 (reviews), Phase 3 (FAQ). Migrations
+> 0011–0016 applied. Needs **Resend enabled** for verification/notification
+> emails; test the auth + checkout + review flows end-to-end on the deployment.
+
+
 Adding a **customer** to the system: sign in / sign up, a responsive account
 dashboard (orders, saved addresses, reorder), **product reviews** by real
 buyers, **new-product notifications**, and a proper **FAQ**.
