@@ -106,19 +106,30 @@ export function breadcrumbLd(items: { name: string; path: string }[]) {
   };
 }
 
-/** Product schema with Offer / AggregateOffer (for price ranges). */
-export function productLd(p: {
-  slug: string;
-  name: string;
-  description: string;
-  tagline: string;
-  image: string;
-  gallery: string[];
-  categoryLabel: string;
-  priceZAR: number;
-  priceMaxZAR: number | null;
-  status: "draft" | "active";
-}) {
+interface ReviewLd {
+  authorName: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  createdAt: Date | string;
+}
+
+/** Product schema with Offer / AggregateOffer + AggregateRating/Review. */
+export function productLd(
+  p: {
+    slug: string;
+    name: string;
+    description: string;
+    tagline: string;
+    image: string;
+    gallery: string[];
+    categoryLabel: string;
+    priceZAR: number;
+    priceMaxZAR: number | null;
+    status: "draft" | "active";
+  },
+  opts?: { ratingValue?: number; reviewCount?: number; reviews?: ReviewLd[] }
+) {
   const img = (u: string) => (u.startsWith("http") ? u : absUrl(u));
   const images = [p.image, ...p.gallery].filter(Boolean).map(img);
   const url = absUrl(`/product/${p.slug}`);
@@ -155,7 +166,7 @@ export function productLd(p: {
           seller: { "@id": ORG_ID },
         };
 
-  return {
+  const ld: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: p.name,
@@ -167,4 +178,31 @@ export function productLd(p: {
     url,
     offers,
   };
+
+  if (opts?.reviewCount && opts.reviewCount > 0) {
+    ld.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: opts.ratingValue ?? 0,
+      reviewCount: opts.reviewCount,
+      bestRating: 5,
+      worstRating: 1,
+    };
+    if (opts.reviews?.length) {
+      ld.review = opts.reviews.slice(0, 20).map((r) => ({
+        "@type": "Review",
+        author: { "@type": "Person", name: r.authorName },
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: r.rating,
+          bestRating: 5,
+          worstRating: 1,
+        },
+        ...(r.title ? { name: r.title } : {}),
+        reviewBody: r.body,
+        datePublished: new Date(r.createdAt).toISOString().slice(0, 10),
+      }));
+    }
+  }
+
+  return ld;
 }

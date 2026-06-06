@@ -9,6 +9,7 @@ import {
   boolean,
   jsonb,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // Better Auth tables (user, session, account, verification)
@@ -35,6 +36,11 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "paid",
   "failed",
   "cancelled",
+]);
+export const reviewStatusEnum = pgEnum("review_status", [
+  "pending",
+  "published",
+  "rejected",
 ]);
 
 const timestamps = {
@@ -253,6 +259,32 @@ export const addresses = pgTable("addresses", {
 });
 
 export type Address = typeof addresses.$inferSelect;
+
+/* ------------------------------------------------------------------ */
+/*  Product reviews (purchase-gated, admin-moderated)                  */
+/* ------------------------------------------------------------------ */
+export const reviews = pgTable(
+  "reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    orderId: uuid("order_id").references(() => orders.id, {
+      onDelete: "set null",
+    }),
+    authorName: text("author_name").notNull(), // snapshot
+    rating: integer("rating").notNull(), // 1–5
+    title: text("title"),
+    body: text("body").notNull(),
+    status: reviewStatusEnum("status").notNull().default("pending"),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("reviews_user_product_uniq").on(t.userId, t.productId)]
+);
+
+export type Review = typeof reviews.$inferSelect;
 
 /* ------------------------------------------------------------------ */
 /*  Relations                                                         */

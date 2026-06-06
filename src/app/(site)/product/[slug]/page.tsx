@@ -16,6 +16,8 @@ import {
   getRelatedProducts,
   getActiveProductSlugs,
 } from "@/server/db/queries";
+import { getProductReviews, getReviewStats } from "@/server/db/reviews";
+import { ProductReviews } from "@/components/product/ProductReviews";
 
 export const revalidate = 60;
 
@@ -64,13 +66,21 @@ export default async function ProductPage({
 
   const accent = accentClasses[product.accent];
   const images = [product.image, ...product.gallery];
-  const related = await getRelatedProducts(product, 3);
+  const [related, reviews, stats] = await Promise.all([
+    getRelatedProducts(product, 3),
+    getProductReviews(product.id),
+    getReviewStats(product.id),
+  ]);
 
   const priceRange = product.priceMaxZAR
     ? `${formatZAR(product.priceZAR)} – ${formatZAR(product.priceMaxZAR)}`
     : formatZAR(product.priceZAR);
 
-  const jsonLd = productLd(product);
+  const jsonLd = productLd(product, {
+    ratingValue: stats.avg,
+    reviewCount: stats.count,
+    reviews,
+  });
   const breadcrumb = breadcrumbLd([
     { name: "Home", path: "/" },
     { name: "Shop", path: "/shop" },
@@ -179,6 +189,13 @@ export default async function ProductPage({
             />
           </div>
         </div>
+
+        {/* Reviews */}
+        <ProductReviews
+          productId={product.id}
+          stats={stats}
+          reviews={reviews}
+        />
 
         {/* Related */}
         {related.length > 0 && (
