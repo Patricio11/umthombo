@@ -94,6 +94,9 @@ export function CheckoutClient({
     url: string;
     orderNumber: string;
   } | null>(null);
+  // True once an order is handed off, so the "empty selection" screen doesn't
+  // flash while the basket is cleared and we navigate to the receipt.
+  const [placed, setPlaced] = useState(false);
 
   // Any address change/selection invalidates previously fetched rates.
   const invalidateRates = () => {
@@ -193,27 +196,30 @@ export function CheckoutClient({
       setSubmitError(res.error ?? "Something went wrong. Please try again.");
       return;
     }
-    // The order is saved server-side now — empty the basket on every path so
-    // it never lingers in the header after checkout. (Payment status is still
-    // tracked by the webhook, which is authoritative for paid/unpaid.)
-    clearCart();
     if (res.mode === "payment" && res.redirectUrl) {
       if (res.paymentDisplay === "iframe") {
-        // Present the hosted page inline; the webhook is authoritative.
+        // Inline hosted page — keep the basket behind the overlay; it's emptied
+        // when payment completes. The success page, loaded inside the frame,
+        // posts to the parent window (see PaymentFrame + ClearCartOnMount).
         setPayFrame({ url: res.redirectUrl, orderNumber: res.orderNumber! });
         setSubmitting(false);
         return;
       }
+      // Full-page handoff — the basket is emptied when the customer returns to
+      // /checkout/success (ClearCartOnMount), so it survives an abandoned payment.
       window.location.href = res.redirectUrl;
       return;
     }
+    // No online payment step — capture the order, empty the basket, show receipt.
+    setPlaced(true);
+    clearCart();
     if (res.mode === "whatsapp" && res.whatsappUrl) {
       window.open(res.whatsappUrl, "_blank", "noopener,noreferrer");
     }
     router.push(`/checkout/success?order=${res.orderNumber}`);
   };
 
-  if (mounted && items.length === 0) {
+  if (mounted && items.length === 0 && !placed && !payFrame) {
     return (
       <section className="px-5 py-24 text-center sm:px-8">
         <p className="editorial-italic text-2xl text-ink">
@@ -538,6 +544,7 @@ export function CheckoutClient({
         <PaymentFrame
           url={payFrame.url}
           onCompleted={() => {
+            setPlaced(true);
             clearCart();
             router.push(`/checkout/success?order=${payFrame.orderNumber}`);
           }}
@@ -576,7 +583,9 @@ function PaymentFrame({
       origin = null;
     }
     const onMessage = (e: MessageEvent) => {
-      if (origin && e.origin !== origin) return; // verify the sender
+      // Accept the hosted page's origin, or our own (the success page signals
+      // the parent when it loads inside this frame after a completed payment).
+      if (e.origin !== origin && e.origin !== window.location.origin) return;
       const data = (e.data ?? {}) as { type?: string; status?: string };
       if (data.type !== "payment_complete") return;
       if (data.status === "completed") onCompleted();
