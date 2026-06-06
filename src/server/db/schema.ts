@@ -87,6 +87,8 @@ export const products = pgTable("products", {
   lengthCm: real("length_cm"),
   widthCm: real("width_cm"),
   heightCm: real("height_cm"),
+  // When a "new product" announcement was last emailed to customers.
+  notifiedAt: timestamp("notified_at", { withTimezone: true }),
   status: productStatusEnum("status").notNull().default("active"),
   image: text("image").notNull().default(""),
   gallery: jsonb("gallery").$type<string[]>().notNull().default(sql`'[]'::jsonb`),

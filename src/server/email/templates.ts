@@ -70,6 +70,34 @@ export function passwordSetupEmail(name: string, url: string) {
   };
 }
 
+export function newProductEmail(
+  name: string,
+  p: {
+    name: string;
+    tagline: string;
+    priceText: string;
+    imageUrl: string;
+    productUrl: string;
+  }
+) {
+  const image = p.imageUrl
+    ? `<img src="${p.imageUrl}" alt="" width="100%" style="display:block;border-radius:14px;max-width:280px;margin-bottom:18px;"/>`
+    : "";
+  return {
+    subject: `New from Umthombo: ${p.name}`,
+    html: layout(
+      "Something new 🌱",
+      `Hi ${escapeHtml(firstName(name))}, we’ve just added something we think you’ll love.`,
+      `${image}
+       <h2 style="margin:0 0 4px;font-size:22px;font-weight:normal;color:${INK};">${escapeHtml(p.name)}</h2>
+       <p style="margin:0 0 8px;font-size:14px;color:${SOFT};">${escapeHtml(p.tagline)}</p>
+       <p style="margin:0 0 14px;font-size:16px;color:${INK};">${escapeHtml(p.priceText)}</p>
+       ${ctaButton(p.productUrl, "View product")}
+       <p style="margin:20px 0 0;font-size:11px;color:${SOFT};">You’re receiving this because you opted in to product updates. You can turn these off in your account settings.</p>`
+    ),
+  };
+}
+
 export function passwordResetEmail(name: string, url: string) {
   return {
     subject: "Reset your password · Umthombo Creations",
