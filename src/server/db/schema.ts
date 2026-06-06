@@ -287,6 +287,21 @@ export const reviews = pgTable(
 export type Review = typeof reviews.$inferSelect;
 
 /* ------------------------------------------------------------------ */
+/*  FAQ (admin-managed)                                               */
+/* ------------------------------------------------------------------ */
+export const faqs = pgTable("faqs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  category: text("category"), // optional grouping, e.g. "Shipping"
+  sortOrder: integer("sort_order").notNull().default(0),
+  published: boolean("published").notNull().default(true),
+  ...timestamps,
+});
+
+export type Faq = typeof faqs.$inferSelect;
+
+/* ------------------------------------------------------------------ */
 /*  Relations                                                         */
 /* ------------------------------------------------------------------ */
 export const categoriesRelations = relations(categories, ({ many }) => ({

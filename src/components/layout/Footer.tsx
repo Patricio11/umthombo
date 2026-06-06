@@ -49,6 +49,14 @@ export async function Footer() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/faq"
+                className="link-underline text-cream/80 transition-colors hover:text-cream"
+              >
+                FAQ
+              </Link>
+            </li>
           </ul>
         </nav>
 

@@ -12,6 +12,7 @@ import {
   Tags,
   Quote,
   Star,
+  HelpCircle,
   Settings,
   Plug,
   ExternalLink,
@@ -31,6 +32,7 @@ const nav = [
   { href: "/admin/categories", label: "Categories", icon: Tags },
   { href: "/admin/testimonials", label: "Testimonials", icon: Quote },
   { href: "/admin/reviews", label: "Reviews", icon: Star },
+  { href: "/admin/faqs", label: "FAQ", icon: HelpCircle },
   { href: "/admin/integrations", label: "Integrations", icon: Plug },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

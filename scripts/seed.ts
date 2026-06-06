@@ -14,11 +14,13 @@ import {
   products,
   testimonials,
   integrations,
+  faqs,
   user as userTable,
   account as accountTable,
 } from "../src/server/db/schema";
 import { categoryMeta, products as seedProducts } from "../src/data/products";
 import { testimonials as seedTestimonials } from "../src/data/testimonials";
+import { faqSeed } from "../src/data/faq";
 import { INTEGRATION_META, type IntegrationKey } from "../src/lib/integrations";
 import { auth } from "../src/server/auth/auth";
 
@@ -122,6 +124,26 @@ async function seedTestimonialRows() {
   console.log(`  testimonials: ${seedTestimonials.length}`);
 }
 
+async function seedFaqs() {
+  const [{ n }] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(faqs);
+  if (n > 0) {
+    console.log(`  faqs: ${n} (already present, skipped)`);
+    return;
+  }
+  await db.insert(faqs).values(
+    faqSeed.map((f, i) => ({
+      question: f.question,
+      answer: f.answer,
+      category: f.category ?? null,
+      sortOrder: i,
+      published: true,
+    }))
+  );
+  console.log(`  faqs: ${faqSeed.length}`);
+}
+
 async function seedIntegrations() {
   const keys = Object.keys(INTEGRATION_META) as IntegrationKey[];
   let created = 0;
@@ -185,6 +207,7 @@ async function main() {
   const slugToId = await seedCategories();
   await seedProductRows(slugToId);
   await seedTestimonialRows();
+  await seedFaqs();
   await seedIntegrations();
   await seedAdmin();
   console.log("Done ✓");
