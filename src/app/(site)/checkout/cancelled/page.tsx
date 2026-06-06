@@ -4,7 +4,10 @@ import { getOrderConfirmation } from "@/server/db/order-public";
 import { formatZAR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Payment not completed" };
+export const metadata = {
+  title: "Payment not completed",
+  robots: { index: false, follow: false },
+};
 
 export default async function CheckoutCancelledPage({
   searchParams,

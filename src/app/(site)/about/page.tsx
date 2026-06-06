@@ -10,7 +10,14 @@ import { getSiteSettings } from "@/server/db/settings";
 export const metadata: Metadata = {
   title: "Our Story",
   description:
-    "Umthombo means a spring  a source of renewal and flow. The story behind our Cape Town handcrafted candles and skincare, and our commitment to eco-conscious craft.",
+    "Umthombo means a spring — a source of renewal and flow. The story behind our Cape Town handcrafted candles and skincare, and our commitment to eco-conscious craft.",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: "Our Story · Umthombo Creations",
+    description:
+      "The story behind our Cape Town handcrafted candles and skincare, and our eco-conscious craft.",
+    url: "/about",
+  },
 };
 
 export default async function AboutPage() {

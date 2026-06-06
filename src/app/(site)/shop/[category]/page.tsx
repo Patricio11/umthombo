@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ShopExplorer } from "@/components/shop/ShopExplorer";
 import { accentClasses } from "@/lib/accents";
+import { canonical, breadcrumbLd } from "@/lib/seo";
 import {
   getCategories,
   getCategoryBySlug,
@@ -32,7 +33,17 @@ export async function generateMetadata({
   const { category } = await params;
   const cat = await getCategoryBySlug(category);
   if (!cat) return {};
-  return { title: cat.label, description: cat.blurb };
+  return {
+    title: cat.label,
+    description: cat.blurb,
+    ...canonical(`/shop/${cat.slug}`),
+    openGraph: {
+      type: "website",
+      title: `${cat.label} · Umthombo Creations`,
+      description: cat.blurb,
+      url: `/shop/${cat.slug}`,
+    },
+  };
 }
 
 export default async function CategoryPage({
@@ -50,8 +61,18 @@ export default async function CategoryPage({
   ]);
   const accent = accentClasses[cat.accent];
 
+  const breadcrumb = breadcrumbLd([
+    { name: "Home", path: "/" },
+    { name: "Shop", path: "/shop" },
+    { name: cat.label, path: `/shop/${cat.slug}` },
+  ]);
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+      />
       <PageHeader
         eyebrow={cat.eyebrow}
         title={titles[cat.slug] ?? cat.blurb}

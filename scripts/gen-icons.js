@@ -11,6 +11,8 @@ const OLIVE = "#4b5a30";
 const CREAM = "#faf6ed";
 const INK = "#2a2420";
 const INKSOFT = "#5a5048";
+const WHITE = "#ffffff";
+const FONT = "Helvetica, Arial, sans-serif";
 
 // The brand mark (serif "U" chalice + flourish + droplet) in a 0 0 64 72 box.
 const mark = (fg) => `
@@ -49,8 +51,40 @@ const og = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" vi
   <text x="100" y="514" font-family="Helvetica, Arial, sans-serif" font-size="28" font-weight="500" fill="${OLIVE}">Cape Town &#183; Candles &#183; Body &#183; Home &#183; Hampers</text>
 </svg>`;
 
+// ── Logo lockups & wordmark (mark + "Umthombo Creations") ──────────────
+// Horizontal lockup: mark on the left, two-line wordmark on the right.
+const lockupH = (markC, textC) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 472 104" width="472" height="104">
+  <g transform="translate(6,14) scale(1.05)">${mark(markC)}</g>
+  <text x="104" y="58" font-family="${FONT}" font-size="50" font-weight="700" letter-spacing="-1.5" fill="${textC}">Umthombo</text>
+  <text x="106" y="90" font-family="${FONT}" font-size="24" font-weight="500" letter-spacing="6" fill="${textC}">CREATIONS</text>
+</svg>`;
+
+// Stacked lockup: mark centred above the two-line wordmark.
+const lockupV = (markC, textC) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 250" width="340" height="250">
+  <g transform="translate(138,6)">${mark(markC)}</g>
+  <text x="170" y="172" text-anchor="middle" font-family="${FONT}" font-size="44" font-weight="700" letter-spacing="-1" fill="${textC}">Umthombo</text>
+  <text x="172" y="204" text-anchor="middle" font-family="${FONT}" font-size="21" font-weight="500" letter-spacing="6" fill="${textC}">CREATIONS</text>
+</svg>`;
+
+// Wordmark only (no mark).
+const wordmark = (textC) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 382 108" width="382" height="108">
+  <text x="2" y="58" font-family="${FONT}" font-size="54" font-weight="700" letter-spacing="-1.5" fill="${textC}">Umthombo</text>
+  <text x="4" y="92" font-family="${FONT}" font-size="25" font-weight="500" letter-spacing="6.5" fill="${textC}">CREATIONS</text>
+</svg>`;
+
+// Circular badge (for stamps / social avatars that crop to a circle).
+const badge = (bg, fg) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <circle cx="256" cy="256" r="256" fill="${bg}"/>
+  <g transform="translate(120,103) scale(4.25)">${mark(fg)}</g>
+</svg>`;
+
 const appDir = path.join(__dirname, "..", "src", "app");
 const pubDir = path.join(__dirname, "..", "public");
+const brandDir = path.join(pubDir, "brand");
 
 async function main() {
   const pngToIco = (await import("png-to-ico")).default;
@@ -77,7 +111,49 @@ async function main() {
   await sharp(Buffer.from(og)).png().toFile(path.join(appDir, "opengraph-image.png"));
   await sharp(Buffer.from(og)).png().toFile(path.join(appDir, "twitter-image.png"));
 
-  console.log("Generated icon set ✓");
+  // ── Full brand-asset suite → public/brand/ ──────────────────────────
+  fs.mkdirSync(brandDir, { recursive: true });
+  const brand = {
+    // standalone marks (transparent)
+    "mark-olive.svg": markOnly(OLIVE),
+    "mark-cream.svg": markOnly(CREAM),
+    "mark-ink.svg": markOnly(INK),
+    "mark-white.svg": markOnly(WHITE),
+    // horizontal lockups
+    "lockup-horizontal.svg": lockupH(OLIVE, INK), // light backgrounds
+    "lockup-horizontal-mono-olive.svg": lockupH(OLIVE, OLIVE),
+    "lockup-horizontal-cream.svg": lockupH(CREAM, CREAM), // dark/olive backgrounds
+    // stacked lockups
+    "lockup-stacked.svg": lockupV(OLIVE, INK),
+    "lockup-stacked-cream.svg": lockupV(CREAM, CREAM),
+    // wordmarks
+    "wordmark-ink.svg": wordmark(INK),
+    "wordmark-olive.svg": wordmark(OLIVE),
+    // circular badges
+    "badge-olive.svg": badge(OLIVE, CREAM),
+    "badge-cream.svg": badge(CREAM, OLIVE),
+  };
+  for (const [name, svg] of Object.entries(brand)) {
+    fs.writeFileSync(path.join(brandDir, name), svg);
+  }
+
+  // Raster exports for places that don't take SVG.
+  // Social profile avatar (olive square, cream mark — platforms crop to circle).
+  await sharp(Buffer.from(iconSquare(false)))
+    .resize(1080, 1080)
+    .png()
+    .toFile(path.join(brandDir, "avatar-1080.png"));
+  // Horizontal lockup PNG on transparent (email signatures, decks).
+  await sharp(Buffer.from(lockupH(OLIVE, INK)))
+    .resize(944)
+    .png()
+    .toFile(path.join(brandDir, "lockup-horizontal.png"));
+  await sharp(Buffer.from(lockupH(CREAM, CREAM)))
+    .resize(944)
+    .png()
+    .toFile(path.join(brandDir, "lockup-horizontal-cream.png"));
+
+  console.log("Generated icon + brand-asset set ✓");
 }
 
 main().catch((e) => {

@@ -1,34 +1,50 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/data/site";
-import { getCategories, getActiveProductSlugs } from "@/server/db/queries";
+import {
+  getProductsForSitemap,
+  getCategoriesForSitemap,
+} from "@/server/db/queries";
 
 export const revalidate = 3600;
 
+const abs = (path: string) => `${site.url}${path}`;
+const absImg = (img: string | null) =>
+  !img ? undefined : img.startsWith("http") ? img : `${site.url}${img}`;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [categories, slugs] = await Promise.all([
-    getCategories(),
-    getActiveProductSlugs(),
+  const [products, categories] = await Promise.all([
+    getProductsForSitemap(),
+    getCategoriesForSitemap(),
   ]);
 
-  const staticRoutes = ["", "/shop", "/hampers", "/about", "/contact", "/custom"].map(
-    (path) => ({
-      url: `${site.url}${path}`,
-      changeFrequency: "monthly" as const,
-      priority: path === "" ? 1 : 0.7,
-    })
-  );
+  const now = new Date();
 
-  const categoryRoutes = categories.map((c) => ({
-    url: `${site.url}/shop/${c.slug}`,
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: abs(""), changeFrequency: "weekly", priority: 1, lastModified: now },
+    { url: abs("/shop"), changeFrequency: "weekly", priority: 0.9, lastModified: now },
+    { url: abs("/hampers"), changeFrequency: "monthly", priority: 0.8, lastModified: now },
+    { url: abs("/custom"), changeFrequency: "monthly", priority: 0.7, lastModified: now },
+    { url: abs("/about"), changeFrequency: "yearly", priority: 0.5, lastModified: now },
+    { url: abs("/contact"), changeFrequency: "yearly", priority: 0.5, lastModified: now },
+  ];
+
+  const categoryRoutes: MetadataRoute.Sitemap = categories.map((c) => ({
+    url: abs(`/shop/${c.slug}`),
+    changeFrequency: "weekly",
+    priority: 0.8,
+    lastModified: c.updatedAt ?? now,
   }));
 
-  const productRoutes = slugs.map((slug) => ({
-    url: `${site.url}/product/${slug}`,
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
+  const productRoutes: MetadataRoute.Sitemap = products.map((p) => {
+    const img = absImg(p.image);
+    return {
+      url: abs(`/product/${p.slug}`),
+      changeFrequency: "weekly",
+      priority: 0.7,
+      lastModified: p.updatedAt ?? now,
+      ...(img ? { images: [img] } : {}),
+    };
+  });
 
   return [...staticRoutes, ...categoryRoutes, ...productRoutes];
 }

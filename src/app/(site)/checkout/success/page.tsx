@@ -6,7 +6,10 @@ import { ClearCartOnMount } from "@/components/checkout/ClearCartOnMount";
 import { formatZAR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Order confirmed" };
+export const metadata = {
+  title: "Order confirmed",
+  robots: { index: false, follow: false },
+};
 
 export default async function CheckoutSuccessPage({
   searchParams,

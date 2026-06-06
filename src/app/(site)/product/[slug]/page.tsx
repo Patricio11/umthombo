@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { formatZAR } from "@/lib/format";
 import { site } from "@/data/site";
+import { canonical, productLd, breadcrumbLd } from "@/lib/seo";
 import { accentClasses } from "@/lib/accents";
 import { Gallery } from "@/components/product/Gallery";
 import { AddToOrder } from "@/components/product/AddToOrder";
@@ -30,13 +31,23 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
+  const desc = `${product.tagline} — ${product.description}`.slice(0, 160).trim();
   return {
     title: product.name,
-    description: `${product.tagline} ${product.description}`,
+    description: desc,
+    ...canonical(`/product/${product.slug}`),
     openGraph: {
+      type: "website",
       title: `${product.name} · ${site.name}`,
       description: product.tagline,
-      images: [{ url: product.image }],
+      url: `${site.url}/product/${product.slug}`,
+      images: [{ url: product.image, alt: product.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} · ${site.name}`,
+      description: product.tagline,
+      images: [product.image],
     },
   };
 }
@@ -58,30 +69,23 @@ export default async function ProductPage({
     ? `${formatZAR(product.priceZAR)} – ${formatZAR(product.priceMaxZAR)}`
     : formatZAR(product.priceZAR);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: product.description,
-    image: product.image.startsWith("http")
-      ? product.image
-      : `${site.url}${product.image}`,
-    category: product.categoryLabel,
-    brand: { "@type": "Brand", name: site.name },
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "ZAR",
-      price: product.priceZAR,
-      availability: "https://schema.org/InStock",
-      seller: { "@type": "Organization", name: site.name },
-    },
-  };
+  const jsonLd = productLd(product);
+  const breadcrumb = breadcrumbLd([
+    { name: "Home", path: "/" },
+    { name: "Shop", path: "/shop" },
+    { name: product.categoryLabel, path: `/shop/${product.category}` },
+    { name: product.name, path: `/product/${product.slug}` },
+  ]);
 
   return (
     <article className="px-5 pb-8 pt-28 sm:px-8 sm:pt-36">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
       />
 
       <div className="mx-auto max-w-7xl">

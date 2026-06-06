@@ -13,7 +13,14 @@ import { getSiteSettings } from "@/server/db/settings";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Talk to Umthombo Creations  WhatsApp, Instagram, Facebook, and collection in Observatory, Cape Town. Nationwide delivery available.",
+    "Talk to Umthombo Creations — WhatsApp, Instagram, Facebook, and collection in Observatory, Cape Town. Nationwide delivery available.",
+  alternates: { canonical: "/contact" },
+  openGraph: {
+    title: "Contact · Umthombo Creations",
+    description:
+      "WhatsApp us, find us on social, or collect in Observatory, Cape Town. Nationwide delivery available.",
+    url: "/contact",
+  },
 };
 
 export default async function ContactPage() {

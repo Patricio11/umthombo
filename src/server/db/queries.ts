@@ -140,6 +140,34 @@ export async function getActiveProductSlugs(): Promise<string[]> {
   return rows.map((r) => r.slug);
 }
 
+export interface SitemapEntry {
+  slug: string;
+  image: string | null;
+  updatedAt: Date;
+}
+
+/** Active products with their image + last-modified, for the sitemap. */
+export async function getProductsForSitemap(): Promise<SitemapEntry[]> {
+  return db
+    .select({
+      slug: products.slug,
+      image: products.image,
+      updatedAt: products.updatedAt,
+    })
+    .from(products)
+    .where(eq(products.status, "active"));
+}
+
+/** Categories with last-modified, for the sitemap. */
+export async function getCategoriesForSitemap(): Promise<
+  { slug: string; updatedAt: Date }[]
+> {
+  return db
+    .select({ slug: categories.slug, updatedAt: categories.updatedAt })
+    .from(categories)
+    .orderBy(asc(categories.sortOrder));
+}
+
 export async function getRelatedProducts(
   product: Pick<ProductView, "id" | "category">,
   limit = 3
