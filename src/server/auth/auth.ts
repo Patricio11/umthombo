@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { captcha } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/server/db";
 import {
@@ -82,8 +83,22 @@ export const auth = betterAuth({
     // a production build (Secure cookies aren't sent over http).
     useSecureCookies: (process.env.BETTER_AUTH_URL ?? "").startsWith("https"),
   },
-  // Lets auth.api.* calls set cookies from Next.js server actions / handlers.
-  plugins: [nextCookies()],
+  plugins: [
+    // Cloudflare Turnstile on /sign-in/email, /sign-up/email and
+    // /request-password-reset — only enforced when a secret key is set, so
+    // local/dev (and prod before keys are added) keep working unguarded.
+    ...(process.env.TURNSTILE_SECRET_KEY
+      ? [
+          captcha({
+            provider: "cloudflare-turnstile",
+            secretKey: process.env.TURNSTILE_SECRET_KEY,
+          }),
+        ]
+      : []),
+    // nextCookies() must stay last so auth.api.* can set cookies from
+    // Next.js server actions / handlers.
+    nextCookies(),
+  ],
 });
 
 export type Session = typeof auth.$Infer.Session;

@@ -1,22 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { Loader2, MailCheck } from "lucide-react";
 import { requestPasswordReset } from "@/lib/auth-client";
 import { AuthShell, authInputCls } from "@/components/auth/AuthShell";
+import { Turnstile, type TurnstileHandle } from "@/components/auth/Turnstile";
+import { Honeypot } from "@/components/ui/Honeypot";
+import { isHoneypotFilled } from "@/lib/honeypot";
 import { Button } from "@/components/ui/Button";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [hp, setHp] = useState("");
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileHandle>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isHoneypotFilled(hp)) return; // silent drop for bots
     setLoading(true);
-    await requestPasswordReset({ email: email.trim(), redirectTo: "/set-password" });
+    await requestPasswordReset(
+      { email: email.trim(), redirectTo: "/set-password" },
+      captcha ? { headers: { "x-captcha-response": captcha } } : undefined
+    );
     setLoading(false);
+    captchaRef.current?.reset();
+    setCaptcha(null);
     setSent(true); // always show success (no email enumeration)
   };
 
@@ -53,7 +65,8 @@ export default function ForgotPasswordPage() {
         </Link>
       }
     >
-      <form onSubmit={onSubmit} className="space-y-3">
+      <form onSubmit={onSubmit} className="relative space-y-3">
+        <Honeypot value={hp} onChange={setHp} />
         <input
           type="email"
           value={email}
@@ -62,6 +75,11 @@ export default function ForgotPasswordPage() {
           autoComplete="email"
           required
           className={authInputCls}
+        />
+        <Turnstile
+          ref={captchaRef}
+          onVerify={setCaptcha}
+          onExpire={() => setCaptcha(null)}
         />
         <Button type="submit" size="lg" className="w-full" disabled={loading}>
           {loading && <Loader2 size={16} className="animate-spin" />}

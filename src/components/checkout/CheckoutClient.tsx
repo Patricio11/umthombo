@@ -14,6 +14,7 @@ import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { Honeypot } from "@/components/ui/Honeypot";
 
 type Method = "delivery" | "collection";
 
@@ -82,6 +83,7 @@ export function CheckoutClient({
   );
   const [saveAddress, setSaveAddress] = useState(false);
   const [createAccount, setCreateAccount] = useState(false);
+  const [hp, setHp] = useState(""); // honeypot
 
   const [rates, setRates] = useState<RateOption[] | null>(null);
   const [ratesLoading, setRatesLoading] = useState(false);
@@ -184,6 +186,7 @@ export function CheckoutClient({
       ownContainer,
       createAccount: !account && createAccount,
       saveAddress: !!account && addrMode === "new" && saveAddress,
+      hp,
       items: items.map((i) => ({
         slug: i.slug,
         variant: i.variant ?? null,
@@ -239,7 +242,8 @@ export function CheckoutClient({
   }
 
   return (
-    <section className="px-5 py-12 sm:px-8 lg:py-16">
+    <section className="relative px-5 py-12 sm:px-8 lg:py-16">
+      <Honeypot value={hp} onChange={setHp} />
       <div className="mx-auto max-w-6xl">
         <header className="mb-10">
           <p className="eyebrow text-olive">Almost yours</p>

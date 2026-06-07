@@ -1,12 +1,15 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { signIn, sendVerificationEmail } from "@/lib/auth-client";
 import { AuthShell, authInputCls } from "@/components/auth/AuthShell";
 import { PasswordInput } from "@/components/auth/PasswordInput";
+import { Turnstile, type TurnstileHandle } from "@/components/auth/Turnstile";
+import { Honeypot } from "@/components/ui/Honeypot";
+import { isHoneypotFilled } from "@/lib/honeypot";
 import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
@@ -28,15 +31,25 @@ function LoginForm() {
   const [needVerify, setNeedVerify] = useState(false);
   const [resent, setResent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hp, setHp] = useState("");
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileHandle>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isHoneypotFilled(hp)) return; // silent drop for bots
     setError(null);
     setNeedVerify(false);
     setLoading(true);
-    const { error } = await signIn.email({ email, password });
+    const { error } = await signIn.email(
+      { email, password },
+      captcha ? { headers: { "x-captcha-response": captcha } } : undefined
+    );
     setLoading(false);
     if (error) {
+      // Used tokens are single-use — get a fresh one for the next attempt.
+      captchaRef.current?.reset();
+      setCaptcha(null);
       if (error.status === 403 || /verif/i.test(error.message || "")) {
         setNeedVerify(true);
         return;
@@ -66,7 +79,8 @@ function LoginForm() {
         </>
       }
     >
-      <form onSubmit={onSubmit} className="space-y-3">
+      <form onSubmit={onSubmit} className="relative space-y-3">
+        <Honeypot value={hp} onChange={setHp} />
         <input
           type="email"
           value={email}
@@ -107,6 +121,12 @@ function LoginForm() {
             )}
           </div>
         )}
+
+        <Turnstile
+          ref={captchaRef}
+          onVerify={setCaptcha}
+          onExpire={() => setCaptcha(null)}
+        />
 
         <Button type="submit" size="lg" className="w-full" disabled={loading}>
           {loading && <Loader2 size={16} className="animate-spin" />}

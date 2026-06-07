@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { Loader2, MailCheck } from "lucide-react";
 import { signUp } from "@/lib/auth-client";
 import { passwordOk } from "@/lib/password";
 import { AuthShell, authInputCls } from "@/components/auth/AuthShell";
 import { PasswordInput } from "@/components/auth/PasswordInput";
+import { Turnstile, type TurnstileHandle } from "@/components/auth/Turnstile";
+import { Honeypot } from "@/components/ui/Honeypot";
+import { isHoneypotFilled } from "@/lib/honeypot";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 
@@ -19,25 +22,34 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [hp, setHp] = useState("");
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileHandle>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isHoneypotFilled(hp)) return; // silent drop for bots
     setError(null);
     if (!passwordOk(password)) {
       setError("Use at least 8 characters for your password.");
       return;
     }
     setLoading(true);
-    const { error } = await signUp.email({
-      name: name.trim(),
-      email: email.trim(),
-      password,
-      phone: phone.trim() || undefined,
-      marketingOptIn,
-      callbackURL: "/account",
-    } as Parameters<typeof signUp.email>[0]);
+    const { error } = await signUp.email(
+      {
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        phone: phone.trim() || undefined,
+        marketingOptIn,
+        callbackURL: "/account",
+      } as Parameters<typeof signUp.email>[0],
+      captcha ? { headers: { "x-captcha-response": captcha } } : undefined
+    );
     setLoading(false);
     if (error) {
+      captchaRef.current?.reset();
+      setCaptcha(null);
       setError(error.message || "We couldn’t create your account.");
       return;
     }
@@ -80,7 +92,8 @@ export default function SignupPage() {
         </>
       }
     >
-      <form onSubmit={onSubmit} className="space-y-3">
+      <form onSubmit={onSubmit} className="relative space-y-3">
+        <Honeypot value={hp} onChange={setHp} />
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -127,6 +140,12 @@ export default function SignupPage() {
             {error}
           </p>
         )}
+
+        <Turnstile
+          ref={captchaRef}
+          onVerify={setCaptcha}
+          onExpire={() => setCaptcha(null)}
+        />
 
         <Button type="submit" size="lg" className="w-full" disabled={loading}>
           {loading && <Loader2 size={16} className="animate-spin" />}

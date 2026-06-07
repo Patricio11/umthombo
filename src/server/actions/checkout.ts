@@ -25,6 +25,7 @@ import {
   type CreatePendingOrderInput,
 } from "@/lib/checkout-schema";
 import { formatZAR } from "@/lib/format";
+import { isHoneypotFilled } from "@/lib/honeypot";
 import { site } from "@/data/site";
 import type { DeliveryAddress } from "@/lib/shipping";
 
@@ -240,6 +241,10 @@ const appUrl = () =>
 export async function placeOrder(
   input: CreatePendingOrderInput
 ): Promise<PlaceOrderResult> {
+  // Bot trap: the hidden honeypot field must stay empty for real customers.
+  if (isHoneypotFilled(input.hp)) {
+    return { ok: false, error: "Something went wrong. Please try again." };
+  }
   const created = await createPendingOrder(input);
   if (!created.ok || !created.orderId || !created.orderNumber) {
     return { ok: false, error: created.error };
