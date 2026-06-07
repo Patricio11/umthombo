@@ -3,14 +3,18 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, Star, Search, Package } from "lucide-react";
+import { Pencil, Trash2, Star, Search, Package, Eye, EyeOff } from "lucide-react";
 import type { AdminProductRow } from "@/server/db/admin-queries";
 import { DataTable, type Column } from "@/components/admin/DataTable";
 import { EmptyState, StatusBadge, inputClass } from "@/components/admin/primitives";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/admin/Toast";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
-import { deleteProduct, toggleFeatured } from "@/server/actions/products";
+import {
+  deleteProduct,
+  toggleFeatured,
+  setProductStatus,
+} from "@/server/actions/products";
 import { formatZAR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +42,20 @@ export function ProductsTable({ products }: { products: AdminProductRow[] }) {
   const onFeature = (p: AdminProductRow) =>
     startTransition(async () => {
       await toggleFeatured(p.id, !p.featured);
+      router.refresh();
+    });
+
+  const onToggleVisible = (p: AdminProductRow) =>
+    startTransition(async () => {
+      const next = p.status === "active" ? "draft" : "active";
+      const res = await setProductStatus(p.id, next);
+      if (res.ok) {
+        toast.success(
+          next === "active" ? `“${p.name}” is now visible.` : `“${p.name}” is hidden.`
+        );
+      } else {
+        toast.error(res.error ?? "Could not update.");
+      }
       router.refresh();
     });
 
@@ -102,6 +120,22 @@ export function ProductsTable({ products }: { products: AdminProductRow[] }) {
       align: "right",
       cell: (p) => (
         <div className="flex items-center justify-end gap-1">
+          <button
+            type="button"
+            aria-label={p.status === "active" ? `Hide ${p.name}` : `Show ${p.name}`}
+            title={
+              p.status === "active"
+                ? "Visible in shop — click to hide"
+                : "Hidden — click to show"
+            }
+            onClick={() => onToggleVisible(p)}
+            className={cn(
+              "rounded-lg p-2 transition-colors hover:bg-cream-2",
+              p.status === "active" ? "text-olive" : "text-ink-soft/50"
+            )}
+          >
+            {p.status === "active" ? <Eye size={16} /> : <EyeOff size={16} />}
+          </button>
           <button
             type="button"
             aria-label={p.featured ? "Unfeature" : "Feature"}
