@@ -5,7 +5,7 @@ import { bricolage, hanken } from "@/lib/fonts";
 import { site } from "@/data/site";
 
 const DESCRIPTION =
-  "Handcrafted candles, soaps, body care and diffusers from Cape Town. Eco-conscious, fully customisable, made with love and inspired by nature.";
+  "Handcrafted candles, soaps, body care and diffusers — made in Cape Town, delivered across South Africa. Eco-conscious, fully customisable, made with love and inspired by nature.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -21,15 +21,19 @@ export const metadata: Metadata = {
   category: "shopping",
   keywords: [
     "handcrafted candles",
-    "Cape Town candles",
-    "soy candles",
+    "candles South Africa",
+    "soy candles South Africa",
+    "online candle shop South Africa",
+    "handmade soap South Africa",
     "natural soap",
     "body care",
     "reed diffuser",
     "body balm",
-    "gift hampers",
+    "gift hampers South Africa",
     "eco-conscious",
-    "handmade South Africa",
+    "handmade gifts South Africa",
+    "nationwide delivery South Africa",
+    "Cape Town candles",
     "Observatory Cape Town",
     "Umthombo Creations",
   ],
@@ -40,7 +44,7 @@ export const metadata: Metadata = {
     url: site.url,
     title: `${site.name} - ${site.tagline}`,
     description:
-      "Handcrafted candles, soaps, body care and diffusers from Cape Town. Made with love and inspired by nature.",
+      "Handcrafted candles, soaps, body care and diffusers — made in Cape Town, delivered across South Africa. Made with love and inspired by nature.",
     siteName: site.name,
   },
   twitter: {

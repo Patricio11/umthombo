@@ -8,12 +8,12 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Shop",
   description:
-    "Browse all Umthombo Creations handcrafted candles, soaps, body care, diffusers and hampers. Filter by category and find something made with care.",
+    "Browse all Umthombo Creations handcrafted candles, soaps, body care, diffusers and hampers — made in Cape Town, delivered across South Africa. Filter by category and find something made with care.",
   alternates: { canonical: "/shop" },
   openGraph: {
     title: "Shop · Umthombo Creations",
     description:
-      "Handcrafted candles, soaps, body care, diffusers and hampers - made with care in Cape Town.",
+      "Handcrafted candles, soaps, body care, diffusers and hampers - made in Cape Town, delivered across South Africa.",
     url: "/shop",
   },
 };

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Gift Hampers · Umthombo Creations",
     description:
-      "Curated gift hampers of handcrafted candles and care - assembled with love in Cape Town.",
+      "Curated gift hampers of handcrafted candles and care - assembled with love in Cape Town, delivered across South Africa.",
     url: "/hampers",
   },
 };

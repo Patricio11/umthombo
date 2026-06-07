@@ -155,6 +155,16 @@ export function productLd(
       ? "https://schema.org/InStock"
       : "https://schema.org/OutOfStock";
 
+  // Ships anywhere in South Africa (couriered nationwide; collection in
+  // Cape Town). Documents national availability for product rich results.
+  const shippingDetails = {
+    "@type": "OfferShippingDetails",
+    shippingDestination: {
+      "@type": "DefinedRegion",
+      addressCountry: "ZA",
+    },
+  };
+
   const offers =
     p.priceMaxZAR && p.priceMaxZAR > p.priceZAR
       ? {
@@ -167,6 +177,7 @@ export function productLd(
           url,
           priceValidUntil,
           seller: { "@id": ORG_ID },
+          shippingDetails,
         }
       : {
           "@type": "Offer",
@@ -177,6 +188,7 @@ export function productLd(
           url,
           priceValidUntil,
           seller: { "@id": ORG_ID },
+          shippingDetails,
         };
 
   const ld: Record<string, unknown> = {
