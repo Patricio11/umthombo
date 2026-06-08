@@ -4,6 +4,7 @@ import { orders, paymentEvents } from "@/server/db/schema";
 import { getYocoConfig } from "@/server/db/integrations";
 import { verifyYocoWebhook } from "@/server/payments/yoco";
 import { handleOrderPaid } from "@/server/orders/fulfilment";
+import { handleCustomPaymentPaid } from "@/server/custom-requests/fulfilment";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,32 @@ export async function POST(req: Request) {
     req.headers.get("webhook-id") ||
     event?.id ||
     `${type ?? "event"}:${paymentId ?? orderNumber ?? raw.length}`;
+
+  // Custom-request payment (deposit/balance) — separate from order fulfilment.
+  if (meta.customRequestId) {
+    const inserted = await db
+      .insert(paymentEvents)
+      .values({
+        provider: "yoco",
+        eventId: String(eventId),
+        orderId: null,
+        type: type ?? null,
+        status: status ?? null,
+        raw: event,
+      })
+      .onConflictDoNothing({ target: paymentEvents.eventId })
+      .returning({ id: paymentEvents.id });
+    if (inserted.length === 0) {
+      return Response.json({ ok: true, duplicate: true });
+    }
+    if (type === "payment.succeeded" || status === "succeeded") {
+      await handleCustomPaymentPaid(
+        meta.customRequestId,
+        meta.kind === "balance" ? "balance" : "deposit"
+      );
+    }
+    return Response.json({ ok: true, custom: true });
+  }
 
   // Resolve the order (by our orderNumber, else metadata.orderId).
   let orderRow: typeof orders.$inferSelect | undefined;

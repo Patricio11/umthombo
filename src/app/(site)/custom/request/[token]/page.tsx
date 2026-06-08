@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getCustomRequestByToken } from "@/server/db/queries";
 import { StatusPill } from "@/components/admin/custom-requests/StatusPill";
+import { PayButton } from "@/components/custom/PayButton";
 import { formatZAR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -26,10 +27,13 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 
 export default async function CustomRequestStatusPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ paid?: string; failed?: string }>;
 }) {
   const { token } = await params;
+  const { paid, failed } = await searchParams;
   const r = await getCustomRequestByToken(token);
   if (!r) notFound();
 
@@ -37,6 +41,10 @@ export default async function CustomRequestStatusPage({
     r.quotedPriceZAR != null && r.depositZAR != null
       ? Math.max(0, r.quotedPriceZAR - r.depositZAR)
       : null;
+
+  const canPayDeposit =
+    r.status === "quoted" && r.depositRequired && !r.depositPaidAt;
+  const canPayBalance = r.status === "ready" && !r.balancePaidAt;
 
   return (
     <section className="px-5 py-16 sm:px-8 lg:py-24">
@@ -50,6 +58,18 @@ export default async function CustomRequestStatusPage({
           {r.requestNumber}
           {r.categoryLabel ? ` · ${r.categoryLabel}` : ""}
         </p>
+
+        {paid && (
+          <p className="mt-6 rounded-xl bg-olive/12 px-4 py-3 text-sm text-olive">
+            Payment received — thank you! We’re confirming it now; this page
+            updates in a moment.
+          </p>
+        )}
+        {failed && (
+          <p className="mt-6 rounded-xl bg-clay/10 px-4 py-3 text-sm text-clay">
+            That payment wasn’t completed. You can try again below.
+          </p>
+        )}
 
         {/* Quote */}
         {r.quotedPriceZAR != null && (
@@ -73,10 +93,23 @@ export default async function CustomRequestStatusPage({
               )}
               <Row label="Estimated time" value={r.etaText || fmtDate(r.etaDate)} />
             </div>
-            {r.depositRequired && !r.depositPaidAt && (
-              <p className="mt-4 rounded-xl bg-cream-2 px-4 py-3 text-sm text-ink-soft">
-                We’ll be in touch to take your deposit and get started. The deposit
-                is always deducted from your total.
+            {canPayDeposit && r.depositZAR != null && (
+              <PayButton
+                token={token}
+                kind="deposit"
+                label={`Pay deposit · ${formatZAR(r.depositZAR)}`}
+              />
+            )}
+            {canPayBalance && balance != null && (
+              <PayButton
+                token={token}
+                kind="balance"
+                label={`Pay balance · ${formatZAR(balance)}`}
+              />
+            )}
+            {r.balancePaidAt && (
+              <p className="mt-4 rounded-xl bg-olive/12 px-4 py-3 text-sm text-olive">
+                Paid in full — thank you. ✓
               </p>
             )}
           </div>

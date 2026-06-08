@@ -4,6 +4,7 @@ import { orders, paymentEvents } from "@/server/db/schema";
 import { getYetopayConfig } from "@/server/db/integrations";
 import { verifyWebhookSignature } from "@/server/payments/yetopay";
 import { handleOrderPaid } from "@/server/orders/fulfilment";
+import { handleCustomPaymentPaid } from "@/server/custom-requests/fulfilment";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +48,40 @@ export async function POST(req: Request) {
   const status: string | undefined = data?.status;
   const reference: string | undefined = data?.reference;
   const metadataOrderId: string | undefined = data?.metadata?.orderId;
+  const customRequestId: string | undefined = data?.metadata?.customRequestId;
+  const customKind: string | undefined = data?.metadata?.kind;
   const transactionId: string | undefined = data?.id;
 
   const eventId =
     req.headers.get("x-webhook-id") ||
     payload?.id ||
     `${type ?? "event"}:${transactionId ?? reference ?? raw.length}`;
+
+  // Custom-request payment (deposit/balance) — separate from order fulfilment.
+  if (customRequestId) {
+    const inserted = await db
+      .insert(paymentEvents)
+      .values({
+        provider: "yetopay",
+        eventId: String(eventId),
+        orderId: null,
+        type: type ?? null,
+        status: status ?? null,
+        raw: payload,
+      })
+      .onConflictDoNothing({ target: paymentEvents.eventId })
+      .returning({ id: paymentEvents.id });
+    if (inserted.length === 0) {
+      return Response.json({ ok: true, duplicate: true });
+    }
+    if (type === "payment.completed" || status === "completed") {
+      await handleCustomPaymentPaid(
+        customRequestId,
+        customKind === "balance" ? "balance" : "deposit"
+      );
+    }
+    return Response.json({ ok: true, custom: true });
+  }
 
   // Resolve the order (by our reference = orderNumber, else metadata.orderId).
   let orderRow: typeof orders.$inferSelect | undefined;

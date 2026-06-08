@@ -255,6 +255,26 @@ export function customRequestAdminEmail(d: {
   };
 }
 
+/** Admin alert when a deposit or balance is paid. */
+export function customRequestPaidAdminEmail(d: {
+  requestNumber: string;
+  customerName: string;
+  kind: "Deposit" | "Balance";
+  amountZAR: number;
+  adminUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `${d.kind} paid — ${d.requestNumber}`,
+    html: layout(
+      `${d.kind} paid 🎉`,
+      `${escapeHtml(d.customerName)} has paid the ${d.kind.toLowerCase()} for ${escapeHtml(d.requestNumber)}.`,
+      `<p style="margin:0 0 14px;font-size:15px;color:${INK};">Amount: <strong>${formatZAR(d.amountZAR)}</strong></p>
+       ${d.kind === "Deposit" ? `<p style="margin:0 0 14px;font-size:14px;color:${SOFT};">Time to start building.</p>` : ""}
+       ${ctaButton(d.adminUrl, "Open request")}`
+    ),
+  };
+}
+
 function whatsappLink(href: string | null | undefined): string {
   if (!href) return "";
   return `<p style="margin:18px 0 0;font-size:13px;color:${SOFT};">Questions? <a href="${href}" style="color:${OLIVE};">Chat with us on WhatsApp</a>.</p>`;

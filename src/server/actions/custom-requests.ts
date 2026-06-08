@@ -23,6 +23,7 @@ import {
 } from "@/server/email/templates";
 import { getSiteSettings } from "@/server/db/settings";
 import { uploadReferenceImage as uploadRefImage } from "@/server/storage/supabase";
+import { startGatewayPayment } from "@/server/payments/gateway";
 import { site } from "@/data/site";
 
 const appUrl = () =>
@@ -163,6 +164,72 @@ export async function uploadReferenceImage(
 }
 
 /* ------------------------------------------------------------------ */
+/*  Payments (public — capability is the status token)                 */
+/* ------------------------------------------------------------------ */
+export interface StartPaymentActionResult {
+  ok: boolean;
+  error?: string;
+  redirectUrl?: string;
+}
+
+/** Start the deposit or balance payment from the customer's status page. */
+export async function startCustomPayment(
+  token: string,
+  kind: "deposit" | "balance"
+): Promise<StartPaymentActionResult> {
+  const [row] = await db
+    .select()
+    .from(customRequests)
+    .where(eq(customRequests.statusToken, token))
+    .limit(1);
+  if (!row) return { ok: false, error: "Request not found." };
+  if (row.quotedPriceZAR == null) return { ok: false, error: "No quote yet." };
+
+  let amount: number;
+  let reference: string;
+  if (kind === "deposit") {
+    if (!row.depositRequired || !row.depositZAR) {
+      return { ok: false, error: "No deposit is required." };
+    }
+    if (row.depositPaidAt) return { ok: false, error: "Your deposit is already paid." };
+    amount = row.depositZAR;
+    reference = `${row.requestNumber}-DEP-${row.depositZAR}`;
+  } else {
+    if (row.balancePaidAt) return { ok: false, error: "Your balance is already paid." };
+    if (row.status !== "ready" && row.status !== "completed") {
+      return { ok: false, error: "Your balance isn’t due yet." };
+    }
+    const balance =
+      row.depositRequired && row.depositZAR
+        ? Math.max(0, row.quotedPriceZAR - row.depositZAR)
+        : row.quotedPriceZAR;
+    if (balance < 1) return { ok: false, error: "Nothing left to pay." };
+    amount = balance;
+    reference = `${row.requestNumber}-BAL-${balance}`;
+  }
+
+  const statusUrl = `${appUrl()}/custom/request/${row.statusToken}`;
+  const res = await startGatewayPayment({
+    amountZAR: amount,
+    reference,
+    description: `Umthombo custom ${kind} · ${row.requestNumber}`,
+    customerName: row.name,
+    customerEmail: row.email,
+    successUrl: `${statusUrl}?paid=${kind}`,
+    failureUrl: `${statusUrl}?failed=1`,
+    metadata: {
+      customRequestId: row.id,
+      kind,
+      requestNumber: row.requestNumber,
+    },
+  });
+  if (!res.ok || !res.redirectUrl) {
+    return { ok: false, error: res.error ?? "Couldn’t start payment." };
+  }
+  return { ok: true, redirectUrl: res.redirectUrl };
+}
+
+/* ------------------------------------------------------------------ */
 /*  Admin actions                                                      */
 /* ------------------------------------------------------------------ */
 export interface ActionResult {
@@ -286,7 +353,7 @@ const STATUS_EMAIL: Record<string, { heading: string; message: string }> = {
   ready: {
     heading: "Your piece is ready",
     message:
-      "Your custom piece is ready. We’ll follow up about the balance and delivery or collection.",
+      "Your custom piece is ready! You can settle the balance from your request page below, and we’ll arrange delivery or collection.",
   },
   completed: {
     heading: "All done — thank you",
