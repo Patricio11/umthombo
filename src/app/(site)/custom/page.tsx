@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { CustomRequestModal } from "@/components/custom/CustomRequestModal";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { getCustomisableProducts } from "@/server/db/queries";
@@ -120,13 +120,17 @@ export default async function CustomPage() {
 
           <Reveal delay={0.1}>
             <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row">
-              <Link
-                href="/custom/request"
-                className="inline-flex items-center gap-2.5 rounded-full bg-olive px-8 py-4 text-base font-medium text-cream transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
-              >
-                Request a custom piece
-              </Link>
-              <a
+              <CustomRequestModal
+                trigger={
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2.5 rounded-full bg-olive px-8 py-4 text-base font-medium text-cream transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+                  >
+                    Request a custom piece
+                  </button>
+                }
+              />
+              <
                 href={whatsappCustom}
                 target="_blank"
                 rel="noopener noreferrer"
