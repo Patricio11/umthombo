@@ -211,7 +211,7 @@ export interface CustomRequestStatusView {
   requestNumber: string;
   title: string;
   status: string;
-  categoryLabel: string | null;
+  requestType: string | null;
   scent: string | null;
   colour: string | null;
   size: string | null;
@@ -237,7 +237,7 @@ export async function getCustomRequestByToken(
       requestNumber: customRequests.requestNumber,
       title: customRequests.title,
       status: customRequests.status,
-      categoryLabel: categories.label,
+      requestType: customRequests.requestType,
       scent: customRequests.scent,
       colour: customRequests.colour,
       size: customRequests.size,
@@ -255,7 +255,6 @@ export async function getCustomRequestByToken(
       createdAt: customRequests.createdAt,
     })
     .from(customRequests)
-    .leftJoin(categories, eq(categories.id, customRequests.categoryId))
     .where(eq(customRequests.statusToken, token))
     .limit(1);
   return row ?? null;
@@ -267,7 +266,7 @@ export interface UserCustomRequestRow {
   statusToken: string;
   title: string;
   status: string;
-  categoryLabel: string | null;
+  requestType: string | null;
   quotedPriceZAR: number | null;
   depositRequired: boolean;
   depositZAR: number | null;
@@ -287,7 +286,7 @@ export async function getUserCustomRequests(
       statusToken: customRequests.statusToken,
       title: customRequests.title,
       status: customRequests.status,
-      categoryLabel: categories.label,
+      requestType: customRequests.requestType,
       quotedPriceZAR: customRequests.quotedPriceZAR,
       depositRequired: customRequests.depositRequired,
       depositZAR: customRequests.depositZAR,
@@ -297,7 +296,6 @@ export async function getUserCustomRequests(
       createdAt: customRequests.createdAt,
     })
     .from(customRequests)
-    .leftJoin(categories, eq(categories.id, customRequests.categoryId))
     .where(eq(customRequests.userId, userId))
     .orderBy(desc(customRequests.createdAt));
 }

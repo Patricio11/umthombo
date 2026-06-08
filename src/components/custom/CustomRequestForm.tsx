@@ -1,21 +1,35 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Loader2, Check, ImagePlus, X, MailCheck } from "lucide-react";
-import type { CategoryView } from "@/lib/view-types";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  Loader2,
+  Check,
+  ImagePlus,
+  X,
+  MailCheck,
+  ArrowLeft,
+  ArrowRight,
+} from "lucide-react";
 import {
   createCustomRequest,
   uploadReferenceImage,
+  getRequestPrefill,
 } from "@/server/actions/custom-requests";
+import { REQUEST_TYPES } from "@/lib/custom-request-schema";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import { Honeypot } from "@/components/ui/Honeypot";
 import { Turnstile, type TurnstileHandle } from "@/components/auth/Turnstile";
 import { isHoneypotFilled } from "@/lib/honeypot";
+import { cn } from "@/lib/utils";
 
 const inputCls =
   "w-full rounded-xl border border-cream-3 bg-cream px-4 py-3 text-sm text-ink placeholder:text-ink-soft/60 transition-colors focus:border-olive focus:outline-none";
+
+const MAX_IMAGES = 5;
+const STEPS = ["What", "Details", "You"];
+const TYPE_OPTIONS = [...REQUEST_TYPES, "Other"] as const;
 
 function Field({
   label,
@@ -35,34 +49,18 @@ function Field({
   );
 }
 
-function Panel({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-cream-3 bg-cream p-6">
-      <h2 className="font-display text-xl">{title}</h2>
-      <div className="mt-4 space-y-4">{children}</div>
-    </section>
-  );
-}
+export function CustomRequestForm({ onClose }: { onClose?: () => void }) {
+  const reduce = useReducedMotion();
 
-const MAX_IMAGES = 5;
+  const [signedIn, setSignedIn] = useState(false);
+  const [step, setStep] = useState(0);
+  const [dir, setDir] = useState(1);
 
-export function CustomRequestForm({
-  categories,
-  account,
-}: {
-  categories: CategoryView[];
-  account: { name: string; email: string; phone: string } | null;
-}) {
-  const signedIn = !!account;
-
-  const [categoryId, setCategoryId] = useState("");
+  // What
+  const [requestType, setRequestType] = useState("");
+  const [otherType, setOtherType] = useState("");
   const [title, setTitle] = useState("");
+  // Details
   const [scent, setScent] = useState("");
   const [colour, setColour] = useState("");
   const [size, setSize] = useState("");
@@ -71,10 +69,10 @@ export function CustomRequestForm({
   const [notes, setNotes] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-
-  const [name, setName] = useState(account?.name ?? "");
-  const [email, setEmail] = useState(account?.email ?? "");
-  const [phone, setPhone] = useState(account?.phone ?? "");
+  // You
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   const [hp, setHp] = useState("");
   const [captcha, setCaptcha] = useState<string | null>(null);
@@ -83,6 +81,24 @@ export function CustomRequestForm({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ requestNumber: string } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getRequestPrefill()
+      .then((p) => {
+        if (!active || !p) return;
+        setSignedIn(true);
+        setName(p.name);
+        setEmail(p.email);
+        setPhone(p.phone);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const resolvedType = requestType === "Other" ? otherType.trim() : requestType;
 
   const onFiles = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -94,21 +110,30 @@ export function CustomRequestForm({
       const fd = new FormData();
       fd.append("file", file);
       const res = await uploadReferenceImage(fd);
-      if (res.ok && res.url) {
-        setImages((prev) => [...prev, res.url!]);
-      } else {
-        setError(res.error ?? "Couldn’t upload that image.");
-      }
+      if (res.ok && res.url) setImages((p) => [...p, res.url!]);
+      else setError(res.error ?? "Couldn’t upload that image.");
     }
     setUploading(false);
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const goNext = () => {
+    setError(null);
+    if (step === 0) {
+      if (!resolvedType) return setError("Tell us what you’d like.");
+      if (title.trim().length < 3) return setError("Give your idea a short title.");
+    }
+    setDir(1);
+    setStep((s) => Math.min(STEPS.length - 1, s + 1));
+  };
+  const goBack = () => {
+    setError(null);
+    setDir(-1);
+    setStep((s) => Math.max(0, s - 1));
+  };
+
+  const onSubmit = async () => {
     if (isHoneypotFilled(hp)) return;
     setError(null);
-    if (!categoryId) return setError("Please choose a category.");
-    if (title.trim().length < 3) return setError("Give your idea a short title.");
     if (!name.trim() || !email.trim() || !phone.trim()) {
       return setError("Please fill in your contact details.");
     }
@@ -117,7 +142,7 @@ export function CustomRequestForm({
       name,
       email,
       phone,
-      categoryId,
+      requestType: resolvedType,
       title,
       scent: scent.trim() || undefined,
       colour: colour.trim() || undefined,
@@ -141,177 +166,295 @@ export function CustomRequestForm({
 
   if (done) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-cream-3 bg-cream p-8 text-center">
+      <div className="px-2 py-6 text-center">
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-olive/15 text-olive">
           <MailCheck size={22} />
         </span>
         <h2 className="mt-5 font-display text-2xl">Your request is in 🌱</h2>
-        <p className="mt-2 text-sm text-ink-soft">
+        <p className="mx-auto mt-2 max-w-sm text-sm text-ink-soft">
           Reference{" "}
           <span className="font-medium text-ink">{done.requestNumber}</span>. We’ll
-          review your idea and email you a quote. We’ve also emailed you a link to
-          track it
+          review your idea and email you a quote — with a link to track it
           {!signedIn && " and to set up your account"}.
         </p>
-        <Link
-          href="/shop"
-          className="mt-7 inline-flex items-center justify-center rounded-full border border-ink/25 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-olive hover:text-olive"
-        >
-          Continue browsing
-        </Link>
+        {onClose ? (
+          <Button className="mt-7" onClick={onClose}>
+            Done
+          </Button>
+        ) : (
+          <Link
+            href="/shop"
+            className="mt-7 inline-flex items-center justify-center rounded-full border border-ink/25 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-olive hover:text-olive"
+          >
+            Continue browsing
+          </Link>
+        )}
       </div>
     );
   }
 
+  const variants = {
+    enter: (d: number) => ({ x: reduce ? 0 : d * 36, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d: number) => ({ x: reduce ? 0 : d * -36, opacity: 0 }),
+  };
+
   return (
-    <form onSubmit={onSubmit} className="relative mx-auto max-w-2xl space-y-6">
+    <div className="relative">
       <Honeypot value={hp} onChange={setHp} />
 
-      <Panel title="What you’d like">
-        <Field label="Category">
-          <Select
-            value={categoryId}
-            onChange={setCategoryId}
-            placeholder="Choose a category…"
-            options={categories.map((c) => ({ value: c.id, label: c.label }))}
-          />
-        </Field>
-        <Field label="Title" hint="A short summary, e.g. “Lavender pillar candle for a wedding”">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="What are you dreaming up?"
-            className={inputCls}
-            required
-          />
-        </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Scent" hint="Optional">
-            <input value={scent} onChange={(e) => setScent(e.target.value)} className={inputCls} placeholder="e.g. Lavender & vanilla" />
-          </Field>
-          <Field label="Colour" hint="Optional">
-            <input value={colour} onChange={(e) => setColour(e.target.value)} className={inputCls} placeholder="e.g. Sage green" />
-          </Field>
-          <Field label="Size / vessel" hint="Optional">
-            <input value={size} onChange={(e) => setSize(e.target.value)} className={inputCls} placeholder="e.g. Large tin, 250ml" />
-          </Field>
-          <Field label="Occasion" hint="Optional">
-            <input value={occasion} onChange={(e) => setOccasion(e.target.value)} className={inputCls} placeholder="e.g. Wedding favours" />
-          </Field>
-        </div>
-        <Field label="Quantity">
-          <input
-            type="number"
-            min={1}
-            max={999}
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-            className={`${inputCls} w-28`}
-          />
-        </Field>
-        <Field label="Tell us more" hint="Anything else — inspiration, deadlines, packaging…">
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={4}
-            className={`${inputCls} resize-none`}
-            placeholder="Describe what you have in mind."
-          />
-        </Field>
-      </Panel>
-
-      <Panel title="Inspiration (optional)">
-        <p className="text-sm text-ink-soft">
-          Add up to {MAX_IMAGES} reference images — colours, vessels, a style you love.
-        </p>
-        {images.length > 0 && (
-          <div className="flex flex-wrap gap-3">
-            {images.map((url) => (
-              <div key={url} className="relative h-20 w-20 overflow-hidden rounded-xl border border-cream-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="h-full w-full object-cover" />
-                <button
-                  type="button"
-                  aria-label="Remove image"
-                  onClick={() => setImages((prev) => prev.filter((u) => u !== url))}
-                  className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-ink/70 text-cream"
+      {/* Stepper */}
+      <div className="mb-7 flex items-center">
+        {STEPS.map((label, i) => {
+          const active = i === step;
+          const complete = i < step;
+          return (
+            <Fragment key={label}>
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                    active
+                      ? "bg-olive text-cream"
+                      : complete
+                        ? "bg-olive/15 text-olive"
+                        : "bg-cream-2 text-ink-soft"
+                  )}
                 >
-                  <X size={12} />
-                </button>
+                  {complete ? <Check size={14} /> : i + 1}
+                </span>
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    active ? "text-ink" : "text-ink-soft"
+                  )}
+                >
+                  {label}
+                </span>
               </div>
-            ))}
-          </div>
-        )}
-        {images.length < MAX_IMAGES && (
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-ink/20 px-4 py-2.5 text-sm text-ink transition-colors hover:border-olive hover:text-olive">
-            {uploading ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={16} />}
-            {uploading ? "Uploading…" : "Add images"}
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/avif"
-              multiple
-              className="hidden"
-              disabled={uploading}
-              onChange={(e) => {
-                onFiles(e.target.files);
-                e.target.value = "";
-              }}
-            />
-          </label>
-        )}
-      </Panel>
+              {i < STEPS.length - 1 && (
+                <span
+                  className={cn(
+                    "mx-3 h-px flex-1 transition-colors",
+                    complete ? "bg-olive/40" : "bg-cream-3"
+                  )}
+                />
+              )}
+            </Fragment>
+          );
+        })}
+      </div>
 
-      <Panel title="Your details">
-        {signedIn ? (
-          <p className="rounded-xl bg-olive/10 px-4 py-2.5 text-sm text-olive">
-            <Check size={14} className="mr-1 inline" />
-            Saved to your account — track it from your dashboard.
-          </p>
-        ) : (
-          <p className="rounded-xl bg-taupe/15 px-4 py-2.5 text-xs text-ink-soft">
-            We’ll set up an account so you can track this request — you’ll get an
-            email to set a password.
-          </p>
-        )}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Name">
-            <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} autoComplete="name" required />
-          </Field>
-          <Field label="Phone">
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} autoComplete="tel" placeholder="+27 or 0…" required />
-          </Field>
-        </div>
-        <Field label="Email">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={inputCls}
-            autoComplete="email"
-            disabled={signedIn}
-            required
-          />
-        </Field>
-      </Panel>
+      <AnimatePresence mode="wait" custom={dir} initial={false}>
+        <motion.div
+          key={step}
+          custom={dir}
+          variants={variants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {step === 0 && (
+            <div className="space-y-5">
+              <div>
+                <span className="mb-2 block text-sm font-medium text-ink">
+                  What would you like?
+                </span>
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                  {TYPE_OPTIONS.map((t) => {
+                    const active = requestType === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setRequestType(t)}
+                        className={cn(
+                          "rounded-xl border px-3 py-3 text-sm font-medium transition-all",
+                          active
+                            ? "border-olive bg-olive/5 text-ink"
+                            : "border-cream-3 text-ink-soft hover:border-olive/40"
+                        )}
+                      >
+                        {t}
+                      </button>
+                    );
+                  })}
+                </div>
+                {requestType === "Other" && (
+                  <input
+                    value={otherType}
+                    onChange={(e) => setOtherType(e.target.value)}
+                    placeholder="Tell us what kind of piece…"
+                    className={cn(inputCls, "mt-2.5")}
+                    autoFocus
+                  />
+                )}
+              </div>
+              <Field
+                label="Give it a title"
+                hint="A short summary, e.g. “Lavender pillar candle for a wedding”"
+              >
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="What are you dreaming up?"
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          )}
 
-      <p className="rounded-2xl bg-cream-2 px-5 py-4 text-sm text-ink-soft">
-        A <span className="font-medium text-ink">deposit may be applied</span> if your
-        request is accepted — it’s always deducted from your total. You’ll see the
-        full price before paying anything.
-      </p>
+          {step === 1 && (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Scent" hint="Optional">
+                  <input value={scent} onChange={(e) => setScent(e.target.value)} className={inputCls} placeholder="e.g. Lavender & vanilla" />
+                </Field>
+                <Field label="Colour" hint="Optional">
+                  <input value={colour} onChange={(e) => setColour(e.target.value)} className={inputCls} placeholder="e.g. Sage green" />
+                </Field>
+                <Field label="Size / vessel" hint="Optional">
+                  <input value={size} onChange={(e) => setSize(e.target.value)} className={inputCls} placeholder="e.g. Large tin, 250ml" />
+                </Field>
+                <Field label="Occasion" hint="Optional">
+                  <input value={occasion} onChange={(e) => setOccasion(e.target.value)} className={inputCls} placeholder="e.g. Wedding favours" />
+                </Field>
+              </div>
+              <Field label="Quantity">
+                <input
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  className={cn(inputCls, "w-28")}
+                />
+              </Field>
+              <Field label="Tell us more" hint="Inspiration, deadlines, packaging…">
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  className={cn(inputCls, "resize-none")}
+                  placeholder="Describe what you have in mind."
+                />
+              </Field>
+              <div>
+                <span className="mb-1.5 block text-sm font-medium text-ink">
+                  Inspiration images <span className="font-normal text-ink-soft">· optional</span>
+                </span>
+                {images.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-2.5">
+                    {images.map((url) => (
+                      <div key={url} className="relative h-16 w-16 overflow-hidden rounded-lg border border-cream-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          aria-label="Remove image"
+                          onClick={() => setImages((p) => p.filter((u) => u !== url))}
+                          className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-ink/70 text-cream"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {images.length < MAX_IMAGES && (
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-ink/20 px-4 py-2 text-sm text-ink transition-colors hover:border-olive hover:text-olive">
+                    {uploading ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
+                    {uploading ? "Uploading…" : "Add images"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/avif"
+                      multiple
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => {
+                        onFiles(e.target.files);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+          )}
 
-      {!signedIn && (
-        <Turnstile ref={captchaRef} onVerify={setCaptcha} onExpire={() => setCaptcha(null)} />
-      )}
+          {step === 2 && (
+            <div className="space-y-4">
+              {signedIn ? (
+                <p className="rounded-xl bg-olive/10 px-4 py-2.5 text-sm text-olive">
+                  <Check size={14} className="mr-1 inline" />
+                  Saved to your account — track it from your dashboard.
+                </p>
+              ) : (
+                <p className="rounded-xl bg-taupe/15 px-4 py-2.5 text-xs text-ink-soft">
+                  We’ll set up an account so you can track this request — you’ll
+                  get an email to set a password.
+                </p>
+              )}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Name">
+                  <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} autoComplete="name" />
+                </Field>
+                <Field label="Phone">
+                  <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} autoComplete="tel" placeholder="+27 or 0…" />
+                </Field>
+              </div>
+              <Field label="Email">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputCls}
+                  autoComplete="email"
+                  disabled={signedIn}
+                />
+              </Field>
+              <p className="rounded-xl bg-cream-2 px-4 py-3 text-sm text-ink-soft">
+                A <span className="font-medium text-ink">deposit may apply</span> if
+                accepted — always deducted from your total. You’ll see the full
+                price before paying anything.
+              </p>
+              {!signedIn && (
+                <Turnstile ref={captchaRef} onVerify={setCaptcha} onExpire={() => setCaptcha(null)} />
+              )}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {error && (
-        <p className="rounded-xl bg-clay/10 px-4 py-3 text-sm text-clay">{error}</p>
+        <p className="mt-4 rounded-xl bg-clay/10 px-4 py-3 text-sm text-clay">{error}</p>
       )}
 
-      <Button type="submit" size="lg" className="w-full" disabled={submitting || uploading}>
-        {submitting && <Loader2 size={16} className="animate-spin" />}
-        {submitting ? "Sending your request…" : "Send request"}
-      </Button>
-    </form>
+      {/* Nav */}
+      <div className="mt-6 flex items-center justify-between gap-3">
+        {step > 0 ? (
+          <button
+            type="button"
+            onClick={goBack}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+        ) : (
+          <span />
+        )}
+        {step < STEPS.length - 1 ? (
+          <Button type="button" onClick={goNext}>
+            Continue <ArrowRight size={16} />
+          </Button>
+        ) : (
+          <Button type="button" onClick={onSubmit} disabled={submitting || uploading}>
+            {submitting && <Loader2 size={16} className="animate-spin" />}
+            {submitting ? "Sending…" : "Send request"}
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }

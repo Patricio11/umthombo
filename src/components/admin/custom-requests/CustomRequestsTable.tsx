@@ -33,7 +33,7 @@ export function CustomRequestsTable({
       return (
         r.name.toLowerCase().includes(needle) ||
         r.requestNumber.toLowerCase().includes(needle) ||
-        (r.categoryLabel ?? "").toLowerCase().includes(needle)
+        (r.requestType ?? "").toLowerCase().includes(needle)
       );
     });
   }, [rows, q, filter]);
@@ -48,7 +48,7 @@ export function CustomRequestsTable({
           <p className="truncate font-medium">{r.name}</p>
           <p className="truncate text-xs text-ink-soft">
             {r.requestNumber}
-            {r.categoryLabel ? ` · ${r.categoryLabel}` : ""}
+            {r.requestType ? ` · ${r.requestType}` : ""}
           </p>
         </div>
       ),

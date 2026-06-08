@@ -147,7 +147,7 @@ export function CustomRequestDetail({
           <h1 className="font-display text-2xl">{detail.title}</h1>
           <p className="text-sm text-ink-soft">
             {detail.requestNumber}
-            {detail.categoryLabel ? ` · ${detail.categoryLabel}` : ""}
+            {detail.requestType ? ` · ${detail.requestType}` : ""}
           </p>
         </div>
         <StatusPill status={detail.status} />
@@ -158,7 +158,7 @@ export function CustomRequestDetail({
         <div className="space-y-6">
           <Card className="space-y-1">
             <h2 className="mb-2 font-display text-lg">The brief</h2>
-            <Row label="Category" value={detail.categoryLabel} />
+            <Row label="Type" value={detail.requestType} />
             <Row label="Scent" value={detail.scent} />
             <Row label="Colour" value={detail.colour} />
             <Row label="Size / vessel" value={detail.size} />

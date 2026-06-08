@@ -203,7 +203,7 @@ export interface CustomRequestEmailData {
   requestNumber: string;
   customerName: string;
   title: string;
-  categoryLabel: string;
+  requestType: string;
   statusUrl: string;
   isNewAccount: boolean;
 }
@@ -223,7 +223,7 @@ export function customRequestReceivedEmail(d: CustomRequestEmailData): {
       `Hi ${escapeHtml(firstName(d.customerName))}, thank you — we’ll review your idea and come back with a quote.`,
       `<div style="font-size:13px;color:${SOFT};">Request ${escapeHtml(d.requestNumber)}</div>
        <p style="margin:8px 0 4px;font-size:16px;color:${INK};">${escapeHtml(d.title)}</p>
-       <p style="margin:0 0 16px;font-size:13px;color:${SOFT};">${escapeHtml(d.categoryLabel)}</p>
+       <p style="margin:0 0 16px;font-size:13px;color:${SOFT};">${escapeHtml(d.requestType)}</p>
        <p style="margin:0 0 14px;font-size:14px;color:${INK};line-height:1.6;">If accepted, a deposit may apply — it’s always deducted from your total.</p>
        ${ctaButton(d.statusUrl, "Track your request")}
        ${account}`
@@ -238,7 +238,7 @@ export function customRequestAdminEmail(d: {
   customerEmail: string;
   customerPhone: string;
   title: string;
-  categoryLabel: string;
+  requestType: string;
   adminUrl: string;
 }): { subject: string; html: string } {
   return {
@@ -246,7 +246,7 @@ export function customRequestAdminEmail(d: {
     html: layout(
       "New custom request",
       `${escapeHtml(d.customerName)} would like a bespoke piece.`,
-      `<div style="font-size:13px;color:${SOFT};">Request ${escapeHtml(d.requestNumber)} · ${escapeHtml(d.categoryLabel)}</div>
+      `<div style="font-size:13px;color:${SOFT};">Request ${escapeHtml(d.requestNumber)} · ${escapeHtml(d.requestType)}</div>
        <p style="margin:8px 0 14px;font-size:16px;color:${INK};">${escapeHtml(d.title)}</p>
        <p style="margin:0 0 4px;font-size:14px;color:${INK};">${escapeHtml(d.customerEmail)}</p>
        <p style="margin:0 0 16px;font-size:14px;color:${INK};">${escapeHtml(d.customerPhone)}</p>

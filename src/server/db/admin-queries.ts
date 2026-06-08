@@ -309,7 +309,7 @@ export interface AdminCustomRequestRow {
   id: string;
   requestNumber: string;
   name: string;
-  categoryLabel: string | null;
+  requestType: string | null;
   status: CustomRequestStatus;
   quotedPriceZAR: number | null;
   createdAt: Date;
@@ -321,19 +321,16 @@ export async function getAdminCustomRequests(): Promise<AdminCustomRequestRow[]>
       id: customRequests.id,
       requestNumber: customRequests.requestNumber,
       name: customRequests.name,
-      categoryLabel: categories.label,
+      requestType: customRequests.requestType,
       status: customRequests.status,
       quotedPriceZAR: customRequests.quotedPriceZAR,
       createdAt: customRequests.createdAt,
     })
     .from(customRequests)
-    .leftJoin(categories, eq(categories.id, customRequests.categoryId))
     .orderBy(desc(customRequests.createdAt));
 }
 
-export type AdminCustomRequestDetail = CustomRequest & {
-  categoryLabel: string | null;
-};
+export type AdminCustomRequestDetail = CustomRequest;
 
 export async function getAdminCustomRequest(
   id: string
@@ -343,17 +340,7 @@ export async function getAdminCustomRequest(
     .from(customRequests)
     .where(eq(customRequests.id, id))
     .limit(1);
-  if (!row) return null;
-  let categoryLabel: string | null = null;
-  if (row.categoryId) {
-    const [c] = await db
-      .select({ label: categories.label })
-      .from(categories)
-      .where(eq(categories.id, row.categoryId))
-      .limit(1);
-    categoryLabel = c?.label ?? null;
-  }
-  return { ...row, categoryLabel };
+  return row ?? null;
 }
 
 export async function countPendingCustomRequests(): Promise<number> {

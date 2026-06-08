@@ -60,7 +60,7 @@ export default async function CustomRequestStatusPage({
         </div>
         <p className="mt-1 text-sm text-ink-soft">
           {r.requestNumber}
-          {r.categoryLabel ? ` · ${r.categoryLabel}` : ""}
+          {r.requestType ? ` · ${r.requestType}` : ""}
         </p>
 
         {paid && (

@@ -61,7 +61,7 @@ export default async function AccountRequestsPage() {
                     <p className="truncate font-medium text-ink">{r.title}</p>
                     <p className="truncate text-xs text-ink-soft">
                       {r.requestNumber}
-                      {r.categoryLabel ? ` · ${r.categoryLabel}` : ""} ·{" "}
+                      {r.requestType ? ` · ${r.requestType}` : ""} ·{" "}
                       {fmtDate(r.createdAt)}
                     </p>
                   </div>

@@ -1,0 +1,1 @@
+ALTER TABLE "custom_requests" ADD COLUMN "request_type" text;

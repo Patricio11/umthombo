@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
-import { customRequests, categories } from "@/server/db/schema";
+import { customRequests } from "@/server/db/schema";
 import { getCurrentUser, requireAdmin } from "@/server/auth/guard";
 import { resolveOrCreateUser } from "@/server/auth/account";
 import { verifyTurnstile } from "@/server/security/turnstile";
@@ -69,13 +69,6 @@ export async function createCustomRequest(
     }
   }
 
-  const [cat] = await db
-    .select({ id: categories.id, label: categories.label })
-    .from(categories)
-    .where(eq(categories.id, d.categoryId))
-    .limit(1);
-  if (!cat) return { ok: false, error: "Please choose a valid category." };
-
   // Every request is attached to a user (resolve existing, else auto-create).
   let userId = sessionUser?.id ?? null;
   let isNewAccount = false;
@@ -101,7 +94,7 @@ export async function createCustomRequest(
       name: d.name,
       email: d.email.toLowerCase(),
       phone: d.phone,
-      categoryId: d.categoryId,
+      requestType: d.requestType,
       title: d.title,
       scent: d.scent || null,
       colour: d.colour || null,
@@ -123,7 +116,7 @@ export async function createCustomRequest(
     requestNumber,
     customerName: d.name,
     title: d.title,
-    categoryLabel: cat.label,
+    requestType: d.requestType,
     statusUrl,
     isNewAccount,
   });
@@ -135,7 +128,7 @@ export async function createCustomRequest(
     customerEmail: d.email,
     customerPhone: d.phone,
     title: d.title,
-    categoryLabel: cat.label,
+    requestType: d.requestType,
     adminUrl: `${appUrl()}/admin/custom-requests`,
   });
   await sendEmail({
@@ -147,6 +140,21 @@ export async function createCustomRequest(
 
   revalidatePath("/admin/custom-requests");
   return { ok: true, requestNumber, statusToken };
+}
+
+/** Prefill the request form for a logged-in customer (else null). */
+export async function getRequestPrefill(): Promise<{
+  name: string;
+  email: string;
+  phone: string;
+} | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return {
+    name: user.name ?? "",
+    email: user.email ?? "",
+    phone: (user as { phone?: string | null }).phone ?? "",
+  };
 }
 
 /** Guarded public upload for reference images (image-only, ≤6MB). */

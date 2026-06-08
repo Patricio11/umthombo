@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CustomRequestForm } from "@/components/custom/CustomRequestForm";
-import { getCategories } from "@/server/db/queries";
-import { getCurrentUser } from "@/server/auth/guard";
-
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Request a custom piece",
@@ -19,20 +15,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function CustomRequestPage() {
-  const [categories, user] = await Promise.all([
-    getCategories(),
-    getCurrentUser(),
-  ]);
-
-  const account = user
-    ? {
-        name: user.name ?? "",
-        email: user.email ?? "",
-        phone: (user as { phone?: string | null }).phone ?? "",
-      }
-    : null;
-
+export default function CustomRequestPage() {
   return (
     <>
       <PageHeader
@@ -41,7 +24,9 @@ export default async function CustomRequestPage() {
         blurb="Tell us what you have in mind — scent, colour, vessel, the occasion — and we’ll come back with a quote and timeline. No payment now."
       />
       <section className="px-5 pb-24 sm:px-8">
-        <CustomRequestForm categories={categories} account={account} />
+        <div className="mx-auto max-w-2xl rounded-2xl border border-cream-3 bg-cream p-6 sm:p-8">
+          <CustomRequestForm />
+        </div>
       </section>
     </>
   );
