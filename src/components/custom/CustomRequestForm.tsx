@@ -49,15 +49,25 @@ function Field({
   );
 }
 
-export function CustomRequestForm({ onClose }: { onClose?: () => void }) {
+export function CustomRequestForm({
+  onClose,
+  defaultType,
+}: {
+  onClose?: () => void;
+  defaultType?: string;
+}) {
   const reduce = useReducedMotion();
 
   const [signedIn, setSignedIn] = useState(false);
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
 
-  // What
-  const [requestType, setRequestType] = useState("");
+  // What — pre-select when a valid type is passed (e.g. from the shop category)
+  const [requestType, setRequestType] = useState(
+    defaultType && (REQUEST_TYPES as readonly string[]).includes(defaultType)
+      ? defaultType
+      : ""
+  );
   const [otherType, setOtherType] = useState("");
   const [title, setTitle] = useState("");
   // Details

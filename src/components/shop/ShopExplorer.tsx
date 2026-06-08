@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { ProductView, CategoryView } from "@/lib/view-types";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { CustomRequestModal } from "@/components/custom/CustomRequestModal";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | string;
@@ -111,6 +112,35 @@ export function ShopExplorer({
               </motion.div>
             ))}
           </AnimatePresence>
+        </motion.div>
+
+        {/* Didn't find it? — request a custom piece (pre-fills the category). */}
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-10% 0px" }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-20 overflow-hidden rounded-3xl border border-cream-3 bg-cream-2/40 px-6 py-10 text-center sm:px-10 sm:py-12"
+        >
+          <p className="eyebrow text-olive">Made for you</p>
+          <h2 className="mt-2 font-display text-2xl font-light sm:text-3xl">
+            Didn’t find quite what you’re after?
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-ink-soft">
+            We make bespoke pieces to order — your scent, colour and vessel. Tell
+            us your idea and we’ll come back with a quote. No payment now.
+          </p>
+          <CustomRequestModal
+            defaultType={filter !== "all" ? tabLabels[filter] : undefined}
+            trigger={
+              <button
+                type="button"
+                className="mt-7 inline-flex items-center justify-center rounded-full bg-olive px-8 py-4 text-base font-medium text-cream transition-all duration-300 hover:bg-olive-soft hover:shadow-[0_12px_34px_-12px_rgba(75,90,48,0.7)] active:scale-[0.98]"
+              >
+                Request a custom piece
+              </button>
+            }
+          />
         </motion.div>
       </div>
     </div>

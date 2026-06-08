@@ -9,7 +9,13 @@ import { lockScroll, unlockScroll } from "@/lib/lenis";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-export function CustomRequestModal({ trigger }: { trigger: React.ReactNode }) {
+export function CustomRequestModal({
+  trigger,
+  defaultType,
+}: {
+  trigger: React.ReactNode;
+  defaultType?: string;
+}) {
   const [open, setOpen] = useState(false);
   const reduce = useReducedMotion();
 
@@ -65,7 +71,10 @@ export function CustomRequestModal({ trigger }: { trigger: React.ReactNode }) {
                       <X size={20} />
                     </Dialog.Close>
                   </div>
-                  <CustomRequestForm onClose={() => setOpen(false)} />
+                  <CustomRequestForm
+                    onClose={() => setOpen(false)}
+                    defaultType={defaultType}
+                  />
                 </div>
               </motion.div>
             </Dialog.Content>
