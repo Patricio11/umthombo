@@ -216,10 +216,10 @@ export function CustomRequestForm({ onClose }: { onClose?: () => void }) {
           const complete = i < step;
           return (
             <Fragment key={label}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <span
                   className={cn(
-                    "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors sm:h-7 sm:w-7",
                     active
                       ? "bg-olive text-cream"
                       : complete
@@ -227,11 +227,11 @@ export function CustomRequestForm({ onClose }: { onClose?: () => void }) {
                         : "bg-cream-2 text-ink-soft"
                   )}
                 >
-                  {complete ? <Check size={14} /> : i + 1}
+                  {complete ? <Check size={13} /> : i + 1}
                 </span>
                 <span
                   className={cn(
-                    "text-sm font-medium",
+                    "text-xs font-medium sm:text-sm",
                     active ? "text-ink" : "text-ink-soft"
                   )}
                 >
@@ -241,7 +241,7 @@ export function CustomRequestForm({ onClose }: { onClose?: () => void }) {
               {i < STEPS.length - 1 && (
                 <span
                   className={cn(
-                    "mx-3 h-px flex-1 transition-colors",
+                    "mx-2 h-px flex-1 transition-colors sm:mx-3",
                     complete ? "bg-olive/40" : "bg-cream-3"
                   )}
                 />

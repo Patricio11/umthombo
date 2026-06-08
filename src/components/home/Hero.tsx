@@ -68,11 +68,11 @@ export function Hero() {
 
           <motion.div
             variants={riseItem}
-            className="mt-9 flex flex-wrap items-center gap-4"
+            className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
           >
             <Link
               href="/shop"
-              className="inline-flex items-center justify-center rounded-full bg-olive px-8 py-4 text-base font-medium text-cream transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-olive-soft hover:shadow-[0_12px_34px_-12px_rgba(75,90,48,0.7)] active:scale-[0.98]"
+              className="inline-flex w-full items-center justify-center rounded-full bg-olive px-8 py-4 text-base font-medium text-cream transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-olive-soft hover:shadow-[0_12px_34px_-12px_rgba(75,90,48,0.7)] active:scale-[0.98] sm:w-auto"
             >
               Explore the shop
             </Link>
@@ -80,7 +80,7 @@ export function Hero() {
               trigger={
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-full border border-ink/25 px-7 py-4 text-base font-medium text-ink transition-colors hover:border-olive hover:text-olive active:scale-[0.98]"
+                  className="inline-flex w-full items-center justify-center rounded-full border border-ink/25 px-7 py-4 text-base font-medium text-ink transition-colors hover:border-olive hover:text-olive active:scale-[0.98] sm:w-auto"
                 >
                   Request custom
                 </button>
