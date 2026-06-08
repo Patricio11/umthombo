@@ -47,6 +47,26 @@ export async function uploadProductImage(file: File): Promise<string> {
   return supa().storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
 
+/**
+ * Upload a customer's reference image (custom-order requests). Public/guest
+ * callable, so it's strictly validated (image-only, ≤6MB) and namespaced.
+ */
+export async function uploadReferenceImage(file: File): Promise<string> {
+  if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+    throw new Error("Please upload a JPEG, PNG, WebP or AVIF image.");
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    throw new Error("That image is over 6MB  please use a smaller one.");
+  }
+  const ext = file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
+  const path = `custom-refs/${randomUUID()}.${ext}`;
+  const { error } = await supa()
+    .storage.from(bucket)
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw new Error(error.message);
+  return supa().storage.from(bucket).getPublicUrl(path).data.publicUrl;
+}
+
 /** Delete a previously-uploaded image. No-ops for non-Supabase URLs (seed images). */
 export async function deleteProductImage(publicUrl: string): Promise<void> {
   const idx = publicUrl.indexOf(PUBLIC_MARKER);

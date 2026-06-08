@@ -44,6 +44,45 @@ export async function createDeferredAccount(input: {
   }
 }
 
+/**
+ * Resolve the user for an email, creating a password-less account if none
+ * exists (and emailing a set-password link). Returns the user id so callers
+ * can attach a record (e.g. a custom request) to it. Best-effort.
+ */
+export async function resolveOrCreateUser(input: {
+  name: string;
+  email: string;
+  phone?: string | null;
+}): Promise<{ id: string; isNew: boolean } | null> {
+  const email = input.email.trim().toLowerCase();
+  if (!email) return null;
+  try {
+    const [existing] = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(sql`lower(${user.email})`, email))
+      .limit(1);
+    if (existing) return { id: existing.id, isNew: false };
+
+    const id = randomUUID();
+    await db.insert(user).values({
+      id,
+      name: input.name.trim() || email,
+      email,
+      emailVerified: false,
+      role: "customer",
+      phone: input.phone?.trim() || null,
+    });
+    await auth.api
+      .sendVerificationEmail({ body: { email, callbackURL: "/set-password" } })
+      .catch((err) => console.error("[account] set-password email failed:", err));
+    return { id, isNew: true };
+  } catch (err) {
+    console.error("[account] resolveOrCreateUser failed:", err);
+    return null;
+  }
+}
+
 /** Save a checkout address to the customer's account (first one is primary). */
 export async function saveCheckoutAddress(
   userId: string,

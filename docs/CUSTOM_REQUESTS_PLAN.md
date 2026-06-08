@@ -7,9 +7,11 @@ sends a balance link when ready → done. Reuses existing payments, Resend email
 Supabase uploads, the admin panel, and the deferred-account checkout pattern.
 
 ## Decisions (locked)
-- **Access:** guests *and* logged-in. Guests submit with name/email/phone;
-  logged-in users get it pre-filled and tracked in their dashboard (deferred
-  account offered, exactly like checkout).
+- **Access:** open form for everyone, but **every request is always attached to
+  a user**. On submit: logged-in → their account; not logged-in → attach to an
+  existing user by email, else **auto-create a password-less account** + email a
+  "set password" link. No signup wall, but no orphan requests either. (Account
+  creation is automatic here — not the opt-in checkbox checkout uses.)
 - **Notifications:** **email is fully automated** on every status change.
   **WhatsApp** = one-tap `wa.me` links (client emails carry a "Chat on
   WhatsApp" button to the business; the admin screen has a one-tap link to
@@ -80,18 +82,25 @@ order later).
 - Zod schema + types (`lib/custom-request-schema.ts`).
 - Page `/(site)/custom/request` (linked from a new CTA on `/custom`):
   grouped sections — *What you'd like* (category, title, scent, colour, size,
-  quantity, occasion, notes) → *Inspiration* (optional reference image uploads,
-  reuse the existing upload action) → *Your details* (name/email/phone,
-  pre-filled if logged in; "create an account" deferred-checkbox).
-  Uses the custom `Select`/`Checkbox`, feels like checkout.
+  quantity, occasion, notes) → *Inspiration* (optional reference image uploads)
+  → *Your details* (name/email/phone, pre-filled if logged in). Uses the custom
+  `Select`/`Checkbox`, feels like checkout.
+- **Account is automatic** (no opt-in checkbox): a short note tells the visitor
+  "We'll create an account so you can track this request — check your email to
+  set a password." Logged-in users just see "Saved to your account."
+- Reference uploads use a **guarded public** action `uploadReferenceImage`
+  (not the admin-gated one): image-only, ≤6MB, stored under `custom-refs/`.
 - Prominent line: **"A deposit may be applied if your request is accepted — it'll
   be deducted from your total."**
 - Spam protection: honeypot (server-enforced) + rate-limit + Turnstile when
   logged out (all already in the codebase).
-- Action `createCustomRequest` → generates `requestNumber` + `statusToken`,
-  links `userId` if present, optionally fires the deferred-account flow.
+- Action `createCustomRequest` → generates `requestNumber` + `statusToken`;
+  **always attaches a `userId`** via a resolve-or-create helper (logged-in →
+  their user; else existing-by-email → that user; else auto-create a
+  password-less account + "set password" email).
 - Emails (Resend): **admin lead alert** + **client confirmation** (with the
-  guest status link + a "Chat on WhatsApp" button).
+  status link, a "Chat on WhatsApp" button, and — for a brand-new account — the
+  set-password prompt).
 
 **Done when:** a guest and a logged-in user can submit; both emails fire; the
 row appears in admin; spam is blocked.
@@ -154,6 +163,12 @@ drive the lifecycle, with the client notified at each step.
 - Request analytics / conversion reporting.
 
 ## Reused building blocks
-Payments (Yoco/YetoPay + webhooks + `payment_events`), Resend email, Supabase
-image upload, admin DataTable/primitives, deferred-account checkout flow,
-honeypot + Turnstile, custom `Select`/`Checkbox`.
+Payments (Yoco/YetoPay + webhooks + `payment_events`), Resend email + the
+`layout`/`ctaButton` email templates, Supabase storage, admin
+DataTable/primitives, the deferred-account flow (`createDeferredAccount` →
+extended into a resolve-or-create helper that returns the user id), honeypot +
+Turnstile, custom `Select`/`Checkbox`.
+
+## Status (as built)
+- **Phase 1 — in progress.**
+- Phases 2–4 — pending.

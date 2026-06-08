@@ -196,6 +196,65 @@ export function trackingEmail(d: OrderEmailData): {
   };
 }
 
+/* ------------------------------------------------------------------ */
+/*  Custom order requests                                              */
+/* ------------------------------------------------------------------ */
+export interface CustomRequestEmailData {
+  requestNumber: string;
+  customerName: string;
+  title: string;
+  categoryLabel: string;
+  statusUrl: string;
+  isNewAccount: boolean;
+}
+
+/** Sent to the customer the moment they submit a request. */
+export function customRequestReceivedEmail(d: CustomRequestEmailData): {
+  subject: string;
+  html: string;
+} {
+  const account = d.isNewAccount
+    ? `<p style="margin:16px 0 0;font-size:13px;color:${SOFT};">We’ve set up an account so you can track this request — check your inbox for a link to set your password.</p>`
+    : "";
+  return {
+    subject: `We’ve got your request ${d.requestNumber}`,
+    html: layout(
+      "Your request is in",
+      `Hi ${escapeHtml(firstName(d.customerName))}, thank you — we’ll review your idea and come back with a quote.`,
+      `<div style="font-size:13px;color:${SOFT};">Request ${escapeHtml(d.requestNumber)}</div>
+       <p style="margin:8px 0 4px;font-size:16px;color:${INK};">${escapeHtml(d.title)}</p>
+       <p style="margin:0 0 16px;font-size:13px;color:${SOFT};">${escapeHtml(d.categoryLabel)}</p>
+       <p style="margin:0 0 14px;font-size:14px;color:${INK};line-height:1.6;">If accepted, a deposit may apply — it’s always deducted from your total.</p>
+       ${ctaButton(d.statusUrl, "Track your request")}
+       ${account}`
+    ),
+  };
+}
+
+/** Lead alert to the shop owner. */
+export function customRequestAdminEmail(d: {
+  requestNumber: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  title: string;
+  categoryLabel: string;
+  adminUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `New custom request ${d.requestNumber} — ${d.title}`,
+    html: layout(
+      "New custom request",
+      `${escapeHtml(d.customerName)} would like a bespoke piece.`,
+      `<div style="font-size:13px;color:${SOFT};">Request ${escapeHtml(d.requestNumber)} · ${escapeHtml(d.categoryLabel)}</div>
+       <p style="margin:8px 0 14px;font-size:16px;color:${INK};">${escapeHtml(d.title)}</p>
+       <p style="margin:0 0 4px;font-size:14px;color:${INK};">${escapeHtml(d.customerEmail)}</p>
+       <p style="margin:0 0 16px;font-size:14px;color:${INK};">${escapeHtml(d.customerPhone)}</p>
+       ${ctaButton(d.adminUrl, "Review request")}`
+    ),
+  };
+}
+
 function firstName(name: string): string {
   return name.trim().split(/\s+/)[0] || name;
 }

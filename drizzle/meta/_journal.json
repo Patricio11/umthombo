@@ -134,6 +134,13 @@
       "when": 1780924019307,
       "tag": "0018_strange_human_torch",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1780937613604,
+      "tag": "0019_brown_tiger_shark",
+      "breakpoints": true
     }
   ]
 }

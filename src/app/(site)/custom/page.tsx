@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -118,15 +119,23 @@ export default async function CustomPage() {
           </div>
 
           <Reveal delay={0.1}>
-            <a
-              href={whatsappCustom}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-12 inline-flex items-center gap-2.5 rounded-full bg-olive px-8 py-4 text-base font-medium text-cream transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
-            >
-              <WhatsAppIcon size={20} />
-              Request a custom piece
-            </a>
+            <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row">
+              <Link
+                href="/custom/request"
+                className="inline-flex items-center gap-2.5 rounded-full bg-olive px-8 py-4 text-base font-medium text-cream transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
+              >
+                Request a custom piece
+              </Link>
+              <a
+                href={whatsappCustom}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 rounded-full border border-ink/20 px-6 py-3.5 text-sm font-medium text-ink transition-colors hover:border-olive hover:text-olive"
+              >
+                <WhatsAppIcon size={18} />
+                Or chat on WhatsApp
+              </a>
+            </div>
           </Reveal>
         </div>
       </section>

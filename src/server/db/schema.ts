@@ -42,6 +42,15 @@ export const reviewStatusEnum = pgEnum("review_status", [
   "published",
   "rejected",
 ]);
+export const customRequestStatusEnum = pgEnum("custom_request_status", [
+  "pending", // submitted, awaiting admin
+  "quoted", // accepted: price + ETA (+ optional deposit); awaiting deposit/start
+  "in_progress", // work underway (deposit paid, or no deposit needed)
+  "ready", // finished; balance link sent
+  "completed", // balance settled
+  "declined", // admin declined (with reason)
+  "cancelled",
+]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -302,6 +311,51 @@ export const faqs = pgTable("faqs", {
 });
 
 export type Faq = typeof faqs.$inferSelect;
+
+/* ------------------------------------------------------------------ */
+/*  Custom order requests (bespoke commission pipeline)                */
+/* ------------------------------------------------------------------ */
+export const customRequests = pgTable("custom_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  requestNumber: text("request_number").notNull().unique(), // CR-260608-7F3A
+  statusToken: text("status_token").notNull().unique(), // guest status link
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+
+  // Contact
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+
+  // What they'd like
+  categoryId: uuid("category_id").references(() => categories.id, {
+    onDelete: "set null",
+  }),
+  title: text("title").notNull(),
+  scent: text("scent"),
+  colour: text("colour"),
+  size: text("size"),
+  occasion: text("occasion"),
+  quantity: integer("quantity").notNull().default(1),
+  notes: text("notes"),
+  referenceImages: jsonb("reference_images").$type<string[]>(),
+
+  // Lifecycle + admin response
+  status: customRequestStatusEnum("status").notNull().default("pending"),
+  declineReason: text("decline_reason"),
+  adminNote: text("admin_note"),
+  quotedPriceZAR: integer("quoted_price_zar"),
+  etaText: text("eta_text"),
+  etaDate: timestamp("eta_date", { withTimezone: true }),
+  depositRequired: boolean("deposit_required").notNull().default(false),
+  depositZAR: integer("deposit_zar"),
+  depositPaidAt: timestamp("deposit_paid_at", { withTimezone: true }),
+  balancePaidAt: timestamp("balance_paid_at", { withTimezone: true }),
+
+  respondedAt: timestamp("responded_at", { withTimezone: true }),
+  ...timestamps,
+});
+
+export type CustomRequest = typeof customRequests.$inferSelect;
 
 /* ------------------------------------------------------------------ */
 /*  Relations                                                         */
