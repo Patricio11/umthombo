@@ -5,7 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Truck, Store, Check, X, Plus } from "lucide-react";
 import { useCart, selectSubtotal, selectTotal } from "@/store/cart";
-import { ZA_PROVINCES } from "@/lib/integrations";
+import {
+  ZA_PROVINCES,
+  type CheckoutPaymentInfo,
+  type PaymentProvider,
+} from "@/lib/integrations";
 import { rateEta, type DeliveryAddress, type RateOption } from "@/lib/shipping";
 import type { AddressView } from "@/lib/address-schema";
 import { getDeliveryRates } from "@/server/actions/shipping";
@@ -48,11 +52,13 @@ export function CheckoutClient({
   collectionInfo,
   account,
   savedAddresses,
+  payment,
 }: {
   deliveryEnabled: boolean;
   collectionInfo: string;
   account: { name: string; email: string; phone: string } | null;
   savedAddresses: AddressView[];
+  payment: CheckoutPaymentInfo;
 }) {
   const router = useRouter();
   const items = useCart((s) => s.items);
@@ -84,6 +90,9 @@ export function CheckoutClient({
   const [saveAddress, setSaveAddress] = useState(false);
   const [createAccount, setCreateAccount] = useState(false);
   const [hp, setHp] = useState(""); // honeypot
+  const [provider, setProvider] = useState<PaymentProvider | null>(
+    payment.defaultProvider
+  );
 
   const [rates, setRates] = useState<RateOption[] | null>(null);
   const [ratesLoading, setRatesLoading] = useState(false);
@@ -187,6 +196,7 @@ export function CheckoutClient({
       createAccount: !account && createAccount,
       saveAddress: !!account && addrMode === "new" && saveAddress,
       hp,
+      paymentProvider: payment.choose ? provider ?? undefined : undefined,
       items: items.map((i) => ({
         slug: i.slug,
         variant: i.variant ?? null,
@@ -520,6 +530,50 @@ export function CheckoutClient({
                 <span className="font-medium text-ink">Total</span>
                 <span className="font-display text-3xl">{formatZAR(total)}</span>
               </div>
+
+              {payment.choose && (
+                <fieldset className="mt-5">
+                  <legend className="mb-2 text-sm font-medium text-ink">
+                    How would you like to pay?
+                  </legend>
+                  <div className="space-y-2">
+                    {payment.options.map((o) => {
+                      const active = provider === o.provider;
+                      return (
+                        <button
+                          key={o.provider}
+                          type="button"
+                          onClick={() => setProvider(o.provider)}
+                          aria-pressed={active}
+                          className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${
+                            active
+                              ? "border-olive bg-olive/5"
+                              : "border-cream-3 hover:border-olive/40"
+                          }`}
+                        >
+                          <span
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                              active ? "border-olive" : "border-cream-3"
+                            }`}
+                          >
+                            {active && (
+                              <span className="h-2.5 w-2.5 rounded-full bg-olive" />
+                            )}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-medium text-ink">
+                              {o.label}
+                            </span>
+                            <span className="block text-xs text-ink-soft">
+                              {o.sublabel}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              )}
 
               {submitError && (
                 <p className="mt-4 rounded-xl bg-clay/10 px-4 py-3 text-sm text-clay">

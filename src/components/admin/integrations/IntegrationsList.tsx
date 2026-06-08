@@ -16,6 +16,7 @@ import { useToast } from "@/components/admin/Toast";
 import {
   toggleIntegration,
   setPaymentProvider,
+  setOfferBothGateways,
 } from "@/server/actions/integrations";
 import { cn } from "@/lib/utils";
 
@@ -29,15 +30,31 @@ const ICON: Record<IntegrationCategory, typeof Truck> = {
 export function IntegrationsList({
   integrations,
   activeProvider,
+  offerBoth,
 }: {
   integrations: AdminIntegrationListItem[];
   activeProvider: PaymentProvider | null;
+  offerBoth: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
 
   const payment = integrations.filter((i) => i.category === "payment");
+  const readyCount = payment.filter((p) => p.enabled && p.configured).length;
+
+  const onToggleBoth = (v: boolean) =>
+    startTransition(async () => {
+      const res = await setOfferBothGateways(v);
+      if (res.ok) {
+        toast.success(
+          v ? "Customers can now choose their gateway." : "Single gateway mode."
+        );
+        router.refresh();
+      } else {
+        toast.error(res.error ?? "Could not update.");
+      }
+    });
 
   const onToggle = (item: AdminIntegrationListItem, enabled: boolean) => {
     if (enabled && !item.configured && item.key !== "whatsapp") {
@@ -132,6 +149,27 @@ export function IntegrationsList({
                 other gateway if it’s ready, otherwise WhatsApp/manual.
               </p>
             )}
+
+          <label className="flex items-center justify-between gap-3 border-t border-cream-2 pt-3">
+            <span className="text-sm font-medium">
+              Let customers choose at checkout
+              <span className="mt-0.5 block text-xs font-normal text-ink-soft">
+                Show “Pay by bank” / “Card” when both gateways are ready — the
+                pick above is the pre-selected default.
+              </span>
+            </span>
+            <Switch
+              checked={offerBoth}
+              onChange={onToggleBoth}
+              label="Let customers choose"
+            />
+          </label>
+          {offerBoth && readyCount < 2 && (
+            <p className="rounded-xl bg-taupe/15 px-4 py-2.5 text-xs text-ink-soft">
+              Both gateways need to be enabled + configured for the choice to
+              appear. Until then, the default gateway is used.
+            </p>
+          )}
         </Card>
       )}
 

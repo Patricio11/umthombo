@@ -8,11 +8,15 @@ import {
   SECRET_FIELDS,
   type IntegrationKey,
   type IntegrationCategory,
+  PAYMENT_PRESENTATION,
   type BobgoConfig,
   type YetopayConfig,
   type YocoConfig,
   type ResendConfig,
+  type PaymentProvider,
+  type CheckoutPaymentInfo,
 } from "@/lib/integrations";
+import { getSiteSettings } from "@/server/db/settings";
 
 type Row = typeof integrations.$inferSelect;
 type Cfg = Record<string, unknown>;
@@ -131,6 +135,39 @@ export async function getResendConfig(): Promise<ResendConfig | null> {
     apiKey: str(c.apiKey),
     fromEmail: str(c.fromEmail),
     fromName: str(c.fromName, "Umthombo Creations"),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Active gateway resolution (shared by checkout + the picker)        */
+/* ------------------------------------------------------------------ */
+/**
+ * Which gateways are ready, the admin's default pick, and whether the customer
+ * may choose. Options are always ordered [Pay by bank, Card] for a stable UI.
+ */
+export async function getCheckoutPayment(): Promise<CheckoutPaymentInfo> {
+  const [yeto, yoco, settings] = await Promise.all([
+    getYetopayConfig(),
+    getYocoConfig(),
+    getSiteSettings(),
+  ]);
+  const ready: PaymentProvider[] = [];
+  if (yeto) ready.push("yetopay");
+  if (yoco) ready.push("yoco");
+
+  const preferred = settings.paymentProvider;
+  const defaultProvider: PaymentProvider | null =
+    preferred && ready.includes(preferred) ? preferred : (ready[0] ?? null);
+
+  const order: PaymentProvider[] = ["yetopay", "yoco"];
+  const options = order
+    .filter((p) => ready.includes(p))
+    .map((provider) => ({ provider, ...PAYMENT_PRESENTATION[provider] }));
+
+  return {
+    choose: !!settings.offerBothGateways && ready.length >= 2,
+    defaultProvider,
+    options,
   };
 }
 

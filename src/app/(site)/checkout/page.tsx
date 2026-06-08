@@ -1,4 +1,7 @@
-import { isIntegrationEnabled } from "@/server/db/integrations";
+import {
+  isIntegrationEnabled,
+  getCheckoutPayment,
+} from "@/server/db/integrations";
 import { getSiteSettings } from "@/server/db/settings";
 import { getCurrentUser } from "@/server/auth/guard";
 import { getUserAddresses } from "@/server/db/addresses";
@@ -12,10 +15,11 @@ export const metadata = {
 };
 
 export default async function CheckoutPage() {
-  const [deliveryEnabled, settings, user] = await Promise.all([
+  const [deliveryEnabled, settings, user, payment] = await Promise.all([
     isIntegrationEnabled("bobgo"),
     getSiteSettings(),
     getCurrentUser(),
+    getCheckoutPayment(),
   ]);
 
   const account = user
@@ -33,6 +37,7 @@ export default async function CheckoutPage() {
       collectionInfo={settings.collection}
       account={account}
       savedAddresses={savedAddresses}
+      payment={payment}
     />
   );
 }

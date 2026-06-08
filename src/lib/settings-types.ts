@@ -15,6 +15,8 @@ export interface SiteSettings {
   whatsapp: { number: string; display: string; href: string };
   instagram: { handle: string; href: string; enabled: boolean };
   facebook: { handle: string; href: string; enabled: boolean };
-  /** Admin's preferred live payment gateway. null = auto (use whichever is on). */
+  /** Admin's preferred/default live payment gateway. null = auto (whichever is on). */
   paymentProvider: PaymentProvider | null;
+  /** Let customers choose their payment gateway at checkout (when both are ready). */
+  offerBothGateways: boolean;
 }

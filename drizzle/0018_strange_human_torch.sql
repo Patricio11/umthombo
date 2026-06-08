@@ -1,0 +1,1 @@
+ALTER TABLE "settings" ADD COLUMN "offer_both_gateways" boolean;

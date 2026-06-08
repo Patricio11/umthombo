@@ -7,6 +7,30 @@ export type IntegrationCategory = "shipping" | "payment" | "email" | "channel";
 /** The online payment gateways (the admin picks which one is live). */
 export type PaymentProvider = "yetopay" | "yoco";
 
+/** Customer-facing presentation for each gateway at checkout. */
+export const PAYMENT_PRESENTATION: Record<
+  PaymentProvider,
+  { label: string; sublabel: string }
+> = {
+  yetopay: { label: "Pay by bank", sublabel: "Instant EFT · powered by YetoPay" },
+  yoco: { label: "Card", sublabel: "Credit & debit card · powered by Yoco" },
+};
+
+export interface CheckoutPaymentOption {
+  provider: PaymentProvider;
+  label: string;
+  sublabel: string;
+}
+
+/** What the checkout needs to render the (optional) gateway picker. */
+export interface CheckoutPaymentInfo {
+  /** Show the customer a choice (both gateways ready + admin opted in). */
+  choose: boolean;
+  /** Pre-selected / fallback gateway (the admin's active pick). */
+  defaultProvider: PaymentProvider | null;
+  options: CheckoutPaymentOption[];
+}
+
 export interface BobgoCollection {
   company: string;
   streetAddress: string;

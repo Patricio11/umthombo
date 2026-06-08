@@ -48,6 +48,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
       row?.paymentProvider === "yoco" || row?.paymentProvider === "yetopay"
         ? row.paymentProvider
         : null,
+    offerBothGateways: row?.offerBothGateways ?? false,
   };
 });
 

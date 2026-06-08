@@ -127,6 +127,13 @@
       "when": 1780912893616,
       "tag": "0017_next_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1780924019307,
+      "tag": "0018_strange_human_torch",
+      "breakpoints": true
     }
   ]
 }

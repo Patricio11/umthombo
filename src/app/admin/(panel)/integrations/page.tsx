@@ -20,6 +20,7 @@ export default async function IntegrationsPage() {
       <IntegrationsList
         integrations={integrations}
         activeProvider={settings.paymentProvider}
+        offerBoth={settings.offerBothGateways}
       />
     </>
   );

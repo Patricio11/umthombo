@@ -18,6 +18,23 @@ fallback to the other.
 So if Yoco (or YetoPay) ever goes down, flip the picker — or just disable the
 broken one — and checkout keeps working.
 
+## Letting customers choose (Pay by bank vs Card)
+
+The same card has a **“Let customers choose at checkout”** toggle:
+
+- **Off** → only the active gateway is used (above behaviour).
+- **On** → when **both** gateways are enabled + configured, checkout shows a
+  selector — 🏦 **Pay by bank** (YetoPay) / 💳 **Card** (Yoco) — pre-selected on
+  the active gateway (the picker = the default). If only one gateway is ready,
+  no selector appears and it just uses that one.
+
+The customer's choice is sent to `placeOrder` and **re-validated server-side**:
+it's honoured only when the toggle is on and the chosen gateway is ready,
+otherwise the default is used. Stored in `settings.offer_both_gateways`
+(migration `0018`); customer-facing labels live in `PAYMENT_PRESENTATION`
+(`src/lib/integrations.ts`). For the “Pay by bank” label to be accurate, set
+YetoPay's method to **Instant EFT**.
+
 ## One-time setup (Yoco)
 
 1. **Get your secret key.** Yoco dashboard → *Sell online → Payment gateway →

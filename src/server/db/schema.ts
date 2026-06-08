@@ -211,7 +211,8 @@ export const settings = pgTable("settings", {
   facebookUrl: text("facebook_url"),
   facebookEnabled: boolean("facebook_enabled"), // null = on (default)
   email: text("email"),
-  paymentProvider: text("payment_provider"), // active gateway: yetopay | yoco | null (auto)
+  paymentProvider: text("payment_provider"), // active/default gateway: yetopay | yoco | null (auto)
+  offerBothGateways: boolean("offer_both_gateways"), // let customers pick a gateway at checkout
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()

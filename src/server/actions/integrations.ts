@@ -280,7 +280,7 @@ export async function registerYocoWebhookAction(): Promise<TestResult> {
   return { ok: true, message: "Webhook registered - signing secret saved." };
 }
 
-/** Choose which payment gateway is live. null = auto (use whichever is on). */
+/** Choose which payment gateway is live / default. null = auto (whichever is on). */
 export async function setPaymentProvider(
   provider: PaymentProvider | null
 ): Promise<ActionResult> {
@@ -294,6 +294,22 @@ export async function setPaymentProvider(
     .onConflictDoUpdate({
       target: settings.id,
       set: { paymentProvider: provider },
+    });
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Toggle whether customers may choose their gateway at checkout. */
+export async function setOfferBothGateways(
+  offer: boolean
+): Promise<ActionResult> {
+  await requireAdmin();
+  await db
+    .insert(settings)
+    .values({ id: "site", offerBothGateways: offer })
+    .onConflictDoUpdate({
+      target: settings.id,
+      set: { offerBothGateways: offer },
     });
   revalidatePath("/", "layout");
   return { ok: true };
