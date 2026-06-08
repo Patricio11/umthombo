@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Truck, Store, Check, X, Plus } from "lucide-react";
@@ -14,6 +14,11 @@ import { rateEta, type DeliveryAddress, type RateOption } from "@/lib/shipping";
 import type { AddressView } from "@/lib/address-schema";
 import { getDeliveryRates } from "@/server/actions/shipping";
 import { placeOrder } from "@/server/actions/checkout";
+import {
+  loadCheckoutDraft,
+  saveCheckoutDraft,
+  clearCheckoutDraft,
+} from "@/lib/checkout-draft";
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
@@ -109,6 +114,49 @@ export function CheckoutClient({
   // flash while the basket is cleared and we navigate to the receipt.
   const [placed, setPlaced] = useState(false);
 
+  // Persist the form so details survive the payment redirect (a failed payment
+  // → "Try again" restores everything). Cleared once an order is placed.
+  const [draftReady, setDraftReady] = useState(false);
+  const draftServiceCode = useRef<string | null>(null);
+
+  useEffect(() => {
+    const d = loadCheckoutDraft();
+    if (d) {
+      if (d.name) setName(d.name);
+      if (d.email) setEmail(d.email);
+      if (d.phone) setPhone(d.phone);
+      if (d.method && (d.method === "collection" || deliveryEnabled)) {
+        setMethod(d.method);
+      }
+      if (d.address) setAddress(d.address);
+      if (typeof d.note === "string") setNote(d.note);
+      if (d.addrMode) setAddrMode(d.addrMode === "saved" && hasSaved ? "saved" : "new");
+      if (d.selectedAddrId !== undefined) setSelectedAddrId(d.selectedAddrId);
+      if (d.serviceCode) {
+        setServiceCode(d.serviceCode);
+        draftServiceCode.current = d.serviceCode;
+      }
+    }
+    setDraftReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    saveCheckoutDraft({
+      name,
+      email,
+      phone,
+      method,
+      address,
+      note,
+      addrMode,
+      selectedAddrId,
+      serviceCode,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftReady, name, email, phone, method, address, note, addrMode, selectedAddrId, serviceCode]);
+
   // Any address change/selection invalidates previously fetched rates.
   const invalidateRates = () => {
     setRates(null);
@@ -166,7 +214,15 @@ export function CheckoutClient({
     setRatesLoading(false);
     if (res.ok && res.rates) {
       setRates(res.rates);
-      if (res.rates.length === 1) setServiceCode(res.rates[0].serviceCode);
+      // Re-select the option saved in the draft (after a failed-payment retry),
+      // else auto-pick when there's only one.
+      const saved = draftServiceCode.current;
+      if (saved && res.rates.some((r) => r.serviceCode === saved)) {
+        setServiceCode(saved);
+        draftServiceCode.current = null;
+      } else if (res.rates.length === 1) {
+        setServiceCode(res.rates[0].serviceCode);
+      }
     } else {
       setRatesError(res.error ?? "Couldn’t fetch delivery options.");
     }
@@ -226,6 +282,7 @@ export function CheckoutClient({
     // No online payment step — capture the order, empty the basket, show receipt.
     setPlaced(true);
     clearCart();
+    clearCheckoutDraft();
     if (res.mode === "whatsapp" && res.whatsappUrl) {
       window.open(res.whatsappUrl, "_blank", "noopener,noreferrer");
     }
@@ -604,6 +661,7 @@ export function CheckoutClient({
           onCompleted={() => {
             setPlaced(true);
             clearCart();
+            clearCheckoutDraft();
             router.push(`/checkout/success?order=${payFrame.orderNumber}`);
           }}
           onFailed={() => {
