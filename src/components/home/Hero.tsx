@@ -11,6 +11,7 @@ import {
 } from "motion/react";
 import { stagger, riseItem } from "@/components/motion/Reveal";
 import { Logo } from "@/components/brand/Logo";
+import { CustomRequestModal } from "@/components/custom/CustomRequestModal";
 import { useSiteSettings } from "@/components/SiteSettingsProvider";
 
 export function Hero() {
@@ -75,12 +76,16 @@ export function Hero() {
             >
               Explore the shop
             </Link>
-            <Link
-              href="/about"
-              className="link-underline text-base text-ink"
-            >
-              Our story
-            </Link>
+            <CustomRequestModal
+              trigger={
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-full border border-ink/25 px-7 py-4 text-base font-medium text-ink transition-colors hover:border-olive hover:text-olive active:scale-[0.98]"
+                >
+                  Request custom
+                </button>
+              }
+            />
           </motion.div>
 
           <motion.div

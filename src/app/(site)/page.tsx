@@ -5,7 +5,6 @@ import { Featured } from "@/components/home/Featured";
 import { HampersFeature } from "@/components/home/HampersFeature";
 import { Testimonials } from "@/components/home/Testimonials";
 import { Philosophy } from "@/components/home/Philosophy";
-import { CustomRequestCta } from "@/components/home/CustomRequestCta";
 import { ContactBlock } from "@/components/home/ContactBlock";
 import {
   getFeaturedProducts,
@@ -33,7 +32,6 @@ export default async function Home() {
       <HampersFeature hampers={hampers} />
       <Testimonials items={testimonials} />
       <Philosophy />
-      <CustomRequestCta />
       <ContactBlock />
     </>
   );
