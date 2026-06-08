@@ -182,5 +182,8 @@ Turnstile, custom `Select`/`Checkbox`.
   `startCustomPayment`; Pay-deposit/Pay-balance on the status page; webhooks
   branch on `metadata.customRequestId` → deposit→in_progress, balance→completed
   (idempotent), with customer + admin emails.
-- Phase 4 — pending (logged-in "My requests" dashboard view; status page already
-  serves guests).
+- **Phase 4 — done.** `/account/requests` (status, quote, inline Pay
+  deposit/balance, details link) + nav + dashboard card; the guest status page
+  now nudges login (every request already creates an account).
+
+**All phases complete.** Future add-ons stay as listed under *Out of scope*.
