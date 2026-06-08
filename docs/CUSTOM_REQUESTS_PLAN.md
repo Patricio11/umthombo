@@ -186,4 +186,13 @@ Turnstile, custom `Select`/`Checkbox`.
   deposit/balance, details link) + nav + dashboard card; the guest status page
   now nudges login (every request already creates an account).
 
-**All phases complete.** Future add-ons stay as listed under *Out of scope*.
+**All phases complete.**
+
+**Enhancement (post-v1).** Requests now use a friendly **request type** (Candles,
+Diffusers & Mists, Body & Skin, Hampers, + free-typed *Other*) instead of the
+shop's internal categories — guests don't know those. The form is a smooth
+**3-step** flow (What / Details / You), and the **landing page** has a CTA that
+opens it in a **modal**. `request_type` column (migration 0020); the legacy
+`category_id` stays nullable and unused.
+
+Future add-ons stay as listed under *Out of scope*.
