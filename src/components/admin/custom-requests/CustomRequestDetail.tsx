@@ -49,6 +49,18 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+function BackLink({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink"
+    >
+      <ArrowLeft size={15} /> Back
+    </button>
+  );
+}
+
 export function CustomRequestDetail({
   detail,
 }: {
@@ -82,6 +94,9 @@ export function CustomRequestDetail({
   // Decline form
   const [reason, setReason] = useState(detail.declineReason ?? "");
 
+  // Which response form is open ("none" until the admin picks Accept/Decline).
+  const [mode, setMode] = useState<"none" | "quote" | "decline">("none");
+
   const refresh = () => router.refresh();
 
   const onQuote = () =>
@@ -96,6 +111,7 @@ export function CustomRequestDetail({
       });
       if (res.ok) {
         toast.success("Quote sent to the customer.");
+        setMode("none");
         refresh();
       } else toast.error(res.error ?? "Couldn’t send the quote.");
     });
@@ -105,6 +121,7 @@ export function CustomRequestDetail({
       const res = await declineCustomRequest(detail.id, reason);
       if (res.ok) {
         toast.success("Request declined — the customer was notified.");
+        setMode("none");
         refresh();
       } else toast.error(res.error ?? "Couldn’t decline.");
     });
@@ -241,31 +258,60 @@ export function CustomRequestDetail({
         <Card className="space-y-5">
           <h2 className="font-display text-lg">Respond</h2>
 
-          {/* Status transitions */}
-          <div className="flex flex-wrap gap-2">
-            {detail.status === "quoted" && (
-              <Button type="button" variant="outline" disabled={pending} onClick={() => onStatus("in_progress", "Marked in progress.")}>
-                Mark in progress
-              </Button>
-            )}
-            {detail.status === "in_progress" && (
-              <Button type="button" variant="outline" disabled={pending} onClick={() => onStatus("ready", "Marked ready.")}>
-                Mark ready
-              </Button>
-            )}
-            {(detail.status === "in_progress" || detail.status === "ready") && (
-              <Button type="button" variant="outline" disabled={pending} onClick={() => onStatus("completed", "Marked completed.")}>
-                Mark completed
-              </Button>
-            )}
-          </div>
+          {/* Collapsed: pick an action. Inputs reveal on click. */}
+          {mode === "none" && (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {canQuote && (
+                  <Button type="button" disabled={pending} onClick={() => setMode("quote")}>
+                    <Check size={16} />
+                    {detail.status === "quoted" ? "Update quote" : "Accept & quote"}
+                  </Button>
+                )}
+                {detail.status === "pending" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={pending}
+                    onClick={() => setMode("decline")}
+                  >
+                    <X size={16} /> Decline
+                  </Button>
+                )}
+                {detail.status === "quoted" && (
+                  <Button type="button" variant="outline" disabled={pending} onClick={() => onStatus("in_progress", "Marked in progress.")}>
+                    Mark in progress
+                  </Button>
+                )}
+                {detail.status === "in_progress" && (
+                  <Button type="button" variant="outline" disabled={pending} onClick={() => onStatus("ready", "Marked ready.")}>
+                    Mark ready
+                  </Button>
+                )}
+                {(detail.status === "in_progress" || detail.status === "ready") && (
+                  <Button type="button" variant="outline" disabled={pending} onClick={() => onStatus("completed", "Marked completed.")}>
+                    Mark completed
+                  </Button>
+                )}
+              </div>
 
-          {/* Quote / re-quote */}
-          {canQuote && (
-            <div className="space-y-4 border-t border-cream-2 pt-5">
-              <h3 className="text-sm font-medium">
-                {detail.status === "quoted" ? "Update quote" : "Send a quote"}
-              </h3>
+              <div className="border-t border-cream-2 pt-4">
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  disabled={pending}
+                  className="inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-clay"
+                >
+                  Cancel this request
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Quote form */}
+          {mode === "quote" && (
+            <div className="space-y-4">
+              <BackLink onClick={() => setMode("none")} />
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Total price (ZAR)">
                   <Input inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" />
@@ -298,10 +344,10 @@ export function CustomRequestDetail({
             </div>
           )}
 
-          {/* Decline (only before quoting) */}
-          {detail.status === "pending" && (
-            <div className="space-y-3 border-t border-cream-2 pt-5">
-              <h3 className="text-sm font-medium">Decline</h3>
+          {/* Decline form */}
+          {mode === "decline" && (
+            <div className="space-y-3">
+              <BackLink onClick={() => setMode("none")} />
               <Textarea
                 rows={2}
                 value={reason}
@@ -313,17 +359,6 @@ export function CustomRequestDetail({
               </Button>
             </div>
           )}
-
-          <div className="border-t border-cream-2 pt-4">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={pending}
-              className="inline-flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-clay"
-            >
-              Cancel this request
-            </button>
-          </div>
         </Card>
       )}
 
