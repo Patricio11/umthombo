@@ -255,6 +255,92 @@ export function customRequestAdminEmail(d: {
   };
 }
 
+function whatsappLink(href: string | null | undefined): string {
+  if (!href) return "";
+  return `<p style="margin:18px 0 0;font-size:13px;color:${SOFT};">Questions? <a href="${href}" style="color:${OLIVE};">Chat with us on WhatsApp</a>.</p>`;
+}
+
+/** Quote accepted — price, ETA and (optional) deposit. */
+export function customRequestQuotedEmail(d: {
+  requestNumber: string;
+  customerName: string;
+  title: string;
+  quotedPriceZAR: number;
+  etaText: string | null;
+  depositRequired: boolean;
+  depositZAR: number | null;
+  statusUrl: string;
+  whatsappHref?: string | null;
+  adminNote?: string | null;
+}): { subject: string; html: string } {
+  const eta = d.etaText
+    ? `<p style="margin:0 0 4px;font-size:14px;color:${INK};">Estimated time: <strong>${escapeHtml(d.etaText)}</strong></p>`
+    : "";
+  const note = d.adminNote
+    ? `<p style="margin:14px 0 0;font-size:14px;color:${INK};line-height:1.6;">${escapeHtml(d.adminNote)}</p>`
+    : "";
+  let money: string;
+  if (d.depositRequired && d.depositZAR) {
+    const balance = Math.max(0, d.quotedPriceZAR - d.depositZAR);
+    money = `<p style="margin:0 0 4px;font-size:14px;color:${INK};">Total: <strong>${formatZAR(d.quotedPriceZAR)}</strong></p>
+      <p style="margin:0 0 4px;font-size:14px;color:${INK};">Deposit to begin: <strong>${formatZAR(d.depositZAR)}</strong> <span style="color:${SOFT};">(deducted from your total)</span></p>
+      <p style="margin:0 0 14px;font-size:14px;color:${SOFT};">Balance later: ${formatZAR(balance)}</p>
+      ${ctaButton(d.statusUrl, "View quote & pay deposit")}`;
+  } else {
+    money = `<p style="margin:0 0 14px;font-size:14px;color:${INK};">Total: <strong>${formatZAR(d.quotedPriceZAR)}</strong></p>
+      ${ctaButton(d.statusUrl, "View your quote")}`;
+  }
+  return {
+    subject: `Your custom quote ${d.requestNumber}`,
+    html: layout(
+      "We can make this 🌱",
+      `Hi ${escapeHtml(firstName(d.customerName))}, here’s your quote for “${escapeHtml(d.title)}”.`,
+      `<div style="font-size:13px;color:${SOFT};margin-bottom:12px;">Request ${escapeHtml(d.requestNumber)}</div>${eta}${money}${note}${whatsappLink(d.whatsappHref)}`
+    ),
+  };
+}
+
+/** Request declined, with a reason. */
+export function customRequestDeclinedEmail(d: {
+  requestNumber: string;
+  customerName: string;
+  title: string;
+  reason: string;
+  whatsappHref?: string | null;
+}): { subject: string; html: string } {
+  return {
+    subject: `About your request ${d.requestNumber}`,
+    html: layout(
+      "About your request",
+      `Hi ${escapeHtml(firstName(d.customerName))}, thank you for thinking of us for “${escapeHtml(d.title)}”.`,
+      `<p style="margin:0 0 14px;font-size:14px;color:${INK};line-height:1.6;">We’re sorry — we can’t take this one on right now.</p>
+       <p style="margin:0;font-size:14px;color:${INK};line-height:1.6;"><span style="color:${SOFT};">Reason:</span> ${escapeHtml(d.reason)}</p>
+       ${whatsappLink(d.whatsappHref)}`
+    ),
+  };
+}
+
+/** Generic status update (in progress / ready / completed / cancelled). */
+export function customRequestStatusEmail(d: {
+  requestNumber: string;
+  customerName: string;
+  title: string;
+  heading: string;
+  message: string;
+  statusUrl: string;
+  whatsappHref?: string | null;
+}): { subject: string; html: string } {
+  return {
+    subject: `Update on your request ${d.requestNumber}`,
+    html: layout(
+      d.heading,
+      `Hi ${escapeHtml(firstName(d.customerName))}, an update on “${escapeHtml(d.title)}”.`,
+      `<p style="margin:0 0 14px;font-size:14px;color:${INK};line-height:1.6;">${escapeHtml(d.message)}</p>
+       ${ctaButton(d.statusUrl, "View your request")}${whatsappLink(d.whatsappHref)}`
+    ),
+  };
+}
+
 function firstName(name: string): string {
   return name.trim().split(/\s+/)[0] || name;
 }

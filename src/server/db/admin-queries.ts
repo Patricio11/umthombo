@@ -7,6 +7,8 @@ import {
   testimonials,
   orders,
   orderItems,
+  customRequests,
+  type CustomRequest,
 } from "@/server/db/schema";
 import type { Accent } from "@/lib/accents";
 import type { OrderStatus } from "@/lib/order-schema";
@@ -17,6 +19,7 @@ export interface AdminStats {
   testimonials: number;
   orders: number;
   ordersByStatus: Record<string, number>;
+  customRequestsPending: number;
 }
 
 const ORDER_STATUSES = [
@@ -29,7 +32,7 @@ const ORDER_STATUSES = [
 
 export async function getAdminStats(): Promise<AdminStats> {
   const count = sql<number>`count(*)::int`;
-  const [[p], [c], [t], byStatus] = await Promise.all([
+  const [[p], [c], [t], byStatus, [cr]] = await Promise.all([
     db.select({ n: count }).from(products),
     db.select({ n: count }).from(categories),
     db.select({ n: count }).from(testimonials),
@@ -37,6 +40,10 @@ export async function getAdminStats(): Promise<AdminStats> {
       .select({ status: orders.status, n: count })
       .from(orders)
       .groupBy(orders.status),
+    db
+      .select({ n: count })
+      .from(customRequests)
+      .where(eq(customRequests.status, "pending")),
   ]);
 
   const ordersByStatus: Record<string, number> = Object.fromEntries(
@@ -54,6 +61,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     testimonials: t.n,
     orders: orderTotal,
     ordersByStatus,
+    customRequestsPending: cr?.n ?? 0,
   };
 }
 
@@ -290,4 +298,68 @@ export async function getRecentOrders(limit = 6): Promise<RecentOrder[]> {
     .orderBy(desc(orders.createdAt))
     .limit(limit);
   return rows;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Custom order requests                                              */
+/* ------------------------------------------------------------------ */
+export type CustomRequestStatus = CustomRequest["status"];
+
+export interface AdminCustomRequestRow {
+  id: string;
+  requestNumber: string;
+  name: string;
+  categoryLabel: string | null;
+  status: CustomRequestStatus;
+  quotedPriceZAR: number | null;
+  createdAt: Date;
+}
+
+export async function getAdminCustomRequests(): Promise<AdminCustomRequestRow[]> {
+  return db
+    .select({
+      id: customRequests.id,
+      requestNumber: customRequests.requestNumber,
+      name: customRequests.name,
+      categoryLabel: categories.label,
+      status: customRequests.status,
+      quotedPriceZAR: customRequests.quotedPriceZAR,
+      createdAt: customRequests.createdAt,
+    })
+    .from(customRequests)
+    .leftJoin(categories, eq(categories.id, customRequests.categoryId))
+    .orderBy(desc(customRequests.createdAt));
+}
+
+export type AdminCustomRequestDetail = CustomRequest & {
+  categoryLabel: string | null;
+};
+
+export async function getAdminCustomRequest(
+  id: string
+): Promise<AdminCustomRequestDetail | null> {
+  const [row] = await db
+    .select()
+    .from(customRequests)
+    .where(eq(customRequests.id, id))
+    .limit(1);
+  if (!row) return null;
+  let categoryLabel: string | null = null;
+  if (row.categoryId) {
+    const [c] = await db
+      .select({ label: categories.label })
+      .from(categories)
+      .where(eq(categories.id, row.categoryId))
+      .limit(1);
+    categoryLabel = c?.label ?? null;
+  }
+  return { ...row, categoryLabel };
+}
+
+export async function countPendingCustomRequests(): Promise<number> {
+  const [r] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(customRequests)
+    .where(eq(customRequests.status, "pending"));
+  return r?.n ?? 0;
 }

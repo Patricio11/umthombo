@@ -4,6 +4,7 @@ import {
   Package,
   Tags,
   Quote,
+  Sparkles,
   ArrowRight,
   Inbox,
 } from "lucide-react";
@@ -31,6 +32,13 @@ export default async function DashboardPage() {
       sub: `${stats.ordersByStatus.new} new`,
       href: "/admin/orders",
       icon: ClipboardList,
+    },
+    {
+      label: "Custom requests",
+      value: stats.customRequestsPending,
+      sub: "awaiting reply",
+      href: "/admin/custom-requests",
+      icon: Sparkles,
     },
     {
       label: "Products",

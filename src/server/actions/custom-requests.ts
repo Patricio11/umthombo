@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import { customRequests, categories } from "@/server/db/schema";
-import { getCurrentUser } from "@/server/auth/guard";
+import { getCurrentUser, requireAdmin } from "@/server/auth/guard";
 import { resolveOrCreateUser } from "@/server/auth/account";
 import { verifyTurnstile } from "@/server/security/turnstile";
 import { isHoneypotFilled } from "@/lib/honeypot";
@@ -17,6 +17,9 @@ import { sendEmail } from "@/server/email/resend";
 import {
   customRequestReceivedEmail,
   customRequestAdminEmail,
+  customRequestQuotedEmail,
+  customRequestDeclinedEmail,
+  customRequestStatusEmail,
 } from "@/server/email/templates";
 import { getSiteSettings } from "@/server/db/settings";
 import { uploadReferenceImage as uploadRefImage } from "@/server/storage/supabase";
@@ -157,4 +160,184 @@ export async function uploadReferenceImage(
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Admin actions                                                      */
+/* ------------------------------------------------------------------ */
+export interface ActionResult {
+  ok: boolean;
+  error?: string;
+}
+
+function revalidateRequest(id: string) {
+  revalidatePath("/admin/custom-requests");
+  revalidatePath(`/admin/custom-requests/${id}`);
+  revalidatePath("/account/requests");
+}
+
+export async function declineCustomRequest(
+  id: string,
+  reason: string
+): Promise<ActionResult> {
+  await requireAdmin();
+  const r = reason.trim();
+  if (r.length < 3) return { ok: false, error: "Add a short reason." };
+  const [row] = await db
+    .select()
+    .from(customRequests)
+    .where(eq(customRequests.id, id))
+    .limit(1);
+  if (!row) return { ok: false, error: "Request not found." };
+
+  await db
+    .update(customRequests)
+    .set({ status: "declined", declineReason: r, respondedAt: new Date() })
+    .where(eq(customRequests.id, id));
+
+  const settings = await getSiteSettings();
+  const mail = customRequestDeclinedEmail({
+    requestNumber: row.requestNumber,
+    customerName: row.name,
+    title: row.title,
+    reason: r,
+    whatsappHref: settings.whatsapp.href,
+  });
+  await sendEmail({ to: row.email, subject: mail.subject, html: mail.html });
+
+  revalidateRequest(id);
+  return { ok: true };
+}
+
+export interface QuoteInput {
+  priceZAR: number;
+  etaText?: string;
+  etaDate?: string;
+  depositRequired: boolean;
+  depositZAR?: number;
+  adminNote?: string;
+}
+
+export async function quoteCustomRequest(
+  id: string,
+  input: QuoteInput
+): Promise<ActionResult> {
+  await requireAdmin();
+  const price = Math.round(Number(input.priceZAR));
+  if (!Number.isFinite(price) || price < 1) {
+    return { ok: false, error: "Enter a valid total price." };
+  }
+  const depositRequired = !!input.depositRequired;
+  let depositZAR: number | null = null;
+  if (depositRequired) {
+    const dep = Math.round(Number(input.depositZAR ?? 0));
+    if (!Number.isFinite(dep) || dep < 1 || dep >= price) {
+      return { ok: false, error: "Deposit must be at least R1 and below the total." };
+    }
+    depositZAR = dep;
+  }
+  const [row] = await db
+    .select()
+    .from(customRequests)
+    .where(eq(customRequests.id, id))
+    .limit(1);
+  if (!row) return { ok: false, error: "Request not found." };
+
+  await db
+    .update(customRequests)
+    .set({
+      status: "quoted",
+      quotedPriceZAR: price,
+      etaText: input.etaText?.trim() || null,
+      etaDate: input.etaDate ? new Date(input.etaDate) : null,
+      depositRequired,
+      depositZAR,
+      adminNote: input.adminNote?.trim() || null,
+      respondedAt: new Date(),
+    })
+    .where(eq(customRequests.id, id));
+
+  const settings = await getSiteSettings();
+  const statusUrl = `${appUrl()}/custom/request/${row.statusToken}`;
+  const mail = customRequestQuotedEmail({
+    requestNumber: row.requestNumber,
+    customerName: row.name,
+    title: row.title,
+    quotedPriceZAR: price,
+    etaText: input.etaText?.trim() || null,
+    depositRequired,
+    depositZAR,
+    statusUrl,
+    whatsappHref: settings.whatsapp.href,
+    adminNote: input.adminNote?.trim() || null,
+  });
+  await sendEmail({ to: row.email, subject: mail.subject, html: mail.html });
+
+  revalidateRequest(id);
+  return { ok: true };
+}
+
+const STATUS_EMAIL: Record<string, { heading: string; message: string }> = {
+  in_progress: {
+    heading: "We’ve started your piece",
+    message:
+      "Your custom piece is now being made. We’ll let you know the moment it’s ready.",
+  },
+  ready: {
+    heading: "Your piece is ready",
+    message:
+      "Your custom piece is ready. We’ll follow up about the balance and delivery or collection.",
+  },
+  completed: {
+    heading: "All done — thank you",
+    message:
+      "Your custom order is complete. Thank you for letting us make something special for you.",
+  },
+  cancelled: {
+    heading: "Your request was cancelled",
+    message:
+      "Your custom request has been cancelled. If that’s unexpected, please reach out.",
+  },
+};
+
+export async function setCustomRequestStatus(
+  id: string,
+  status:
+    | "pending"
+    | "quoted"
+    | "in_progress"
+    | "ready"
+    | "completed"
+    | "cancelled"
+): Promise<ActionResult> {
+  await requireAdmin();
+  const [row] = await db
+    .select()
+    .from(customRequests)
+    .where(eq(customRequests.id, id))
+    .limit(1);
+  if (!row) return { ok: false, error: "Request not found." };
+
+  await db
+    .update(customRequests)
+    .set({ status })
+    .where(eq(customRequests.id, id));
+
+  const tpl = STATUS_EMAIL[status];
+  if (tpl) {
+    const settings = await getSiteSettings();
+    const mail = customRequestStatusEmail({
+      requestNumber: row.requestNumber,
+      customerName: row.name,
+      title: row.title,
+      heading: tpl.heading,
+      message: tpl.message,
+      statusUrl: `${appUrl()}/custom/request/${row.statusToken}`,
+      whatsappHref: settings.whatsapp.href,
+    });
+    await sendEmail({ to: row.email, subject: mail.subject, html: mail.html });
+  }
+
+  revalidateRequest(id);
+  return { ok: true };
 }

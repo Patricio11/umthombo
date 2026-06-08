@@ -1,7 +1,12 @@
 import "server-only";
 import { and, asc, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/server/db";
-import { products, categories, testimonials } from "@/server/db/schema";
+import {
+  products,
+  categories,
+  testimonials,
+  customRequests,
+} from "@/server/db/schema";
 import type { Accent } from "@/lib/accents";
 import type {
   ProductView,
@@ -197,6 +202,63 @@ export async function getRelatedProducts(
     limit,
   });
   return (rows as ProductRow[]).map(toProductView);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Custom request — public status (by token)                          */
+/* ------------------------------------------------------------------ */
+export interface CustomRequestStatusView {
+  requestNumber: string;
+  title: string;
+  status: string;
+  categoryLabel: string | null;
+  scent: string | null;
+  colour: string | null;
+  size: string | null;
+  occasion: string | null;
+  quantity: number;
+  notes: string | null;
+  quotedPriceZAR: number | null;
+  etaText: string | null;
+  etaDate: Date | null;
+  depositRequired: boolean;
+  depositZAR: number | null;
+  depositPaidAt: Date | null;
+  balancePaidAt: Date | null;
+  declineReason: string | null;
+  createdAt: Date;
+}
+
+export async function getCustomRequestByToken(
+  token: string
+): Promise<CustomRequestStatusView | null> {
+  const [row] = await db
+    .select({
+      requestNumber: customRequests.requestNumber,
+      title: customRequests.title,
+      status: customRequests.status,
+      categoryLabel: categories.label,
+      scent: customRequests.scent,
+      colour: customRequests.colour,
+      size: customRequests.size,
+      occasion: customRequests.occasion,
+      quantity: customRequests.quantity,
+      notes: customRequests.notes,
+      quotedPriceZAR: customRequests.quotedPriceZAR,
+      etaText: customRequests.etaText,
+      etaDate: customRequests.etaDate,
+      depositRequired: customRequests.depositRequired,
+      depositZAR: customRequests.depositZAR,
+      depositPaidAt: customRequests.depositPaidAt,
+      balancePaidAt: customRequests.balancePaidAt,
+      declineReason: customRequests.declineReason,
+      createdAt: customRequests.createdAt,
+    })
+    .from(customRequests)
+    .leftJoin(categories, eq(categories.id, customRequests.categoryId))
+    .where(eq(customRequests.statusToken, token))
+    .limit(1);
+  return row ?? null;
 }
 
 /* ------------------------------------------------------------------ */
