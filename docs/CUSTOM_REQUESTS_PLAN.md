@@ -170,5 +170,8 @@ extended into a resolve-or-create helper that returns the user id), honeypot +
 Turnstile, custom `Select`/`Checkbox`.
 
 ## Status (as built)
-- **Phase 1 — in progress.**
+- **Phase 1 — done.** `custom_requests` table (migration 0019); public
+  `/custom/request` form (categories, spec fields, reference uploads); auto
+  user-attach (`resolveOrCreateUser`); honeypot + Turnstile; admin + client
+  emails; `/custom` leads with the form, WhatsApp secondary.
 - Phases 2–4 — pending.
