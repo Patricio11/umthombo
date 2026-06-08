@@ -44,6 +44,8 @@ export interface CreateCustomRequestResult {
   error?: string;
   requestNumber?: string;
   statusToken?: string;
+  /** A brand-new account was created (vs. attached to an existing one). */
+  isNewAccount?: boolean;
 }
 
 export async function createCustomRequest(
@@ -139,7 +141,7 @@ export async function createCustomRequest(
   });
 
   revalidatePath("/admin/custom-requests");
-  return { ok: true, requestNumber, statusToken };
+  return { ok: true, requestNumber, statusToken, isNewAccount };
 }
 
 /** Prefill the request form for a logged-in customer (else null). */

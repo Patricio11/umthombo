@@ -80,7 +80,10 @@ export function CustomRequestForm({ onClose }: { onClose?: () => void }) {
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState<{ requestNumber: string } | null>(null);
+  const [done, setDone] = useState<{
+    requestNumber: string;
+    newAccount: boolean;
+  } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -156,7 +159,10 @@ export function CustomRequestForm({ onClose }: { onClose?: () => void }) {
     });
     setSubmitting(false);
     if (res.ok && res.requestNumber) {
-      setDone({ requestNumber: res.requestNumber });
+      setDone({
+        requestNumber: res.requestNumber,
+        newAccount: !!res.isNewAccount,
+      });
     } else {
       captchaRef.current?.reset();
       setCaptcha(null);
@@ -175,7 +181,7 @@ export function CustomRequestForm({ onClose }: { onClose?: () => void }) {
           Reference{" "}
           <span className="font-medium text-ink">{done.requestNumber}</span>. We’ll
           review your idea and email you a quote — with a link to track it
-          {!signedIn && " and to set up your account"}.
+          {done.newAccount && " and to set up your new account"}.
         </p>
         {onClose ? (
           <Button className="mt-7" onClick={onClose}>
@@ -392,8 +398,8 @@ export function CustomRequestForm({ onClose }: { onClose?: () => void }) {
                 </p>
               ) : (
                 <p className="rounded-xl bg-taupe/15 px-4 py-2.5 text-xs text-ink-soft">
-                  We’ll set up an account so you can track this request — you’ll
-                  get an email to set a password.
+                  We’ll link this request to your account so you can track it.
+                  New here? We’ll email you a link to set a password.
                 </p>
               )}
               <div className="grid gap-4 sm:grid-cols-2">
