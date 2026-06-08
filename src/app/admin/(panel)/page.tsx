@@ -3,7 +3,6 @@ import {
   ClipboardList,
   Package,
   Tags,
-  Quote,
   Sparkles,
   ArrowRight,
   Inbox,
@@ -53,13 +52,6 @@ export default async function DashboardPage() {
       sub: "live",
       href: "/admin/categories",
       icon: Tags,
-    },
-    {
-      label: "Testimonials",
-      value: stats.testimonials,
-      sub: "collected",
-      href: "/admin/testimonials",
-      icon: Quote,
     },
   ];
 
