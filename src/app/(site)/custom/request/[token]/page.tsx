@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getCustomRequestByToken } from "@/server/db/queries";
+import { getCurrentUser } from "@/server/auth/guard";
 import { StatusPill } from "@/components/admin/custom-requests/StatusPill";
 import { PayButton } from "@/components/custom/PayButton";
 import { formatZAR } from "@/lib/format";
@@ -34,7 +35,10 @@ export default async function CustomRequestStatusPage({
 }) {
   const { token } = await params;
   const { paid, failed } = await searchParams;
-  const r = await getCustomRequestByToken(token);
+  const [r, user] = await Promise.all([
+    getCustomRequestByToken(token),
+    getCurrentUser(),
+  ]);
   if (!r) notFound();
 
   const balance =
@@ -142,12 +146,38 @@ export default async function CustomRequestStatusPage({
           )}
         </div>
 
-        <p className="mt-8 text-center text-sm text-ink-soft">
-          Have an account?{" "}
-          <Link href="/account" className="link-underline text-olive">
-            Track all your requests
-          </Link>
-        </p>
+        {user ? (
+          <div className="mt-10 rounded-2xl border border-cream-3 bg-cream p-6 text-center">
+            <p className="text-sm text-ink-soft">
+              Manage this and all your requests in one place.
+            </p>
+            <Link
+              href="/account/requests"
+              className="mt-4 inline-flex items-center justify-center rounded-full bg-olive px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-olive-soft"
+            >
+              Go to your requests
+            </Link>
+          </div>
+        ) : (
+          <div className="mt-10 rounded-2xl border border-cream-3 bg-cream p-6 text-center">
+            <p className="font-medium text-ink">
+              This request is saved to your account
+            </p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">
+              Log in to track all your requests, see quotes and pay deposits in
+              one place.
+            </p>
+            <Link
+              href="/login?next=/account/requests"
+              className="mt-4 inline-flex items-center justify-center rounded-full bg-olive px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-olive-soft"
+            >
+              Log in
+            </Link>
+            <p className="mt-3 text-xs text-ink-soft">
+              First time? Check your email for a link to set your password.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

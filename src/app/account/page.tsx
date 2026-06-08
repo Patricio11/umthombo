@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { Package, MapPin, Settings, Store, ArrowRight } from "lucide-react";
+import {
+  Package,
+  Sparkles,
+  MapPin,
+  Settings,
+  Store,
+  ArrowRight,
+} from "lucide-react";
 import { requireUser } from "@/server/auth/guard";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +33,12 @@ export default async function AccountPage() {
           icon={<Package size={20} />}
           title="Your orders"
           hint="Track, view and reorder"
+        />
+        <DashCard
+          href="/account/requests"
+          icon={<Sparkles size={20} />}
+          title="Custom requests"
+          hint="Quotes, deposits & progress"
         />
         <DashCard
           href="/account/addresses"

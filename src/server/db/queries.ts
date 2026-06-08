@@ -261,6 +261,47 @@ export async function getCustomRequestByToken(
   return row ?? null;
 }
 
+export interface UserCustomRequestRow {
+  id: string;
+  requestNumber: string;
+  statusToken: string;
+  title: string;
+  status: string;
+  categoryLabel: string | null;
+  quotedPriceZAR: number | null;
+  depositRequired: boolean;
+  depositZAR: number | null;
+  depositPaidAt: Date | null;
+  balancePaidAt: Date | null;
+  etaText: string | null;
+  createdAt: Date;
+}
+
+export async function getUserCustomRequests(
+  userId: string
+): Promise<UserCustomRequestRow[]> {
+  return db
+    .select({
+      id: customRequests.id,
+      requestNumber: customRequests.requestNumber,
+      statusToken: customRequests.statusToken,
+      title: customRequests.title,
+      status: customRequests.status,
+      categoryLabel: categories.label,
+      quotedPriceZAR: customRequests.quotedPriceZAR,
+      depositRequired: customRequests.depositRequired,
+      depositZAR: customRequests.depositZAR,
+      depositPaidAt: customRequests.depositPaidAt,
+      balancePaidAt: customRequests.balancePaidAt,
+      etaText: customRequests.etaText,
+      createdAt: customRequests.createdAt,
+    })
+    .from(customRequests)
+    .leftJoin(categories, eq(categories.id, customRequests.categoryId))
+    .where(eq(customRequests.userId, userId))
+    .orderBy(desc(customRequests.createdAt));
+}
+
 /* ------------------------------------------------------------------ */
 /*  Testimonials (public = published only)                             */
 /* ------------------------------------------------------------------ */

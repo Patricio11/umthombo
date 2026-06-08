@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
+  Sparkles,
   MapPin,
   Settings,
   LogOut,
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/account", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/account/orders", label: "Orders", icon: Package },
+  { href: "/account/requests", label: "Custom requests", icon: Sparkles },
   { href: "/account/addresses", label: "Addresses", icon: MapPin },
   { href: "/account/settings", label: "Settings", icon: Settings },
 ];
