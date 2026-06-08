@@ -178,4 +178,9 @@ Turnstile, custom `Select`/`Checkbox`.
   (quote/decline/status transitions), one-tap WhatsApp to the client, client
   emails on every step, nav entry + dashboard pending count, and a read-only
   guest status page (`/custom/request/[token]`).
-- Phases 3–4 — pending.
+- **Phase 3 — done.** `startGatewayPayment` shared primitive; token-gated
+  `startCustomPayment`; Pay-deposit/Pay-balance on the status page; webhooks
+  branch on `metadata.customRequestId` → deposit→in_progress, balance→completed
+  (idempotent), with customer + admin emails.
+- Phase 4 — pending (logged-in "My requests" dashboard view; status page already
+  serves guests).
