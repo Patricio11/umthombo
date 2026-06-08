@@ -174,4 +174,8 @@ Turnstile, custom `Select`/`Checkbox`.
   `/custom/request` form (categories, spec fields, reference uploads); auto
   user-attach (`resolveOrCreateUser`); honeypot + Turnstile; admin + client
   emails; `/custom` leads with the form, WhatsApp secondary.
-- Phases 2–4 — pending.
+- **Phase 2 — done.** Admin list + detail with a context-aware Respond panel
+  (quote/decline/status transitions), one-tap WhatsApp to the client, client
+  emails on every step, nav entry + dashboard pending count, and a read-only
+  guest status page (`/custom/request/[token]`).
+- Phases 3–4 — pending.
