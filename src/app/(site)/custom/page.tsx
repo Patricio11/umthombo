@@ -130,7 +130,7 @@ export default async function CustomPage() {
                   </button>
                 }
               />
-              <
+              <a
                 href={whatsappCustom}
                 target="_blank"
                 rel="noopener noreferrer"
