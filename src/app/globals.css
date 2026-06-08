@@ -44,7 +44,10 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-feature-settings: "kern", "liga", "calt";
-    overflow-x: hidden;
+    /* `clip` (not `hidden`): clips horizontal overflow WITHOUT forcing
+       overflow-y to `auto`, which would make <body> a second scroll
+       container and fight Lenis (causes the "sticky/stuck" scroll). */
+    overflow-x: clip;
   }
 
   ::selection {
@@ -98,6 +101,8 @@
   html.lenis, html.lenis body { height: auto; }
   .lenis.lenis-smooth { scroll-behavior: auto !important; }
   .lenis.lenis-stopped { overflow: hidden; }
+  /* Keep nested scrollers (cart drawer body) from bubbling into the page. */
+  .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 }
 
 /* ------------------------------------------------------------------ */
@@ -162,8 +167,10 @@
   inset: 0;
   z-index: 60;
   pointer-events: none;
-  opacity: 0.04;
-  mix-blend-mode: multiply;
+  opacity: 0.045;
+  /* No mix-blend-mode: a blended full-screen fixed layer forces the browser to
+     re-blend the whole viewport every scroll frame (jank). At this opacity a
+     plain overlay reads the same but composites as a cheap static layer. */
 }
 
 /* ------------------------------------------------------------------ */
