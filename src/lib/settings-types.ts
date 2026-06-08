@@ -1,3 +1,5 @@
+import type { PaymentProvider } from "@/lib/integrations";
+
 /** Resolved site settings (DB overrides merged over data/site defaults).
  *  Client-safe  no server imports. */
 export interface SiteSettings {
@@ -13,4 +15,6 @@ export interface SiteSettings {
   whatsapp: { number: string; display: string; href: string };
   instagram: { handle: string; href: string; enabled: boolean };
   facebook: { handle: string; href: string; enabled: boolean };
+  /** Admin's preferred live payment gateway. null = auto (use whichever is on). */
+  paymentProvider: PaymentProvider | null;
 }

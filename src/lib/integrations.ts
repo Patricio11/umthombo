@@ -1,8 +1,11 @@
 /** Client-safe integration metadata, config shapes, and secret-field map.
  *  No server imports  shared by the admin forms and the server layer. */
 
-export type IntegrationKey = "bobgo" | "yetopay" | "resend" | "whatsapp";
+export type IntegrationKey = "bobgo" | "yetopay" | "yoco" | "resend" | "whatsapp";
 export type IntegrationCategory = "shipping" | "payment" | "email" | "channel";
+
+/** The online payment gateways (the admin picks which one is live). */
+export type PaymentProvider = "yetopay" | "yoco";
 
 export interface BobgoCollection {
   company: string;
@@ -31,6 +34,14 @@ export interface YetopayConfig {
   displayMode: "redirect" | "iframe";
 }
 
+/** Yoco Checkout API — far simpler than YetoPay (no merchant id / request HMAC).
+ *  `secretKey` (sk_test_… / sk_live_…) authenticates API calls; `webhookSecret`
+ *  (whsec_…) verifies incoming webhooks. */
+export interface YocoConfig {
+  secretKey: string;
+  webhookSecret: string;
+}
+
 export interface ResendConfig {
   apiKey: string;
   fromEmail: string;
@@ -41,6 +52,7 @@ export interface ResendConfig {
 export const SECRET_FIELDS: Record<IntegrationKey, string[]> = {
   bobgo: ["apiKey"],
   yetopay: ["apiKey", "apiSecret", "webhookSecret"],
+  yoco: ["secretKey", "webhookSecret"],
   resend: ["apiKey"],
   whatsapp: [],
 };
@@ -58,6 +70,11 @@ export const INTEGRATION_META: Record<
     name: "YetoEFT",
     category: "payment",
     blurb: "Take payment online  instant EFT and card via YetoPay.",
+  },
+  yoco: {
+    name: "Yoco",
+    category: "payment",
+    blurb: "Take card payments online via Yoco's hosted checkout.",
   },
   resend: {
     name: "Resend",

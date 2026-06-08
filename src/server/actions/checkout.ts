@@ -8,10 +8,13 @@ import { orders, orderItems, products } from "@/server/db/schema";
 import {
   getBobgoConfig,
   getYetopayConfig,
+  getYocoConfig,
   isIntegrationEnabled,
 } from "@/server/db/integrations";
 import { getRatesAtCheckout, type ShipItem } from "@/server/shipping/bobgo";
 import { createPaymentLink } from "@/server/payments/yetopay";
+import { createYocoCheckout } from "@/server/payments/yoco";
+import type { PaymentProvider } from "@/lib/integrations";
 import { getSiteSettings } from "@/server/db/settings";
 import { getOrderConfirmation } from "@/server/db/order-public";
 import { getCurrentUser } from "@/server/auth/guard";
@@ -275,9 +278,54 @@ export async function placeOrder(
     );
   }
 
-  // 1. Online payment (primary when configured).
-  const yeto = await getYetopayConfig();
-  if (yeto) {
+  // 1. Online payment. Two gateways can be configured + enabled at once; the
+  //    admin's chosen provider is live, with automatic fallback to the other
+  //    if the chosen one is off/unconfigured.
+  const [yeto, yoco, settings] = await Promise.all([
+    getYetopayConfig(),
+    getYocoConfig(),
+    getSiteSettings(),
+  ]);
+  const available: Record<PaymentProvider, unknown> = { yetopay: yeto, yoco };
+  const preferred = settings.paymentProvider;
+  const active: PaymentProvider | null =
+    preferred && available[preferred]
+      ? preferred
+      : yeto
+        ? "yetopay"
+        : yoco
+          ? "yoco"
+          : null;
+
+  if (active === "yoco" && yoco) {
+    const checkout = await createYocoCheckout(yoco, {
+      amountZAR: total,
+      reference: orderNumber,
+      successUrl: `${appUrl()}/checkout/success?order=${orderNumber}`,
+      cancelUrl: `${appUrl()}/checkout/cancelled?order=${orderNumber}`,
+      failureUrl: `${appUrl()}/checkout/cancelled?order=${orderNumber}`,
+      metadata: { orderId, orderNumber },
+    });
+    if (!checkout.ok || !checkout.redirectUrl) {
+      return { ok: false, error: checkout.error ?? "Couldn’t start payment." };
+    }
+    await db
+      .update(orders)
+      .set({
+        paymentProvider: "yoco",
+        paymentReference: checkout.checkoutId ?? null,
+      })
+      .where(eq(orders.id, orderId));
+    return {
+      ok: true,
+      mode: "payment",
+      redirectUrl: checkout.redirectUrl,
+      paymentDisplay: "redirect", // Yoco's hosted page is redirect-only
+      orderNumber,
+    };
+  }
+
+  if (active === "yetopay" && yeto) {
     const link = await createPaymentLink(yeto, {
       amountZAR: total,
       reference: orderNumber,

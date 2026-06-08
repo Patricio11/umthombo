@@ -44,6 +44,10 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
       href: pick(row?.facebookUrl, site.facebook.href),
       enabled: row?.facebookEnabled ?? true,
     },
+    paymentProvider:
+      row?.paymentProvider === "yoco" || row?.paymentProvider === "yetopay"
+        ? row.paymentProvider
+        : null,
   };
 });
 

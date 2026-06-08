@@ -20,6 +20,7 @@ import {
   updateIntegration,
   testIntegration,
   resetIntegration,
+  registerYocoWebhookAction,
 } from "@/server/actions/integrations";
 
 export function IntegrationForm({
@@ -35,7 +36,19 @@ export function IntegrationForm({
   const [pending, startTransition] = useTransition();
   const [testing, startTest] = useTransition();
   const [resetting, startReset] = useTransition();
+  const [registering, startRegister] = useTransition();
   const c = detail.config as Record<string, any>;
+
+  const onRegisterWebhook = () =>
+    startRegister(async () => {
+      const res = await registerYocoWebhookAction();
+      if (res.ok) {
+        toast.success(res.message);
+        router.refresh();
+      } else {
+        toast.error(res.message);
+      }
+    });
 
   const onTest = () =>
     startTest(async () => {
@@ -89,6 +102,7 @@ export function IntegrationForm({
     apiKey: "",
     apiSecret: "",
     webhookSecret: "",
+    secretKey: "",
   });
   const set = (k: keyof typeof f, v: string) => setF((s) => ({ ...s, [k]: v }));
 
@@ -118,6 +132,11 @@ export function IntegrationForm({
         webhookSecret: secrets.webhookSecret,
         paymentMethod,
         displayMode,
+      };
+    } else if (detail.key === "yoco") {
+      config = {
+        secretKey: secrets.secretKey,
+        webhookSecret: secrets.webhookSecret,
       };
     } else if (detail.key === "resend") {
       config = {
@@ -303,6 +322,69 @@ export function IntegrationForm({
             hint="Add this URL in YetoPay → Settings → Webhooks (subscribe to all events)."
             url={`${appUrl}/api/webhooks/yetopay`}
           />
+        </>
+      )}
+
+      {/* Yoco */}
+      {detail.key === "yoco" && (
+        <>
+          <Card className="space-y-5">
+            <h2 className="font-display text-lg">Credentials</h2>
+            <Field
+              label="Secret key"
+              hint="Yoco dashboard → Sell online → Payment gateway → API keys (starts with sk_)"
+            >
+              <Input
+                type="password"
+                value={secrets.secretKey}
+                onChange={(e) =>
+                  setSecrets((s) => ({ ...s, secretKey: e.target.value }))
+                }
+                placeholder={secretPlaceholder("secretKey")}
+                autoComplete="off"
+              />
+            </Field>
+            <Field
+              label="Webhook signing secret"
+              hint="Set automatically by “Register webhook” below — or paste a whsec_… value."
+            >
+              <Input
+                type="password"
+                value={secrets.webhookSecret}
+                onChange={(e) =>
+                  setSecrets((s) => ({ ...s, webhookSecret: e.target.value }))
+                }
+                placeholder={secretPlaceholder("webhookSecret")}
+                autoComplete="off"
+              />
+            </Field>
+          </Card>
+
+          <Card className="space-y-3">
+            <h2 className="font-display text-lg">Payment webhook</h2>
+            <p className="text-xs text-ink-soft">
+              Save your secret key first, then register this URL with Yoco — the
+              signing secret is fetched and stored automatically. Click once.
+            </p>
+            <div className="flex items-center gap-2 rounded-xl border border-cream-3 bg-cream-2/50 px-3 py-2.5">
+              <code className="min-w-0 flex-1 truncate text-xs text-ink">
+                {`${appUrl}/api/webhooks/yoco`}
+              </code>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onRegisterWebhook}
+              disabled={registering}
+            >
+              {registering ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Plug size={16} />
+              )}
+              Register webhook
+            </Button>
+          </Card>
         </>
       )}
 

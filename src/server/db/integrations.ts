@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { asc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import { integrations } from "@/server/db/schema";
 import {
@@ -10,6 +10,7 @@ import {
   type IntegrationCategory,
   type BobgoConfig,
   type YetopayConfig,
+  type YocoConfig,
   type ResendConfig,
 } from "@/lib/integrations";
 
@@ -50,6 +51,10 @@ export function isConfigured(key: IntegrationKey, config: Cfg): boolean {
     case "yetopay": {
       const c = config as Partial<YetopayConfig>;
       return !!(c.baseUrl && c.apiKey && c.apiSecret && c.merchantId);
+    }
+    case "yoco": {
+      const c = config as Partial<YocoConfig>;
+      return !!c.secretKey;
     }
     case "resend": {
       const c = config as Partial<ResendConfig>;
@@ -106,6 +111,17 @@ export async function getYetopayConfig(): Promise<YetopayConfig | null> {
   };
 }
 
+export async function getYocoConfig(): Promise<YocoConfig | null> {
+  const row = await getIntegrationRow("yoco");
+  if (!row?.enabled) return null;
+  const c = (row.config ?? {}) as Partial<YocoConfig>;
+  if (!isConfigured("yoco", c)) return null;
+  return {
+    secretKey: str(c.secretKey),
+    webhookSecret: str(c.webhookSecret),
+  };
+}
+
 export async function getResendConfig(): Promise<ResendConfig | null> {
   const row = await getIntegrationRow("resend");
   if (!row?.enabled) return null;
@@ -130,22 +146,26 @@ export interface AdminIntegrationListItem {
 }
 
 export async function getAdminIntegrations(): Promise<AdminIntegrationListItem[]> {
-  const rows = await db
-    .select()
-    .from(integrations)
-    .orderBy(asc(integrations.category), asc(integrations.name));
-  return rows.map((r) => toListItem(r));
-}
-
-function toListItem(r: Row): AdminIntegrationListItem {
-  const key = r.key as IntegrationKey;
-  return {
-    key,
-    name: r.name,
-    category: r.category as IntegrationCategory,
-    enabled: r.enabled,
-    configured: isConfigured(key, (r.config ?? {}) as Cfg),
-  };
+  const rows = await db.select().from(integrations);
+  const byKey = new Map(rows.map((r) => [r.key as IntegrationKey, r]));
+  // Drive off INTEGRATION_META so a newly added integration shows up even
+  // before its DB row exists (created on first save).
+  return (Object.keys(INTEGRATION_META) as IntegrationKey[])
+    .map((key) => {
+      const r = byKey.get(key);
+      const meta = INTEGRATION_META[key];
+      return {
+        key,
+        name: meta.name,
+        category: meta.category,
+        enabled: r?.enabled ?? false,
+        configured: isConfigured(key, (r?.config ?? {}) as Cfg),
+      };
+    })
+    .sort(
+      (a, b) =>
+        a.category.localeCompare(b.category) || a.name.localeCompare(b.name)
+    );
 }
 
 export interface AdminIntegrationDetail {
@@ -162,8 +182,20 @@ export interface AdminIntegrationDetail {
 export async function getAdminIntegration(
   key: IntegrationKey
 ): Promise<AdminIntegrationDetail | null> {
+  if (!(key in INTEGRATION_META)) return null;
   const row = await getIntegrationRow(key);
-  if (!row) return null;
+  // No row yet (e.g. a newly added integration) → a blank, editable default.
+  if (!row) {
+    const meta = INTEGRATION_META[key];
+    return {
+      key,
+      name: meta.name,
+      category: meta.category,
+      enabled: false,
+      config: {},
+      secretsSet: {},
+    };
+  }
   const full = (row.config ?? {}) as Cfg;
   const secrets = SECRET_FIELDS[key];
   const safe: Cfg = {};

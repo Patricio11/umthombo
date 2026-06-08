@@ -3,18 +3,26 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
-import { integrations } from "@/server/db/schema";
+import { integrations, settings } from "@/server/db/schema";
 import { requireAdmin } from "@/server/auth/guard";
 import {
   SECRET_FIELDS,
+  INTEGRATION_META,
   type IntegrationKey,
+  type PaymentProvider,
   type BobgoConfig,
   type YetopayConfig,
+  type YocoConfig,
   type ResendConfig,
 } from "@/lib/integrations";
 import { getRatesAtCheckout } from "@/server/shipping/bobgo";
 import { createPaymentLink } from "@/server/payments/yetopay";
+import { createYocoCheckout, registerYocoWebhook } from "@/server/payments/yoco";
 import { sendEmailWith } from "@/server/email/resend";
+import { site } from "@/data/site";
+
+const appUrl = () =>
+  (process.env.NEXT_PUBLIC_APP_URL || site.url).replace(/\/+$/, "");
 
 export interface ActionResult {
   ok: boolean;
@@ -27,7 +35,13 @@ export interface TestResult {
 }
 
 type Cfg = Record<string, unknown>;
-const KEYS = new Set<IntegrationKey>(["bobgo", "yetopay", "resend", "whatsapp"]);
+const KEYS = new Set<IntegrationKey>([
+  "bobgo",
+  "yetopay",
+  "yoco",
+  "resend",
+  "whatsapp",
+]);
 
 const pick = (...vals: unknown[]): string => {
   for (const v of vals) if (typeof v === "string" && v.trim()) return v.trim();
@@ -48,15 +62,25 @@ export async function updateIntegration(
     .from(integrations)
     .where(eq(integrations.key, k))
     .limit(1);
-  if (!row) return { ok: false, error: "Integration not found." };
 
-  const existing = (row.config ?? {}) as Cfg;
+  const existing = (row?.config ?? {}) as Cfg;
   const merged = mergeConfig(k, existing, input.config ?? {});
+  const meta = INTEGRATION_META[k];
 
+  // Upsert — creates the row if this integration has never been saved before.
   await db
-    .update(integrations)
-    .set({ enabled: !!input.enabled, config: merged })
-    .where(eq(integrations.key, k));
+    .insert(integrations)
+    .values({
+      key: k,
+      name: meta.name,
+      category: meta.category,
+      enabled: !!input.enabled,
+      config: merged,
+    })
+    .onConflictDoUpdate({
+      target: integrations.key,
+      set: { enabled: !!input.enabled, config: merged },
+    });
 
   revalidatePath("/", "layout");
   return { ok: true };
@@ -182,6 +206,23 @@ export async function testIntegration(key: string): Promise<TestResult> {
         : { ok: false, message: link.error ?? "YetoPay rejected the request." };
     }
 
+    if (key === "yoco") {
+      const config: YocoConfig = {
+        secretKey: sval(c.secretKey),
+        webhookSecret: sval(c.webhookSecret),
+      };
+      if (!config.secretKey)
+        return { ok: false, message: "Add your Yoco secret key, then save and test." };
+      // Creating a checkout doesn't charge anything — it just proves the key works.
+      const checkout = await createYocoCheckout(config, {
+        amountZAR: 1,
+        reference: `TEST-${Date.now()}`,
+      });
+      return checkout.ok
+        ? { ok: true, message: "Connected - Yoco accepted your secret key." }
+        : { ok: false, message: checkout.error ?? "Yoco rejected the request." };
+    }
+
     if (key === "resend") {
       const config: ResendConfig = {
         apiKey: sval(c.apiKey),
@@ -207,6 +248,55 @@ export async function testIntegration(key: string): Promise<TestResult> {
       return { ok: false, message: "Authentication failed - check the API key/secret." };
     return { ok: false, message: msg.slice(0, 200) };
   }
+}
+
+/**
+ * Register our webhook URL with Yoco and store the returned signing secret.
+ * Yoco returns the secret only once, so we save it immediately. Requires the
+ * secret key to be saved first.
+ */
+export async function registerYocoWebhookAction(): Promise<TestResult> {
+  await requireAdmin();
+  const [row] = await db
+    .select()
+    .from(integrations)
+    .where(eq(integrations.key, "yoco"))
+    .limit(1);
+  if (!row) return { ok: false, message: "Integration not found." };
+  const c = (row.config ?? {}) as Cfg;
+  const secretKey = sval(c.secretKey);
+  if (!secretKey)
+    return { ok: false, message: "Add your Yoco secret key and save it first." };
+
+  const res = await registerYocoWebhook(secretKey, `${appUrl()}/api/webhooks/yoco`);
+  if (!res.ok || !res.secret)
+    return { ok: false, message: res.error ?? "Yoco rejected the request." };
+
+  await db
+    .update(integrations)
+    .set({ config: { ...c, webhookSecret: res.secret } })
+    .where(eq(integrations.key, "yoco"));
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Webhook registered - signing secret saved." };
+}
+
+/** Choose which payment gateway is live. null = auto (use whichever is on). */
+export async function setPaymentProvider(
+  provider: PaymentProvider | null
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (provider !== null && provider !== "yetopay" && provider !== "yoco") {
+    return { ok: false, error: "Unknown provider." };
+  }
+  await db
+    .insert(settings)
+    .values({ id: "site", paymentProvider: provider })
+    .onConflictDoUpdate({
+      target: settings.id,
+      set: { paymentProvider: provider },
+    });
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 function mergeConfig(key: IntegrationKey, existing: Cfg, incoming: Cfg): Cfg {
@@ -246,6 +336,9 @@ function mergeConfig(key: IntegrationKey, existing: Cfg, incoming: Cfg): Cfg {
     setStr("merchantId");
     out.paymentMethod = incoming.paymentMethod === "card" ? "card" : "eft_direct";
     out.displayMode = incoming.displayMode === "iframe" ? "iframe" : "redirect";
+  } else if (key === "yoco") {
+    setStr("secretKey");
+    setStr("webhookSecret");
   } else if (key === "resend") {
     setStr("apiKey");
     setStr("fromEmail", 160);
