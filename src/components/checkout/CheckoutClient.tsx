@@ -492,7 +492,7 @@ export function CheckoutClient({
                       {ratesLoading && (
                         <Loader2 size={16} className="animate-spin" />
                       )}
-                      {ratesLoading ? "Finding couriers…" : "Proceed"}
+                      {ratesLoading ? "Finding couriers…" : "Continue"}
                     </Button>
                   )}
                   {ratesError && (
@@ -704,6 +704,8 @@ function PaymentFrame({
   onFailed: (status: string) => void;
   onClose: () => void;
 }) {
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
     let origin: string | null = null;
     try {
@@ -742,12 +744,30 @@ function PaymentFrame({
             <X size={18} />
           </button>
         </header>
-        <iframe
-          src={url}
-          title="YetoPay Payment"
-          allow="payment"
-          className="h-[680px] max-h-[80dvh] w-full bg-white"
-        />
+        <div className="relative h-[680px] max-h-[80dvh] w-full">
+          {!loaded && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-cream px-6 text-center">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-olive/10 text-olive">
+                <Loader2 size={24} className="animate-spin" />
+              </span>
+              <div>
+                <p className="font-display text-lg text-ink">
+                  Opening secure payment…
+                </p>
+                <p className="mt-1 text-sm text-ink-soft">
+                  Connecting you to the payment provider. This takes a moment.
+                </p>
+              </div>
+            </div>
+          )}
+          <iframe
+            src={url}
+            title="Secure payment"
+            allow="payment"
+            onLoad={() => setLoaded(true)}
+            className="h-full w-full bg-white"
+          />
+        </div>
       </div>
     </div>
   );
