@@ -755,7 +755,7 @@ function PaymentFrame({
                   Opening secure payment…
                 </p>
                 <p className="mt-1 text-sm text-ink-soft">
-                  Connecting you to the payment provider. This takes a moment.
+                  Connecting you to the payment provider.
                 </p>
               </div>
             </div>
