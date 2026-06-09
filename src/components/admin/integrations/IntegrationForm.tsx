@@ -346,7 +346,7 @@ export function IntegrationForm({
             </Field>
             <Field
               label="Webhook signing secret"
-              hint="Set automatically by “Register webhook” below — or paste a whsec_… value."
+              hint="Set automatically by “Register webhook” below - or paste a whsec_… value."
             >
               <Input
                 type="password"
@@ -363,7 +363,7 @@ export function IntegrationForm({
           <Card className="space-y-3">
             <h2 className="font-display text-lg">Payment webhook</h2>
             <p className="text-xs text-ink-soft">
-              Save your secret key first, then register this URL with Yoco — the
+              Save your secret key first, then register this URL with Yoco - the
               signing secret is fetched and stored automatically. Click once.
             </p>
             <div className="flex items-center gap-2 rounded-xl border border-cream-3 bg-cream-2/50 px-3 py-2.5">

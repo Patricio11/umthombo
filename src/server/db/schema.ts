@@ -326,7 +326,7 @@ export const customRequests = pgTable("custom_requests", {
   email: text("email").notNull(),
   phone: text("phone").notNull(),
 
-  // What they'd like — friendly type (preset or free-typed "Other")
+  // What they'd like - friendly type (preset or free-typed "Other")
   requestType: text("request_type"),
   // Legacy: kept nullable for old rows; no longer used (see requestType).
   categoryId: uuid("category_id").references(() => categories.id, {

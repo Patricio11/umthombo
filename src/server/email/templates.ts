@@ -214,17 +214,17 @@ export function customRequestReceivedEmail(d: CustomRequestEmailData): {
   html: string;
 } {
   const account = d.isNewAccount
-    ? `<p style="margin:16px 0 0;font-size:13px;color:${SOFT};">We’ve set up an account so you can track this request — check your inbox for a link to set your password.</p>`
+    ? `<p style="margin:16px 0 0;font-size:13px;color:${SOFT};">We’ve set up an account so you can track this request - check your inbox for a link to set your password.</p>`
     : "";
   return {
     subject: `We’ve got your request ${d.requestNumber}`,
     html: layout(
       "Your request is in",
-      `Hi ${escapeHtml(firstName(d.customerName))}, thank you — we’ll review your idea and come back with a quote.`,
+      `Hi ${escapeHtml(firstName(d.customerName))}, thank you - we’ll review your idea and come back with a quote.`,
       `<div style="font-size:13px;color:${SOFT};">Request ${escapeHtml(d.requestNumber)}</div>
        <p style="margin:8px 0 4px;font-size:16px;color:${INK};">${escapeHtml(d.title)}</p>
        <p style="margin:0 0 16px;font-size:13px;color:${SOFT};">${escapeHtml(d.requestType)}</p>
-       <p style="margin:0 0 14px;font-size:14px;color:${INK};line-height:1.6;">If accepted, a deposit may apply — it’s always deducted from your total.</p>
+       <p style="margin:0 0 14px;font-size:14px;color:${INK};line-height:1.6;">If accepted, a deposit may apply - it’s always deducted from your total.</p>
        ${ctaButton(d.statusUrl, "Track your request")}
        ${account}`
     ),
@@ -242,7 +242,7 @@ export function customRequestAdminEmail(d: {
   adminUrl: string;
 }): { subject: string; html: string } {
   return {
-    subject: `New custom request ${d.requestNumber} — ${d.title}`,
+    subject: `New custom request ${d.requestNumber} - ${d.title}`,
     html: layout(
       "New custom request",
       `${escapeHtml(d.customerName)} would like a bespoke piece.`,
@@ -264,7 +264,7 @@ export function customRequestPaidAdminEmail(d: {
   adminUrl: string;
 }): { subject: string; html: string } {
   return {
-    subject: `${d.kind} paid — ${d.requestNumber}`,
+    subject: `${d.kind} paid - ${d.requestNumber}`,
     html: layout(
       `${d.kind} paid 🎉`,
       `${escapeHtml(d.customerName)} has paid the ${d.kind.toLowerCase()} for ${escapeHtml(d.requestNumber)}.`,
@@ -280,7 +280,7 @@ function whatsappLink(href: string | null | undefined): string {
   return `<p style="margin:18px 0 0;font-size:13px;color:${SOFT};">Questions? <a href="${href}" style="color:${OLIVE};">Chat with us on WhatsApp</a>.</p>`;
 }
 
-/** Quote accepted — price, ETA and (optional) deposit. */
+/** Quote accepted - price, ETA and (optional) deposit. */
 export function customRequestQuotedEmail(d: {
   requestNumber: string;
   customerName: string;
@@ -333,7 +333,7 @@ export function customRequestDeclinedEmail(d: {
     html: layout(
       "About your request",
       `Hi ${escapeHtml(firstName(d.customerName))}, thank you for thinking of us for “${escapeHtml(d.title)}”.`,
-      `<p style="margin:0 0 14px;font-size:14px;color:${INK};line-height:1.6;">We’re sorry — we can’t take this one on right now.</p>
+      `<p style="margin:0 0 14px;font-size:14px;color:${INK};line-height:1.6;">We’re sorry - we can’t take this one on right now.</p>
        <p style="margin:0;font-size:14px;color:${INK};line-height:1.6;"><span style="color:${SOFT};">Reason:</span> ${escapeHtml(d.reason)}</p>
        ${whatsappLink(d.whatsappHref)}`
     ),

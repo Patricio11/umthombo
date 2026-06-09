@@ -3,7 +3,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 
 /**
- * Cloudflare Turnstile — an invisible "are you human?" check. Renders nothing
+ * Cloudflare Turnstile - an invisible "are you human?" check. Renders nothing
  * (and stays out of the way) unless NEXT_PUBLIC_TURNSTILE_SITE_KEY is set, so
  * the forms work fine before keys are configured. On success it hands a token
  * to `onVerify`; pass that token to Better Auth as the `x-captcha-response`

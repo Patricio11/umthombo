@@ -76,12 +76,12 @@ export async function createYocoCheckout(
 export interface RegisterWebhookResult {
   ok: boolean;
   error?: string;
-  secret?: string; // whsec_… — returned ONCE by Yoco
+  secret?: string; // whsec_… - returned ONCE by Yoco
 }
 
 /**
  * Register (subscribe) our webhook URL with Yoco. The response contains the
- * signing secret, which Yoco returns only once — we store it immediately.
+ * signing secret, which Yoco returns only once - we store it immediately.
  */
 export async function registerYocoWebhook(
   secretKey: string,
@@ -141,7 +141,7 @@ export function verifyYocoWebhook(
   const { id, timestamp, signature } = headers;
   if (!id || !timestamp || !signature || !webhookSecret) return false;
 
-  // Replay protection — timestamp within ±5 minutes.
+  // Replay protection - timestamp within ±5 minutes.
   const ts = Number(timestamp);
   if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 300) return false;
 
@@ -162,7 +162,7 @@ export function verifyYocoWebhook(
     .digest("base64");
   const expectedBuf = Buffer.from(expected);
 
-  // Header may carry multiple "v1,<sig>" entries — any match passes.
+  // Header may carry multiple "v1,<sig>" entries - any match passes.
   return signature.split(" ").some((part) => {
     const sig = part.includes(",") ? part.split(",")[1] : part;
     if (!sig) return false;

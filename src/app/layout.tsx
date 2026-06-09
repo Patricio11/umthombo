@@ -5,7 +5,7 @@ import { bricolage, hanken } from "@/lib/fonts";
 import { site } from "@/data/site";
 
 const DESCRIPTION =
-  "Handcrafted candles, soaps, body care and diffusers — made in Cape Town, delivered across South Africa. Eco-conscious, fully customisable, made with love and inspired by nature.";
+  "Handcrafted candles, soaps, body care and diffusers - made in Cape Town, delivered across South Africa. Eco-conscious, fully customisable, made with love and inspired by nature.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     url: site.url,
     title: `${site.name} - ${site.tagline}`,
     description:
-      "Handcrafted candles, soaps, body care and diffusers — made in Cape Town, delivered across South Africa. Made with love and inspired by nature.",
+      "Handcrafted candles, soaps, body care and diffusers - made in Cape Town, delivered across South Africa. Made with love and inspired by nature.",
     siteName: site.name,
   },
   twitter: {

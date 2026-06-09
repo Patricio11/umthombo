@@ -4,7 +4,7 @@ import { HONEYPOT_NAME } from "@/lib/honeypot";
  * Visually-hidden decoy field. Positioned off-screen (not `display:none`, which
  * some bots skip), hidden from assistive tech and removed from the tab order so
  * a real person never reaches it. Bots that auto-fill every field will populate
- * it — the server then rejects the submission.
+ * it - the server then rejects the submission.
  */
 export function Honeypot({
   value,

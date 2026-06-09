@@ -289,7 +289,7 @@ export async function placeOrder(
   const available: Record<PaymentProvider, unknown> = { yetopay: yeto, yoco };
   const preferred = settings.paymentProvider;
   // The customer's pick is only honoured when the admin offers a choice and the
-  // gateway is actually ready — otherwise fall back to the admin's default.
+  // gateway is actually ready - otherwise fall back to the admin's default.
   const chosen = input.paymentProvider;
   const active: PaymentProvider | null =
     settings.offerBothGateways && chosen && available[chosen]

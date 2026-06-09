@@ -33,7 +33,7 @@ export interface StartPaymentResult {
 
 /**
  * Start a payment on the active gateway (admin's pick, else first ready one).
- * A generic primitive — used for custom-request deposits and balances. The
+ * A generic primitive - used for custom-request deposits and balances. The
  * gateway webhook (matched by `metadata`) is authoritative for "paid".
  */
 export async function startGatewayPayment(

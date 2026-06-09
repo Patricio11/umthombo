@@ -65,7 +65,7 @@ export default async function CustomRequestStatusPage({
 
         {paid && (
           <p className="mt-6 rounded-xl bg-olive/12 px-4 py-3 text-sm text-olive">
-            Payment received — thank you! We’re confirming it now; this page
+            Payment received - thank you! We’re confirming it now; this page
             updates in a moment.
           </p>
         )}
@@ -113,7 +113,7 @@ export default async function CustomRequestStatusPage({
             )}
             {r.balancePaidAt && (
               <p className="mt-4 rounded-xl bg-olive/12 px-4 py-3 text-sm text-olive">
-                Paid in full — thank you. ✓
+                Paid in full - thank you. ✓
               </p>
             )}
           </div>

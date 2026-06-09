@@ -47,7 +47,7 @@ function LoginForm() {
     );
     setLoading(false);
     if (error) {
-      // Used tokens are single-use — get a fresh one for the next attempt.
+      // Used tokens are single-use - get a fresh one for the next attempt.
       captchaRef.current?.reset();
       setCaptcha(null);
       if (error.status === 403 || /verif/i.test(error.message || "")) {

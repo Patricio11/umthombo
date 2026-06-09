@@ -51,7 +51,7 @@ export async function handleCustomPaymentPaid(
       requestNumber: row.requestNumber,
       customerName: row.name,
       title: row.title,
-      heading: "Deposit received — we’re on it",
+      heading: "Deposit received - we’re on it",
       message:
         "Thank you! We’ve received your deposit and started work on your custom piece. We’ll let you know when it’s ready.",
       statusUrl,
@@ -87,7 +87,7 @@ export async function handleCustomPaymentPaid(
     requestNumber: row.requestNumber,
     customerName: row.name,
     title: row.title,
-    heading: "Payment complete — thank you",
+    heading: "Payment complete - thank you",
     message:
       "Your balance is settled and your custom order is complete. Thank you for letting us make something special for you.",
     statusUrl,

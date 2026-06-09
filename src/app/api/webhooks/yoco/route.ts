@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     event?.id ||
     `${type ?? "event"}:${paymentId ?? orderNumber ?? raw.length}`;
 
-  // Custom-request payment (deposit/balance) — separate from order fulfilment.
+  // Custom-request payment (deposit/balance) - separate from order fulfilment.
   if (meta.customRequestId) {
     const inserted = await db
       .insert(paymentEvents)

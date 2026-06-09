@@ -1,7 +1,7 @@
-# Bot & Spam Protection — Reusable Blueprint
+# Bot & Spam Protection - Reusable Blueprint
 
 A portable, layered recipe for protecting **login / register / password-reset /
-checkout** (and any sensitive form) from bots and spam — without annoying real
+checkout** (and any sensitive form) from bots and spam - without annoying real
 users. Copy the files, wire the forms, add two env keys. Done.
 
 Built for **Next.js (App Router) + Better Auth**, but the honeypot half is
@@ -10,7 +10,7 @@ stacks / auth libraries.
 
 ---
 
-## 1. Philosophy — defence in layers
+## 1. Philosophy - defence in layers
 
 No single control stops everything. Stack cheap-and-broad with
 strong-and-targeted so each layer covers the previous one's gap:
@@ -27,7 +27,7 @@ strong-and-targeted so each layer covers the previous one's gap:
 closes the honeypot's "direct API call" gap. Use both.
 
 > **Don't protect what isn't exposed.** A "contact form" that only opens a
-> `mailto:`/WhatsApp deep link client-side has **no server endpoint** — a bot
+> `mailto:`/WhatsApp deep link client-side has **no server endpoint** - a bot
 > can't abuse it. Audit each form for an actual server write/email/payment
 > before adding friction.
 
@@ -35,7 +35,7 @@ closes the honeypot's "direct API call" gap. Use both.
 
 ## 2. What you need
 
-- **Rate limiting** — Better Auth has it built in (see §6). If you're not on
+- **Rate limiting** - Better Auth has it built in (see §6). If you're not on
   Better Auth, add your own (e.g. Upstash Ratelimit) on the sensitive routes.
 - **Cloudflare account** (free) for Turnstile keys.
 - Everything is **gated on env keys**: with no keys set, forms work normally
@@ -58,7 +58,7 @@ bots. If it comes back non-empty → reject.
  */
 export const HONEYPOT_NAME = "company_website";
 
-/** True when the honeypot was filled — treat the submission as a bot. */
+/** True when the honeypot was filled - treat the submission as a bot. */
 export function isHoneypotFilled(value: unknown): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }
@@ -72,7 +72,7 @@ import { HONEYPOT_NAME } from "@/lib/honeypot";
 /**
  * Visually-hidden decoy field. Positioned off-screen (NOT `display:none`, which
  * some bots skip), hidden from assistive tech and removed from the tab order so
- * a real person never reaches it. Bots that auto-fill every field populate it —
+ * a real person never reaches it. Bots that auto-fill every field populate it -
  * the server then rejects the submission.
  */
 export function Honeypot({
@@ -113,7 +113,7 @@ still "present" enough that form-fillers take the bait.
 
 ---
 
-## 4. The CAPTCHA — Cloudflare Turnstile widget
+## 4. The CAPTCHA - Cloudflare Turnstile widget
 
 Invisible "are you human?" check. Renders **nothing** unless a site key is set,
 so the form works before keys exist. On success it yields a token you send to
@@ -127,7 +127,7 @@ your server for verification.
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 
 /**
- * Cloudflare Turnstile — an invisible "are you human?" check. Renders nothing
+ * Cloudflare Turnstile - an invisible "are you human?" check. Renders nothing
  * unless NEXT_PUBLIC_TURNSTILE_SITE_KEY is set, so forms work before keys are
  * configured. On success it hands a token to `onVerify`; send that token to the
  * server (Better Auth: as the `x-captcha-response` header). The server only
@@ -230,7 +230,7 @@ export const Turnstile = forwardRef<
 - Callbacks held in **refs** so passing inline `onVerify`/`onExpire` doesn't
   re-render the widget on every parent render (empty `useEffect` deps).
 - **Tokens are single-use.** After a failed submit, call `ref.reset()` and clear
-  your token state to get a fresh one — the integration below does this.
+  your token state to get a fresh one - the integration below does this.
 - `appearance: "interaction-only"` keeps it invisible unless a real challenge is
   needed.
 
@@ -264,7 +264,7 @@ function MyForm() {
     );
 
     if (error) {
-      captchaRef.current?.reset(); // single-use token — refresh it
+      captchaRef.current?.reset(); // single-use token - refresh it
       setCaptcha(null);
       // ...show error
     }
@@ -290,9 +290,9 @@ password check after the honeypot drop.)
 
 ---
 
-## 6. Server side — Better Auth
+## 6. Server side - Better Auth
 
-### 6a. Rate limiting (already strong — keep it)
+### 6a. Rate limiting (already strong - keep it)
 
 ```ts
 // src/server/auth/auth.ts
@@ -358,7 +358,7 @@ server-side. Add the field to your schema and reject early:
 // schema
 export const createPendingOrderSchema = z.object({
   // ...real fields...
-  hp: z.string().optional(), // honeypot — must stay empty
+  hp: z.string().optional(), // honeypot - must stay empty
 });
 
 // action
@@ -388,8 +388,8 @@ NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 TURNSTILE_SECRET_KEY=
 ```
 
-- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` — public, used by the widget in the browser.
-- `TURNSTILE_SECRET_KEY` — server-only; its presence is what turns on
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` - public, used by the widget in the browser.
+- `TURNSTILE_SECRET_KEY` - server-only; its presence is what turns on
   *enforcement*.
 
 ---
@@ -400,11 +400,11 @@ TURNSTILE_SECRET_KEY=
 2. Add your domain(s). Add `localhost` too if you want to test locally.
 3. Widget mode: **Managed** (recommended) or **Invisible**.
 4. Copy the **Site Key** and **Secret Key**.
-5. Put them in your env (locally in `.env`, in prod in your host's env vars —
+5. Put them in your env (locally in `.env`, in prod in your host's env vars -
    e.g. Vercel → Settings → Environment Variables).
 6. Redeploy. Enforcement turns on because the secret key is now present.
 
-**Cloudflare test keys** (always pass/fail/force-challenge — handy for dev):
+**Cloudflare test keys** (always pass/fail/force-challenge - handy for dev):
 - Site key always-passes: `1x00000000000000000000AA`
 - Secret key always-passes: `1x0000000000000000000000000000000AA`
 - More at the Turnstile docs ("Testing" section).
@@ -429,10 +429,10 @@ TURNSTILE_SECRET_KEY=
 
 ## 10. Generalising beyond Better Auth
 
-**Honeypot** is already portable — the lib + component work anywhere. Enforce
+**Honeypot** is already portable - the lib + component work anywhere. Enforce
 `isHoneypotFilled()` in whatever handles your POST.
 
-**Turnstile without the Better Auth plugin** — verify the token yourself in any
+**Turnstile without the Better Auth plugin** - verify the token yourself in any
 server route:
 
 ```ts
@@ -457,7 +457,7 @@ async function verifyTurnstile(token: string, ip?: string): Promise<boolean> {
 ```
 
 Send the token from the client however you like (header or body) and gate the
-handler on `verifyTurnstile()`. Same idea for **hCaptcha** / **reCAPTCHA** — only
+handler on `verifyTurnstile()`. Same idea for **hCaptcha** / **reCAPTCHA** - only
 the verify URL and field names differ.
 
 ---
@@ -481,7 +481,7 @@ src/server/actions/checkout.ts        # server-enforced honeypot
 
 ## 12. Decisions & trade-offs (the honest bit)
 
-- **Honeypot on auth forms is a client-side drop** — a bot POSTing directly to
+- **Honeypot on auth forms is a client-side drop** - a bot POSTing directly to
   the API bypasses it. That's fine: **Turnstile (server-verified) is the layer
   that catches those.** The honeypot's value is (a) free protection *before* you
   set up Cloudflare and (b) genuine server-side enforcement on your own actions

@@ -111,7 +111,7 @@ export async function createCustomRequest(
     return { ok: false, error: "Couldn’t save your request. Please try again." };
   }
 
-  // Notifications (best-effort — never block the submission).
+  // Notifications (best-effort - never block the submission).
   const statusUrl = `${appUrl()}/custom/request/${statusToken}`;
   const settings = await getSiteSettings();
   const clientMail = customRequestReceivedEmail({
@@ -174,7 +174,7 @@ export async function uploadReferenceImage(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Payments (public — capability is the status token)                 */
+/*  Payments (public - capability is the status token)                 */
 /* ------------------------------------------------------------------ */
 export interface StartPaymentActionResult {
   ok: boolean;
@@ -366,7 +366,7 @@ const STATUS_EMAIL: Record<string, { heading: string; message: string }> = {
       "Your custom piece is ready! You can settle the balance from your request page below, and we’ll arrange delivery or collection.",
   },
   completed: {
-    heading: "All done — thank you",
+    heading: "All done - thank you",
     message:
       "Your custom order is complete. Thank you for letting us make something special for you.",
   },

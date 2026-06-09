@@ -47,7 +47,7 @@ function LoginForm() {
     <main className="flex min-h-dvh items-center justify-center bg-cream-2 px-5 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <Link href="/" aria-label="Umthombo Creations — home" className="text-olive">
+          <Link href="/" aria-label="Umthombo Creations - home" className="text-olive">
             <Logo animate />
           </Link>
           <h1 className="mt-6 font-display text-3xl">Umthombo Admin</h1>

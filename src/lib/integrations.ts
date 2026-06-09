@@ -58,7 +58,7 @@ export interface YetopayConfig {
   displayMode: "redirect" | "iframe";
 }
 
-/** Yoco Checkout API — far simpler than YetoPay (no merchant id / request HMAC).
+/** Yoco Checkout API - far simpler than YetoPay (no merchant id / request HMAC).
  *  `secretKey` (sk_test_… / sk_live_…) authenticates API calls; `webhookSecret`
  *  (whsec_…) verifies incoming webhooks. */
 export interface YocoConfig {

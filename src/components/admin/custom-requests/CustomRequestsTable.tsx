@@ -59,7 +59,7 @@ export function CustomRequestsTable({
       align: "right",
       cell: (r) => (
         <span className="tabular-nums text-ink-soft">
-          {r.quotedPriceZAR != null ? formatZAR(r.quotedPriceZAR) : "—"}
+          {r.quotedPriceZAR != null ? formatZAR(r.quotedPriceZAR) : "-"}
         </span>
       ),
     },

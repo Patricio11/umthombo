@@ -32,7 +32,7 @@ export const createPendingOrderSchema = z
     createAccount: z.boolean().optional().default(false),
     saveAddress: z.boolean().optional().default(false),
     items: z.array(checkoutItemSchema).min(1, "Your selection is empty."),
-    // Honeypot — must stay empty; a value means a bot filled the decoy field.
+    // Honeypot - must stay empty; a value means a bot filled the decoy field.
     hp: z.string().optional(),
     // Customer's chosen gateway (only honoured when the admin offers a choice).
     paymentProvider: z.enum(["yetopay", "yoco"]).optional(),

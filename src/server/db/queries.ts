@@ -205,7 +205,7 @@ export async function getRelatedProducts(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Custom request — public status (by token)                          */
+/*  Custom request - public status (by token)                          */
 /* ------------------------------------------------------------------ */
 export interface CustomRequestStatusView {
   requestNumber: string;

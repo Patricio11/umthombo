@@ -199,7 +199,7 @@ export function CheckoutClient({
         address.code.trim().length >= 4);
 
   // Place-order is only enabled once everything needed is in: contact details,
-  // and — for delivery — a courier option picked.
+  // and - for delivery - a courier option picked.
   const contactReady =
     name.trim() !== "" && email.trim() !== "" && phone.trim() !== "";
   const canPlace =
@@ -274,19 +274,19 @@ export function CheckoutClient({
     }
     if (res.mode === "payment" && res.redirectUrl) {
       if (res.paymentDisplay === "iframe") {
-        // Inline hosted page — keep the basket behind the overlay; it's emptied
+        // Inline hosted page - keep the basket behind the overlay; it's emptied
         // when payment completes. The success page, loaded inside the frame,
         // posts to the parent window (see PaymentFrame + ClearCartOnMount).
         setPayFrame({ url: res.redirectUrl, orderNumber: res.orderNumber! });
         setSubmitting(false);
         return;
       }
-      // Full-page handoff — the basket is emptied when the customer returns to
+      // Full-page handoff - the basket is emptied when the customer returns to
       // /checkout/success (ClearCartOnMount), so it survives an abandoned payment.
       window.location.href = res.redirectUrl;
       return;
     }
-    // No online payment step — capture the order, empty the basket, show receipt.
+    // No online payment step - capture the order, empty the basket, show receipt.
     setPlaced(true);
     clearCart();
     clearCheckoutDraft();

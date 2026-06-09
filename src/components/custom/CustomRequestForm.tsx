@@ -62,7 +62,7 @@ export function CustomRequestForm({
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
 
-  // What — pre-select when a valid type is passed (e.g. from the shop category)
+  // What - pre-select when a valid type is passed (e.g. from the shop category)
   const [requestType, setRequestType] = useState(
     defaultType && (REQUEST_TYPES as readonly string[]).includes(defaultType)
       ? defaultType
@@ -190,7 +190,7 @@ export function CustomRequestForm({
         <p className="mx-auto mt-2 max-w-sm text-sm text-ink-soft">
           Reference{" "}
           <span className="font-medium text-ink">{done.requestNumber}</span>. We’ll
-          review your idea and email you a quote — with a link to track it
+          review your idea and email you a quote - with a link to track it
           {done.newAccount && " and to set up your new account"}.
         </p>
         {onClose ? (
@@ -404,7 +404,7 @@ export function CustomRequestForm({
               {signedIn ? (
                 <p className="rounded-xl bg-olive/10 px-4 py-2.5 text-sm text-olive">
                   <Check size={14} className="mr-1 inline" />
-                  Saved to your account — track it from your dashboard.
+                  Saved to your account - track it from your dashboard.
                 </p>
               ) : (
                 <p className="rounded-xl bg-taupe/15 px-4 py-2.5 text-xs text-ink-soft">
@@ -432,7 +432,7 @@ export function CustomRequestForm({
               </Field>
               <p className="rounded-xl bg-cream-2 px-4 py-3 text-sm text-ink-soft">
                 A <span className="font-medium text-ink">deposit may apply</span> if
-                accepted — always deducted from your total. You’ll see the full
+                accepted - always deducted from your total. You’ll see the full
                 price before paying anything.
               </p>
               {!signedIn && (

@@ -67,7 +67,7 @@ export async function updateIntegration(
   const merged = mergeConfig(k, existing, input.config ?? {});
   const meta = INTEGRATION_META[k];
 
-  // Upsert — creates the row if this integration has never been saved before.
+  // Upsert - creates the row if this integration has never been saved before.
   await db
     .insert(integrations)
     .values({
@@ -213,7 +213,7 @@ export async function testIntegration(key: string): Promise<TestResult> {
       };
       if (!config.secretKey)
         return { ok: false, message: "Add your Yoco secret key, then save and test." };
-      // Creating a checkout doesn't charge anything — it just proves the key works.
+      // Creating a checkout doesn't charge anything - it just proves the key works.
       const checkout = await createYocoCheckout(config, {
         amountZAR: 1,
         reference: `TEST-${Date.now()}`,

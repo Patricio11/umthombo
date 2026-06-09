@@ -85,7 +85,7 @@ export const auth = betterAuth({
   },
   plugins: [
     // Cloudflare Turnstile on /sign-in/email, /sign-up/email and
-    // /request-password-reset — only enforced when a secret key is set, so
+    // /request-password-reset - only enforced when a secret key is set, so
     // local/dev (and prod before keys are added) keep working unguarded.
     ...(process.env.TURNSTILE_SECRET_KEY
       ? [

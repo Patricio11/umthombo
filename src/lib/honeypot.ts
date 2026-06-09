@@ -5,7 +5,7 @@
  */
 export const HONEYPOT_NAME = "company_website";
 
-/** True when the honeypot was filled — treat the submission as a bot. */
+/** True when the honeypot was filled - treat the submission as a bot. */
 export function isHoneypotFilled(value: unknown): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }

@@ -34,7 +34,7 @@ export function saveCheckoutDraft(draft: CheckoutDraft): void {
   try {
     localStorage.setItem(KEY, JSON.stringify(draft));
   } catch {
-    /* quota / privacy mode — non-fatal */
+    /* quota / privacy mode - non-fatal */
   }
 }
 

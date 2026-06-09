@@ -55,7 +55,7 @@ export function ReviewForm({ productId }: { productId: string }) {
 
   if (!state) return null; // loading
 
-  // Not a verified buyer (yet) — invite them in rather than showing nothing.
+  // Not a verified buyer (yet) - invite them in rather than showing nothing.
   if (!state.eligible && !state.myReview) {
     if (state.signedIn) {
       return (
@@ -77,7 +77,7 @@ export function ReviewForm({ productId }: { productId: string }) {
           <div>
             <p className="font-medium text-ink">Bought this one?</p>
             <p className="mt-1 text-sm text-ink-soft">
-              Sign in or create an account to leave a review — they come from
+              Sign in or create an account to leave a review - they come from
               verified buyers only.
             </p>
           </div>

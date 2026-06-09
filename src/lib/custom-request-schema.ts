@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Friendly "what would you like?" options — NOT the shop's internal
+/** Friendly "what would you like?" options - NOT the shop's internal
  *  categories (guests don't know those). "Other" lets them type their own. */
 export const REQUEST_TYPES = [
   "Candles",
@@ -16,7 +16,7 @@ export const customRequestSchema = z.object({
   email: z.string().trim().email("Enter a valid email.").max(160),
   phone: z.string().trim().min(6, "Enter a phone number.").max(30),
 
-  // What they'd like — a friendly type (preset label or free-typed "Other")
+  // What they'd like - a friendly type (preset label or free-typed "Other")
   requestType: z
     .string()
     .trim()

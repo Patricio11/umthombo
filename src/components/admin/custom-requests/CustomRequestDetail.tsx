@@ -30,7 +30,7 @@ import {
 import { formatZAR } from "@/lib/format";
 
 const fmtDate = (d: Date | string | null) =>
-  d ? new Intl.DateTimeFormat("en-ZA", { dateStyle: "medium" }).format(new Date(d)) : "—";
+  d ? new Intl.DateTimeFormat("en-ZA", { dateStyle: "medium" }).format(new Date(d)) : "-";
 
 /** Best-effort wa.me link (normalise a SA number to international). */
 function waLink(phone: string, text: string): string {
@@ -120,7 +120,7 @@ export function CustomRequestDetail({
     start(async () => {
       const res = await declineCustomRequest(detail.id, reason);
       if (res.ok) {
-        toast.success("Request declined — the customer was notified.");
+        toast.success("Request declined - the customer was notified.");
         setMode("none");
         refresh();
       } else toast.error(res.error ?? "Couldn’t decline.");
@@ -147,7 +147,7 @@ export function CustomRequestDetail({
 
   const waChat = waLink(
     detail.phone,
-    `Hi ${detail.name.split(" ")[0]}, about your custom request ${detail.requestNumber} —`
+    `Hi ${detail.name.split(" ")[0]}, about your custom request ${detail.requestNumber} -`
   );
 
   return (
@@ -334,7 +334,7 @@ export function CustomRequestDetail({
                   </Field>
                 )}
               </div>
-              <Field label="Note to customer" hint="Optional — shown in the quote email">
+              <Field label="Note to customer" hint="Optional - shown in the quote email">
                 <Textarea rows={2} value={adminNote} onChange={(e) => setAdminNote(e.target.value)} />
               </Field>
               <Button type="button" disabled={pending} onClick={onQuote}>
@@ -365,7 +365,7 @@ export function CustomRequestDetail({
       {detail.status === "declined" && detail.declineReason && (
         <Card>
           <p className="text-sm text-ink-soft">
-            Declined — <span className="text-ink">{detail.declineReason}</span>
+            Declined - <span className="text-ink">{detail.declineReason}</span>
           </p>
         </Card>
       )}

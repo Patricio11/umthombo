@@ -15,8 +15,8 @@ fallback to the other.
    (YetoEFT takes priority if both are).
 3. Otherwise → WhatsApp / manual (unchanged).
 
-So if Yoco (or YetoPay) ever goes down, flip the picker — or just disable the
-broken one — and checkout keeps working.
+So if Yoco (or YetoPay) ever goes down, flip the picker - or just disable the
+broken one - and checkout keeps working.
 
 ## Letting customers choose (Pay by bank vs Card)
 
@@ -24,7 +24,7 @@ The same card has a **“Let customers choose at checkout”** toggle:
 
 - **Off** → only the active gateway is used (above behaviour).
 - **On** → when **both** gateways are enabled + configured, checkout shows a
-  selector — 🏦 **Pay by bank** (YetoPay) / 💳 **Card** (Yoco) — pre-selected on
+  selector - 🏦 **Pay by bank** (YetoPay) / 💳 **Card** (Yoco) - pre-selected on
   the active gateway (the picker = the default). If only one gateway is ready,
   no selector appears and it just uses that one.
 
@@ -39,13 +39,13 @@ YetoPay's method to **Instant EFT**.
 
 1. **Get your secret key.** Yoco dashboard → *Sell online → Payment gateway →
    API keys*. Copy the **secret key** (`sk_test_…` for testing, `sk_live_…` for
-   live). The secret key alone authenticates everything — no merchant ID.
+   live). The secret key alone authenticates everything - no merchant ID.
 2. **/admin/integrations → Yoco → Configure.** Paste the secret key, **Save**.
-3. **Test connection** — creates (does not charge) a R1 checkout to confirm the
+3. **Test connection** - creates (does not charge) a R1 checkout to confirm the
    key works.
 4. **Register webhook** (on the same page). With the key saved, click it once.
    It calls Yoco's API to subscribe `…/api/webhooks/yoco` and stores the
-   returned signing secret (`whsec_…`) automatically — Yoco only returns it once.
+   returned signing secret (`whsec_…`) automatically - Yoco only returns it once.
 5. **Enable** Yoco (toggle on the integrations list).
 6. **Set it live** if you want it active now: Active payment gateway → **Yoco**.
 
@@ -68,9 +68,9 @@ YetoPay's method to **Instant EFT**.
 ### Checkout API
 - `POST https://payments.yoco.com/api/checkouts`
 - `Authorization: Bearer <secretKey>`, `Idempotency-Key: <orderNumber>`
-- Body: `amount` (**cents** — we send `rand × 100`), `currency:"ZAR"`,
+- Body: `amount` (**cents** - we send `rand × 100`), `currency:"ZAR"`,
   `successUrl`, `cancelUrl`, `failureUrl`, `metadata:{orderId, orderNumber}`.
-- Response: `redirectUrl` (we send the customer there — **redirect only**, no
+- Response: `redirectUrl` (we send the customer there - **redirect only**, no
   iframe), `id` (stored as the payment reference).
 
 ### Webhook (Standard Webhooks)
@@ -78,7 +78,7 @@ YetoPay's method to **Instant EFT**.
 - Verify: `signedContent = "{id}.{timestamp}.{rawBody}"`; secret is the
   `whsec_…` value with the prefix stripped and **base64-decoded**;
   `expected = base64(HMAC_SHA256(secret, signedContent))`; the header is a
-  space-separated list of `v1,<sig>` — any match passes. Timestamp must be
+  space-separated list of `v1,<sig>` - any match passes. Timestamp must be
   within ±5 minutes (replay protection).
 - On `payment.succeeded` → mark the order **paid**, then `handleOrderPaid`
   (customer/admin emails + BobGo shipment), idempotent via
@@ -88,6 +88,6 @@ YetoPay's method to **Instant EFT**.
 - This adds the `settings.payment_provider` column → run **`npm run db:migrate`**
   before/at deploy (your build command already does migrate-before-build).
 - The Yoco integration row is **self-healing**: it shows in admin and is created
-  on first save — no re-seed needed.
+  on first save - no re-seed needed.
 - Nothing changes for existing YetoPay setups; with no active provider chosen,
   YetoPay stays the default.

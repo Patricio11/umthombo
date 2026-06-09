@@ -125,8 +125,8 @@ export function ProductsTable({ products }: { products: AdminProductRow[] }) {
             aria-label={p.status === "active" ? `Hide ${p.name}` : `Show ${p.name}`}
             title={
               p.status === "active"
-                ? "Visible in shop — click to hide"
-                : "Hidden — click to show"
+                ? "Visible in shop - click to hide"
+                : "Hidden - click to show"
             }
             onClick={() => onToggleVisible(p)}
             className={cn(

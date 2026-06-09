@@ -97,7 +97,7 @@ export function IntegrationsList({
             </p>
             <p className="text-xs text-ink-soft">
               Both can be set up; the one you pick takes payments. Switch
-              anytime — if it’s ever down, just point this at the other.
+              anytime - if it’s ever down, just point this at the other.
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -145,7 +145,7 @@ export function IntegrationsList({
           {resolvedActive &&
             !payment.find((p) => p.key === resolvedActive)?.enabled && (
               <p className="rounded-xl bg-clay/10 px-4 py-2.5 text-xs text-clay">
-                Your live gateway is turned off — payments will fall back to the
+                Your live gateway is turned off - payments will fall back to the
                 other gateway if it’s ready, otherwise WhatsApp/manual.
               </p>
             )}
@@ -154,7 +154,7 @@ export function IntegrationsList({
             <span className="text-sm font-medium">
               Let customers choose at checkout
               <span className="mt-0.5 block text-xs font-normal text-ink-soft">
-                Show “Pay by bank” / “Card” when both gateways are ready — the
+                Show “Pay by bank” / “Card” when both gateways are ready - the
                 pick above is the pre-selected default.
               </span>
             </span>

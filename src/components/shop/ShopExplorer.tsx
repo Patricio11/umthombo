@@ -114,7 +114,7 @@ export function ShopExplorer({
           </AnimatePresence>
         </motion.div>
 
-        {/* Didn't find it? — request a custom piece (pre-fills the category). */}
+        {/* Didn't find it? - request a custom piece (pre-fills the category). */}
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -127,7 +127,7 @@ export function ShopExplorer({
             Didn’t find quite what you’re after?
           </h2>
           <p className="mx-auto mt-3 max-w-md text-ink-soft">
-            We make bespoke pieces to order — your scent, colour and vessel. Tell
+            We make bespoke pieces to order - your scent, colour and vessel. Tell
             us your idea and we’ll come back with a quote. No payment now.
           </p>
           <CustomRequestModal
