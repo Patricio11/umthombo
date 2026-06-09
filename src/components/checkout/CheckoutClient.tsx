@@ -198,6 +198,13 @@ export function CheckoutClient({
         address.zone.trim().length >= 2 &&
         address.code.trim().length >= 4);
 
+  // Place-order is only enabled once everything needed is in: contact details,
+  // and — for delivery — a courier option picked.
+  const contactReady =
+    name.trim() !== "" && email.trim() !== "" && phone.trim() !== "";
+  const canPlace =
+    contactReady && (method === "collection" || !!serviceCode);
+
   const fetchRates = async () => {
     if (!addressReady || !effectiveAddress) {
       setRatesError("Please complete the address first.");
@@ -485,7 +492,7 @@ export function CheckoutClient({
                       {ratesLoading && (
                         <Loader2 size={16} className="animate-spin" />
                       )}
-                      {ratesLoading ? "Finding couriers…" : "Get delivery options"}
+                      {ratesLoading ? "Finding couriers…" : "Proceed"}
                     </Button>
                   )}
                   {ratesError && (
@@ -642,13 +649,19 @@ export function CheckoutClient({
                 size="lg"
                 className="mt-5 w-full"
                 onClick={submitOrder}
-                disabled={submitting || (mounted && items.length === 0)}
+                disabled={
+                  submitting || !mounted || items.length === 0 || !canPlace
+                }
               >
                 {submitting && <Loader2 size={16} className="animate-spin" />}
                 {submitting ? "Placing your order…" : "Place order"}
               </Button>
               <p className="mt-3 text-center text-xs text-ink-soft">
-                You’ll confirm payment on the next step.
+                {mounted && !canPlace
+                  ? !contactReady
+                    ? "Add your contact details to continue."
+                    : "Choose a delivery option to continue."
+                  : "You’ll confirm payment on the next step."}
               </p>
             </div>
           </aside>
