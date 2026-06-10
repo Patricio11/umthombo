@@ -86,15 +86,11 @@ export async function getUserOrders(
       shipmentStatus: orders.shipmentStatus,
       trackingUrl: orders.trackingUrl,
       itemCount: sql<number>`count(${orderItems.id})::int`,
-      image: sql<string | null>`(
-        select p.image from ${orderItems} oi
-        join ${products} p on p.id = oi.product_id
-        where oi.order_id = ${orders.id} and p.image is not null
-        limit 1
-      )`,
+      image: sql<string | null>`max(${products.image})`,
     })
     .from(orders)
     .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
+    .leftJoin(products, eq(products.id, orderItems.productId))
     .where(where)
     .groupBy(orders.id)
     .orderBy(desc(orders.createdAt));

@@ -1,5 +1,5 @@
 import "server-only";
-import { sql, desc, eq } from "drizzle-orm";
+import { sql, desc, eq, and, or, isNull } from "drizzle-orm";
 import { db } from "@/server/db";
 import { user, orders, reviews, products } from "@/server/db/schema";
 import { getUserOrders, type AccountOrderRow } from "@/server/db/account-orders";
@@ -32,13 +32,20 @@ export async function getAdminUsers(): Promise<AdminUserRow[]> {
       banned: user.banned,
       createdAt: user.createdAt,
       // Count linked orders + guest orders placed with the same email.
-      orderCount: sql<number>`(
-        select count(*)::int from ${orders} o
-        where o.user_id = ${user.id}
-           or (o.user_id is null and lower(o.customer_email) = lower(${user.email}))
-      )`,
+      orderCount: sql<number>`count(distinct ${orders.id})::int`,
     })
     .from(user)
+    .leftJoin(
+      orders,
+      or(
+        eq(orders.userId, user.id),
+        and(
+          isNull(orders.userId),
+          sql`lower(${orders.customerEmail}) = lower(${user.email})`
+        )
+      )
+    )
+    .groupBy(user.id)
     .orderBy(desc(user.createdAt));
 }
 
