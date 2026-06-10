@@ -38,4 +38,6 @@ read-only (no promote/demote UI — admins are seeded).
 - `/admin/customers/[id]` — profile card + action buttons + history sections.
 
 ## Status
-- Building now.
+- **Done.** Customers list + detail (orders/requests/addresses/reviews),
+  password/verify actions, disable (banned + session hook + guard) and delete
+  (guards self + last admin). Migration 0022 (`user.banned`).
