@@ -64,12 +64,20 @@ export default async function OrderDetailPage({
           <ul className="mt-4 divide-y divide-cream-2">
             {order.items.map((it) => (
               <li key={it.id} className="flex items-center justify-between gap-3 py-3">
-                <div className="min-w-0">
-                  <p className="font-medium">{it.name}</p>
-                  <p className="text-xs text-ink-soft">
-                    {it.variant ? `${it.variant} · ` : ""}
-                    {it.qty} × {formatZAR(it.unitPriceZAR)}
-                  </p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-cream-2">
+                    {it.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={it.image} alt="" className="h-full w-full object-cover" />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{it.name}</p>
+                    <p className="text-xs text-ink-soft">
+                      {it.variant ? `${it.variant} · ` : ""}
+                      {it.qty} × {formatZAR(it.unitPriceZAR)}
+                    </p>
+                  </div>
                 </div>
                 <span className="shrink-0 tabular-nums">
                   {formatZAR(it.lineTotalZAR)}

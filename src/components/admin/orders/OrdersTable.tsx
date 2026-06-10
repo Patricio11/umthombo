@@ -61,11 +61,19 @@ export function OrdersTable({ orders }: { orders: AdminOrderRow[] }) {
       header: "Order",
       primary: true,
       cell: (o) => (
-        <div>
-          <p className="font-medium">{o.customerName}</p>
-          <p className="text-xs text-ink-soft">
-            {o.orderNumber} · {fmtDate(o.createdAt)}
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-cream-2">
+            {o.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={o.image} alt="" className="h-full w-full object-cover" />
+            ) : null}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate font-medium">{o.customerName}</p>
+            <p className="truncate text-xs text-ink-soft">
+              {o.orderNumber} · {fmtDate(o.createdAt)}
+            </p>
+          </div>
         </div>
       ),
     },

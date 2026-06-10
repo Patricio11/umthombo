@@ -208,6 +208,7 @@ export interface AdminOrderRow {
   paymentStatus: "pending" | "paid" | "failed" | "cancelled";
   method: "delivery" | "collection";
   itemCount: number;
+  image: string | null;
   createdAt: Date;
 }
 
@@ -223,6 +224,13 @@ export async function getAdminOrders(): Promise<AdminOrderRow[]> {
       method: orders.method,
       createdAt: orders.createdAt,
       itemCount: sql<number>`count(${orderItems.id})::int`,
+      // A representative thumbnail: the image of one product in the order.
+      image: sql<string | null>`(
+        select p.image from ${orderItems} oi
+        join ${products} p on p.id = oi.product_id
+        where oi.order_id = ${orders.id} and p.image is not null
+        limit 1
+      )`,
     })
     .from(orders)
     .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
@@ -240,6 +248,7 @@ export type AdminOrderDetail = typeof orders.$inferSelect & {
     qty: number;
     unitPriceZAR: number;
     lineTotalZAR: number;
+    image: string | null;
   }[];
 };
 
@@ -257,8 +266,10 @@ export async function getAdminOrder(
       qty: orderItems.qty,
       unitPriceZAR: orderItems.unitPriceZAR,
       lineTotalZAR: orderItems.lineTotalZAR,
+      image: products.image,
     })
     .from(orderItems)
+    .leftJoin(products, eq(products.id, orderItems.productId))
     .where(eq(orderItems.orderId, id));
   return { ...order, items };
 }
