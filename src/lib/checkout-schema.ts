@@ -20,7 +20,8 @@ export const checkoutItemSchema = z.object({
 
 export const createPendingOrderSchema = z
   .object({
-    name: z.string().trim().min(1, "Enter your name.").max(120),
+    name: z.string().trim().min(1, "Enter your first name.").max(120),
+    surname: z.string().trim().min(1, "Enter your surname.").max(120),
     email: z.string().trim().email("Enter a valid email.").max(160),
     phone: z.string().trim().min(6, "Enter a phone number.").max(30),
     method: z.enum(["delivery", "collection"]),

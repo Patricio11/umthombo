@@ -125,6 +125,7 @@ export const orders = pgTable("orders", {
   // by verified email). Null for guest orders.
   userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
   customerName: text("customer_name").notNull(),
+  customerSurname: text("customer_surname"),
   customerEmail: text("customer_email").notNull(),
   customerPhone: text("customer_phone").notNull(),
   method: orderMethodEnum("method").notNull().default("delivery"),

@@ -167,7 +167,8 @@ export async function getRatesAtCheckout(
 /* ------------------------------------------------------------------ */
 export interface CreateBobgoOrderInput {
   channelOrderNumber: string;
-  customerName: string;
+  customerName: string; // full name (e.g. "Entle Mahlukani")
+  customerSurname?: string; // explicit surname (BobGo requires it)
   customerEmail: string;
   customerPhone: string;
   deliveryAddress: DeliveryAddress;
@@ -180,10 +181,16 @@ export async function createBobgoOrder(
   config: BobgoConfig,
   input: CreateBobgoOrderInput
 ): Promise<{ id: string | null; raw: unknown }> {
-  // BobGo expects first name + surname split (mirrors the official Wix plugin).
-  const nameParts = input.customerName.trim().split(/\s+/);
-  const customerName = nameParts[0] || input.customerName;
-  const customerSurname = nameParts.slice(1).join(" ");
+  // BobGo requires first name + surname split (mirrors the official Wix plugin).
+  // Prefer the explicit surname; otherwise derive it by splitting the full name.
+  const fullName = input.customerName.trim();
+  const parts = fullName.split(/\s+/);
+  const explicitSurname = (input.customerSurname ?? "").trim();
+  const customerSurname = explicitSurname || parts.slice(1).join(" ");
+  const customerName =
+    explicitSurname && fullName.toLowerCase().endsWith(explicitSurname.toLowerCase())
+      ? fullName.slice(0, fullName.length - explicitSurname.length).trim() || fullName
+      : parts[0] || fullName;
 
   const payload = {
     channel_order_number: input.channelOrderNumber,

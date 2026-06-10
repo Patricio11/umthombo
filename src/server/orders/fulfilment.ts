@@ -153,6 +153,7 @@ export async function createBobgoShipment(
     const created = await createBobgoOrder(config, {
       channelOrderNumber: order.orderNumber,
       customerName: order.customerName,
+      customerSurname: order.customerSurname ?? undefined,
       customerEmail: order.customerEmail,
       customerPhone: order.customerPhone,
       deliveryAddress: order.shippingAddressJson as unknown as DeliveryAddress,

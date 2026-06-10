@@ -7,6 +7,7 @@ import type { DeliveryAddress } from "@/lib/shipping";
  */
 export interface CheckoutDraft {
   name?: string;
+  surname?: string;
   email?: string;
   phone?: string;
   method?: "delivery" | "collection";

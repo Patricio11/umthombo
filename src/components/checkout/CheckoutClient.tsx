@@ -75,7 +75,9 @@ export function CheckoutClient({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const [name, setName] = useState(account?.name ?? "");
+  const accountNameParts = (account?.name ?? "").trim().split(/\s+/);
+  const [name, setName] = useState(accountNameParts[0] ?? "");
+  const [surname, setSurname] = useState(accountNameParts.slice(1).join(" "));
   const [email, setEmail] = useState(account?.email ?? "");
   const [phone, setPhone] = useState(account?.phone ?? "");
   const [method, setMethod] = useState<Method>(
@@ -123,6 +125,7 @@ export function CheckoutClient({
     const d = loadCheckoutDraft();
     if (d) {
       if (d.name) setName(d.name);
+      if (d.surname) setSurname(d.surname);
       if (d.email) setEmail(d.email);
       if (d.phone) setPhone(d.phone);
       if (d.method && (d.method === "collection" || deliveryEnabled)) {
@@ -145,6 +148,7 @@ export function CheckoutClient({
     if (!draftReady) return;
     saveCheckoutDraft({
       name,
+      surname,
       email,
       phone,
       method,
@@ -155,7 +159,7 @@ export function CheckoutClient({
       serviceCode,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftReady, name, email, phone, method, address, note, addrMode, selectedAddrId, serviceCode]);
+  }, [draftReady, name, surname, email, phone, method, address, note, addrMode, selectedAddrId, serviceCode]);
 
   // Any address change/selection invalidates previously fetched rates.
   const invalidateRates = () => {
@@ -201,7 +205,10 @@ export function CheckoutClient({
   // Place-order is only enabled once everything needed is in: contact details,
   // and - for delivery - a courier option picked.
   const contactReady =
-    name.trim() !== "" && email.trim() !== "" && phone.trim() !== "";
+    name.trim() !== "" &&
+    surname.trim() !== "" &&
+    email.trim() !== "" &&
+    phone.trim() !== "";
   const canPlace =
     contactReady && (method === "collection" || !!serviceCode);
 
@@ -237,7 +244,7 @@ export function CheckoutClient({
 
   const submitOrder = async () => {
     setSubmitError(null);
-    if (!name.trim() || !email.trim() || !phone.trim()) {
+    if (!name.trim() || !surname.trim() || !email.trim() || !phone.trim()) {
       setSubmitError("Please fill in your contact details.");
       return;
     }
@@ -248,6 +255,7 @@ export function CheckoutClient({
     setSubmitting(true);
     const res = await placeOrder({
       name,
+      surname,
       email,
       phone,
       method,
@@ -329,14 +337,26 @@ export function CheckoutClient({
           <div className="space-y-6">
             {/* Contact */}
             <Panel title="Your details">
-              <Field label="Name">
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
-                  className={inputCls}
-                />
-              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="First name">
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="First name"
+                    autoComplete="given-name"
+                    className={inputCls}
+                  />
+                </Field>
+                <Field label="Surname">
+                  <input
+                    value={surname}
+                    onChange={(e) => setSurname(e.target.value)}
+                    placeholder="Surname"
+                    autoComplete="family-name"
+                    className={inputCls}
+                  />
+                </Field>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Email">
                   <input
