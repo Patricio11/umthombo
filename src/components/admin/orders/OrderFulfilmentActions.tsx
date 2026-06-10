@@ -32,7 +32,7 @@ export function OrderFulfilmentActions({
       if (res.ok) {
         toast.success(okMsg);
       } else {
-        toast.error("Couldn’t create the shipment — see the details below.");
+        toast.error("Couldn’t create the BobGo order — see the details below.");
         setError(res.error ?? "Something went wrong.");
       }
       router.refresh();
@@ -65,7 +65,7 @@ export function OrderFulfilmentActions({
         <button
           type="button"
           disabled={pending}
-          onClick={() => run(() => createShipment(id), "Shipment created.")}
+          onClick={() => run(() => createShipment(id), "BobGo order created.")}
           className="inline-flex items-center justify-center gap-2 rounded-full border border-ink/20 px-4 py-2.5 text-sm font-medium text-ink transition-colors hover:border-olive hover:text-olive disabled:opacity-60"
         >
           {pending ? (
@@ -73,12 +73,12 @@ export function OrderFulfilmentActions({
           ) : (
             <Truck size={15} />
           )}
-          Create BobGo shipment
+          Create BobGo order
         </button>
       )}
       {error && (
         <div className="rounded-xl bg-clay/10 px-4 py-3 text-xs text-clay">
-          <p className="mb-1 font-medium">BobGo couldn’t create the shipment</p>
+          <p className="mb-1 font-medium">BobGo couldn’t create the order</p>
           <p className="break-words font-mono leading-relaxed">{error}</p>
         </div>
       )}
