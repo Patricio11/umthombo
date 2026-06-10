@@ -47,7 +47,14 @@ export default async function AccountOrdersPage() {
                 href={`/account/orders/${o.id}`}
                 className="group flex items-center justify-between gap-4 rounded-2xl border border-cream-3 bg-cream p-5 transition-colors hover:border-olive/40"
               >
-                <div className="min-w-0">
+                <div className="flex min-w-0 items-center gap-3.5">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-cream-2">
+                    {o.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={o.image} alt="" className="h-full w-full object-cover" />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0">
                   <p className="font-medium text-ink">{o.orderNumber}</p>
                   <p className="text-xs text-ink-soft">
                     {fmtDate(o.createdAt)} · {o.itemCount} item
@@ -62,6 +69,7 @@ export default async function AccountOrdersPage() {
                         {o.shipmentStatus || "On its way"}
                       </span>
                     )}
+                  </div>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">

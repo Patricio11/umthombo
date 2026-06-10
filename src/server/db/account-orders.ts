@@ -1,7 +1,7 @@
 import "server-only";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/server/db";
-import { orders, orderItems } from "@/server/db/schema";
+import { orders, orderItems, products } from "@/server/db/schema";
 
 export interface AccountOrderRow {
   id: string;
@@ -12,6 +12,7 @@ export interface AccountOrderRow {
   paymentStatus: string;
   method: "delivery" | "collection";
   itemCount: number;
+  image: string | null;
   shipmentStatus: string | null;
   trackingUrl: string | null;
 }
@@ -39,6 +40,7 @@ export interface AccountOrderDetail {
     qty: number;
     unitPriceZAR: number;
     lineTotalZAR: number;
+    image: string | null;
   }[];
 }
 
@@ -71,6 +73,12 @@ export async function getUserOrders(userId: string): Promise<AccountOrderRow[]> 
       shipmentStatus: orders.shipmentStatus,
       trackingUrl: orders.trackingUrl,
       itemCount: sql<number>`count(${orderItems.id})::int`,
+      image: sql<string | null>`(
+        select p.image from ${orderItems} oi
+        join ${products} p on p.id = oi.product_id
+        where oi.order_id = ${orders.id} and p.image is not null
+        limit 1
+      )`,
     })
     .from(orders)
     .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
@@ -98,8 +106,10 @@ export async function getUserOrder(
       qty: orderItems.qty,
       unitPriceZAR: orderItems.unitPriceZAR,
       lineTotalZAR: orderItems.lineTotalZAR,
+      image: products.image,
     })
     .from(orderItems)
+    .leftJoin(products, eq(products.id, orderItems.productId))
     .where(eq(orderItems.orderId, id));
 
   return {
