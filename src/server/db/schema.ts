@@ -42,6 +42,7 @@ export const reviewStatusEnum = pgEnum("review_status", [
   "published",
   "rejected",
 ]);
+export const postStatusEnum = pgEnum("post_status", ["draft", "published"]);
 export const customRequestStatusEnum = pgEnum("custom_request_status", [
   "pending", // submitted, awaiting admin
   "quoted", // accepted: price + ETA (+ optional deposit); awaiting deposit/start
@@ -361,6 +362,31 @@ export const customRequests = pgTable("custom_requests", {
 export type CustomRequest = typeof customRequests.$inferSelect;
 
 /* ------------------------------------------------------------------ */
+/*  Journal (editorial blog, admin-managed, Markdown body)             */
+/* ------------------------------------------------------------------ */
+export const posts = pgTable("posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  excerpt: text("excerpt").notNull().default(""), // dek + meta-description fallback
+  body: text("body").notNull().default(""), // Markdown source
+  coverImage: text("cover_image").notNull().default(""),
+  coverAlt: text("cover_alt").notNull().default(""),
+  tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+  status: postStatusEnum("status").notNull().default("draft"),
+  featured: boolean("featured").notNull().default(false),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  // Optional overrides for <title> / meta description.
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  readingMinutes: integer("reading_minutes").notNull().default(1),
+  authorName: text("author_name").notNull().default("Umthombo Creations"),
+  ...timestamps,
+});
+
+export type Post = typeof posts.$inferSelect;
+
+/* ------------------------------------------------------------------ */
 /*  Relations                                                         */
 /* ------------------------------------------------------------------ */
 export const categoriesRelations = relations(categories, ({ many }) => ({
@@ -405,3 +431,4 @@ export type Testimonial = typeof testimonials.$inferSelect;
 export type NewTestimonial = typeof testimonials.$inferInsert;
 export type Settings = typeof settings.$inferSelect;
 export type NewSettings = typeof settings.$inferInsert;
+export type NewPost = typeof posts.$inferInsert;

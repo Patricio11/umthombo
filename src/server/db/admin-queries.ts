@@ -8,6 +8,7 @@ import {
   orders,
   orderItems,
   customRequests,
+  posts,
   type CustomRequest,
 } from "@/server/db/schema";
 import type { Accent } from "@/lib/accents";
@@ -20,6 +21,7 @@ export interface AdminStats {
   orders: number;
   ordersByStatus: Record<string, number>;
   customRequestsPending: number;
+  postsPublished: number;
 }
 
 const ORDER_STATUSES = [
@@ -32,7 +34,7 @@ const ORDER_STATUSES = [
 
 export async function getAdminStats(): Promise<AdminStats> {
   const count = sql<number>`count(*)::int`;
-  const [[p], [c], [t], byStatus, [cr]] = await Promise.all([
+  const [[p], [c], [t], byStatus, [cr], [pp]] = await Promise.all([
     db.select({ n: count }).from(products),
     db.select({ n: count }).from(categories),
     db.select({ n: count }).from(testimonials),
@@ -44,6 +46,10 @@ export async function getAdminStats(): Promise<AdminStats> {
       .select({ n: count })
       .from(customRequests)
       .where(eq(customRequests.status, "pending")),
+    db
+      .select({ n: count })
+      .from(posts)
+      .where(eq(posts.status, "published")),
   ]);
 
   const ordersByStatus: Record<string, number> = Object.fromEntries(
@@ -62,6 +68,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     orders: orderTotal,
     ordersByStatus,
     customRequestsPending: cr?.n ?? 0,
+    postsPublished: pp?.n ?? 0,
   };
 }
 

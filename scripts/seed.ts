@@ -15,12 +15,15 @@ import {
   testimonials,
   integrations,
   faqs,
+  posts,
   user as userTable,
   account as accountTable,
 } from "../src/server/db/schema";
 import { categoryMeta, products as seedProducts } from "../src/data/products";
 import { testimonials as seedTestimonials } from "../src/data/testimonials";
 import { faqSeed } from "../src/data/faq";
+import { journalSeed } from "../src/data/journal";
+import { readingMinutes } from "../src/lib/journal";
 import { INTEGRATION_META, type IntegrationKey } from "../src/lib/integrations";
 import { auth } from "../src/server/auth/auth";
 
@@ -144,6 +147,34 @@ async function seedFaqs() {
   console.log(`  faqs: ${faqSeed.length}`);
 }
 
+async function seedPosts() {
+  const [{ n }] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(posts);
+  if (n > 0) {
+    console.log(`  posts: ${n} (already present, skipped)`);
+    return;
+  }
+  const now = new Date();
+  await db.insert(posts).values(
+    journalSeed.map((p, i) => ({
+      slug: p.slug,
+      title: p.title,
+      excerpt: p.excerpt,
+      body: p.body,
+      coverImage: p.coverImage,
+      coverAlt: p.coverAlt,
+      tags: p.tags,
+      featured: p.featured,
+      status: "published" as const,
+      readingMinutes: readingMinutes(p.body),
+      // Stagger publish dates so ordering is stable + natural.
+      publishedAt: new Date(now.getTime() - i * 86_400_000),
+    }))
+  );
+  console.log(`  posts: ${journalSeed.length}`);
+}
+
 async function seedIntegrations() {
   const keys = Object.keys(INTEGRATION_META) as IntegrationKey[];
   let created = 0;
@@ -208,6 +239,7 @@ async function main() {
   await seedProductRows(slugToId);
   await seedTestimonialRows();
   await seedFaqs();
+  await seedPosts();
   await seedIntegrations();
   await seedAdmin();
   console.log("Done ✓");

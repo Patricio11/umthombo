@@ -4,6 +4,7 @@ import {
   Package,
   Tags,
   Sparkles,
+  BookOpen,
   ArrowRight,
   Inbox,
 } from "lucide-react";
@@ -53,6 +54,13 @@ export default async function DashboardPage() {
       href: "/admin/categories",
       icon: Tags,
     },
+    {
+      label: "Journal",
+      value: stats.postsPublished,
+      sub: "published",
+      href: "/admin/journal",
+      icon: BookOpen,
+    },
   ];
 
   return (
@@ -63,7 +71,7 @@ export default async function DashboardPage() {
       />
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         {cards.map((c) => {
           const Icon = c.icon;
           return (

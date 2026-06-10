@@ -2,7 +2,7 @@
 
 A bespoke, editorial **storefront + customer accounts + admin system** for **Umthombo Creations** — a Cape Town handcrafted-candle & skincare business (est. 2020). Built around the idea of *Umthombo* — a spring, a source of renewal and flow.
 
-Everything is database-backed: the public catalogue, customer accounts and orders, bespoke commission requests, reviews and FAQs are all managed through a polished, fully-responsive admin.
+Everything is database-backed: the public catalogue, customer accounts and orders, bespoke commission requests, reviews, FAQs and an editorial journal are all managed through a polished, fully-responsive admin.
 
 ## Stack
 
@@ -15,6 +15,7 @@ Everything is database-backed: the public catalogue, customer accounts and order
 - **Shipping:** BobGo (live rates, order creation, tracking)
 - **Email:** Resend (branded transactional templates)
 - **Cloudflare Turnstile** (optional, invisible bot protection) · **Vercel Analytics**
+- **react-markdown** (sanitised — `remark-gfm` + `rehype-sanitize`) for the editorial journal
 - **Zustand** (cart, persisted) · **Zod** · **Radix Dialog** · **Embla**
 - **next/font** — Bricolage Grotesque (display) + Hanken Grotesk (body)
 
@@ -60,7 +61,7 @@ TURNSTILE_SECRET_KEY=
 | `npm run db:migrate` | Apply migrations to the DB |
 | `npm run db:push` | Push schema directly (dev) |
 | `npm run db:studio` | Drizzle Studio (browse/edit data) |
-| `npm run db:seed` | Seed categories/products/testimonials/FAQs + integration rows + admin user |
+| `npm run db:seed` | Seed categories/products/testimonials/FAQs/journal posts + integration rows + admin user |
 | `npm run icons` | Regenerate favicon/app-icon/social images from the brand mark |
 
 ## How it fits together
@@ -69,6 +70,7 @@ TURNSTILE_SECRET_KEY=
 src/
   app/
     (site)/            public storefront (home, shop, product, hampers, about, contact, custom, faq)
+    (site)/journal/    editorial blog: index, article, /topic/[tag], rss.xml
     (site)/checkout/   checkout flow + success / cancelled pages
     (site)/custom/request/         bespoke request form + tokened status page
     login, signup, forgot-password, set-password        customer auth
@@ -90,10 +92,10 @@ src/
     custom-requests/   deposit/balance fulfilment
     security/          Turnstile verification
     actions/           server actions (checkout, orders, products, integrations, reviews,
-                       faqs, custom-requests, users, account, …)
-  components/          AdminShell/DataTable/primitives, storefront, checkout, custom, account, ui
+                       faqs, journal, custom-requests, users, account, …)
+  components/          AdminShell/DataTable/primitives, storefront, checkout, custom, account, journal, ui
   data/                seed source only
-scripts/seed.ts        idempotent seed (catalogue, FAQs, admin, integration rows)
+scripts/seed.ts        idempotent seed (catalogue, FAQs, journal posts, admin, integration rows)
 drizzle/               generated migrations
 docs/                  build plans + reference blueprints (.md)
 ```
@@ -105,6 +107,7 @@ Editorial, motion-restrained, fully responsive. Beyond browse/shop:
 - **Customer accounts** — sign up / sign in from the header; or an account is created **at checkout** (deferred — verify email, then set a password). Dashboard: **orders** (with product thumbnails + reorder), **custom requests**, **saved addresses** (mark primary), **settings**.
 - **Product reviews** — left by **verified buyers** only, **moderated** before they show, and fed into the product's `AggregateRating` for SEO. Signed-out visitors get a sign-in CTA.
 - **FAQ** — an admin-managed `/faq` page that also emits `FAQPage` structured data.
+- **Journal** — an editorial blog at `/journal` (article pages, `/topic/[tag]`, RSS). Admin-written in Markdown; emits `BlogPosting`/`Blog` structured data and feeds the sitemap. See [Journal](#journal).
 - **Custom (bespoke) requests** — a smooth multi-step modal/page; see below.
 
 ## Checkout, payments & shipping
@@ -132,6 +135,16 @@ A full request → quote → deposit → build pipeline. Reachable from the **he
 - **Visibility** — a **tokened status page** for guests + **"My requests"** in the account dashboard, both with pay buttons.
 - Email is fully automated at each step; WhatsApp is one-tap `wa.me` links (true automated WhatsApp would need the Cloud API — out of scope).
 
+## Journal
+
+An admin-managed editorial blog at `/journal` — the informational-SEO counterpart to the transactional store pages (candle care, gift guides, the making of a piece).
+
+- **Authoring** — `/admin/journal`: a Markdown editor with a formatting toolbar and **live preview**, cover-image upload (Supabase), free-text **tag chips**, SEO title/description overrides, a **publish/draft eye toggle** and a **feature** star. Drafts are hidden; publishing stamps the date.
+- **Public** — `/journal` (featured hero + card grid + tag chips + pagination), `/journal/[slug]` (article with related posts + share), `/journal/topic/[tag]` (topic pages, built from the tags), and an **RSS feed** at `/journal/rss.xml`.
+- **Rendering** — one sanitised `<Markdown>` component (`react-markdown` + `remark-gfm` + `rehype-sanitize` + `rehype-slug`) shared by the admin preview and the public article, so they can never drift.
+- **SEO** — per-post `BlogPosting` + `BreadcrumbList`, a `Blog` graph on the index, posts + topic pages in the sitemap, and per-post canonical/OG. "Journal" sits in the main nav + footer.
+- **Seed** — two evergreen starter posts ship via `npm run db:seed` (only when the journal is empty); edit or delete them in the admin.
+
 ## Integrations & webhooks
 
 Configure everything in **/admin/integrations** — each provider is a card you toggle on/off with a masked-secrets config form. Nothing here is an env var.
@@ -156,10 +169,11 @@ The Integrations page also has an **Active payment gateway** picker and a **"let
 
 `/admin` (sign in with the seeded credentials). Fully responsive, brand-consistent, with toasts, confirm dialogs and reduced-motion-safe motion.
 
-- **Dashboard** — counts (orders, custom requests, products, categories) + recent orders
+- **Dashboard** — counts (orders, custom requests, products, categories, published journal posts) + recent orders
 - **Analytics** — revenue (defaults to **paid**), best sellers, status/method split, custom range, CSV export
 - **Orders** — list/filter with **product thumbnails**, detail with payment & shipping card, **Mark as paid** / **Create BobGo order** (surfaces the real BobGo error on failure), status switcher, reply-on-WhatsApp
 - **Custom requests** — review/quote/decline + lifecycle (see above)
+- **Journal** — Markdown editor with live preview, cover upload, tags, publish/draft + feature toggles (see [Journal](#journal))
 - **Customers** — list + detail with the customer's orders / requests / addresses / reviews; **send a password link**, **mark verified**, **disable login** (a `banned` flag enforced at sign-in) or **delete** (keeps orders; guards self + last admin)
 - **Products** — search/filter, full editor (variants, gallery, shipping dimensions, featured/draft) with **drag-and-drop Supabase uploads**, an **eye toggle** to show/hide, and a **notify past buyers** action for new products
 - **Categories / Testimonials / Reviews / FAQ** — CRUD + moderation/reorder
@@ -170,7 +184,7 @@ Security: every admin mutation is guarded by `requireAdmin()` + Zod and customer
 ## Bot protection, SEO & analytics
 
 - **Bot protection** — a server-enforced **honeypot** + optional **Cloudflare Turnstile** on login / register / password-reset / custom-request (and the checkout honeypot), layered over Better Auth rate-limiting + email verification. Fully **env-gated** — works with no keys. See [`docs/BOT_PROTECTION_BLUEPRINT.md`](docs/BOT_PROTECTION_BLUEPRINT.md).
-- **SEO** — per-page metadata + canonicals, OG/Twitter, sitemap (with images), robots, and JSON-LD (Organization + WebSite + Store with `areaServed: South Africa`, Product + AggregateRating/Review + `OfferShippingDetails`, BreadcrumbList, FAQPage). Copy is **Cape Town origin, nationwide delivery**.
+- **SEO** — per-page metadata + canonicals, OG/Twitter, sitemap (with images), robots, and JSON-LD (Organization + WebSite + Store with `areaServed: South Africa`, Product + AggregateRating/Review + `OfferShippingDetails`, BreadcrumbList, FAQPage, BlogPosting/Blog). The journal adds informational reach + an RSS feed. Copy is **Cape Town origin, nationwide delivery**.
 - **Vercel Analytics** is mounted in the root layout.
 
 ## Deployment
@@ -189,6 +203,7 @@ Security: every admin mutation is guarded by `requireAdmin()` + Zod and customer
 | [`CUSTOMER_ACCOUNTS_PLAN.md`](docs/CUSTOMER_ACCOUNTS_PLAN.md) | Accounts, reviews, FAQ |
 | [`CUSTOM_REQUESTS_PLAN.md`](docs/CUSTOM_REQUESTS_PLAN.md) | Bespoke commission pipeline |
 | [`USER_MANAGEMENT_PLAN.md`](docs/USER_MANAGEMENT_PLAN.md) | Admin customer management |
+| [`JOURNAL_PLAN.md`](docs/JOURNAL_PLAN.md) | Editorial journal (blog) build plan |
 | [`BOT_PROTECTION_BLUEPRINT.md`](docs/BOT_PROTECTION_BLUEPRINT.md) | Reusable honeypot + Turnstile recipe |
 | [`BRAND_AND_SEO.md`](docs/BRAND_AND_SEO.md) | Brand identity + SEO plan |
 

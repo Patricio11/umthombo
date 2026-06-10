@@ -185,3 +185,115 @@
   }
   .grain { display: none; }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Journal article typography (.prose-journal)                        */
+/* ------------------------------------------------------------------ */
+.prose-journal {
+  color: var(--color-ink);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.prose-journal > * + * { margin-top: 1.15em; }
+.prose-journal h2,
+.prose-journal h3,
+.prose-journal h4 {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--color-ink);
+  scroll-margin-top: 6rem;
+}
+.prose-journal h2 { font-size: 1.6rem; margin-top: 2em; }
+.prose-journal h3 { font-size: 1.3rem; margin-top: 1.6em; }
+.prose-journal h4 { font-size: 1.1rem; margin-top: 1.4em; }
+.prose-journal p { color: var(--color-ink-soft); }
+.prose-journal a {
+  color: var(--color-olive);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color 0.2s ease;
+}
+.prose-journal a:hover { color: var(--color-clay); }
+.prose-journal strong { color: var(--color-ink); font-weight: 600; }
+.prose-journal ul,
+.prose-journal ol { padding-left: 1.4em; color: var(--color-ink-soft); }
+.prose-journal ul { list-style: disc; }
+.prose-journal ol { list-style: decimal; }
+.prose-journal li + li { margin-top: 0.4em; }
+.prose-journal li::marker { color: var(--color-taupe); }
+.prose-journal blockquote {
+  border-left: 3px solid var(--color-olive);
+  padding-left: 1.1em;
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--color-ink);
+}
+.prose-journal img {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--color-cream-3);
+}
+.prose-journal figcaption,
+.prose-journal img + em { color: var(--color-ink-soft); font-size: 0.9rem; }
+.prose-journal hr { border: 0; border-top: 1px solid var(--color-cream-3); margin: 2.2em 0; }
+.prose-journal code {
+  font-size: 0.9em;
+  background: var(--color-cream-2);
+  padding: 0.12em 0.4em;
+  border-radius: 0.35rem;
+}
+.prose-journal pre {
+  background: var(--color-ink);
+  color: var(--color-cream);
+  padding: 1em 1.15em;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  font-size: 0.9rem;
+}
+.prose-journal pre code { background: transparent; padding: 0; }
+.prose-journal table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.prose-journal th,
+.prose-journal td { border: 1px solid var(--color-cream-3); padding: 0.5em 0.7em; text-align: left; }
+.prose-journal th { background: var(--color-cream-2); font-weight: 600; }
+
+/* ------------------------------------------------------------------ */
+/*  Journal article — editorial refinements                            */
+/* ------------------------------------------------------------------ */
+/* A generous lede + drop cap — only when a paragraph actually opens the post
+   (`:first-child`), so a post that starts with a heading isn't affected. */
+.prose-journal > p:first-child {
+  font-size: 1.2rem;
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+.prose-journal > p:first-child::first-letter {
+  float: left;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: 3.4rem;
+  line-height: 0.78;
+  padding: 0.3rem 0.6rem 0 0;
+  color: var(--color-olive);
+}
+@media (max-width: 640px) {
+  .prose-journal > p:first-child { font-size: 1.1rem; }
+  .prose-journal > p:first-child::first-letter { font-size: 2.9rem; }
+}
+/* Heading anchors: a quiet § marker on hover for shareable sections. */
+.prose-journal h2,
+.prose-journal h3 { position: relative; }
+.prose-journal h2[id]:hover::before,
+.prose-journal h3[id]:hover::before {
+  content: "#";
+  position: absolute;
+  left: -1.1em;
+  color: var(--color-taupe);
+  font-weight: 400;
+}
+@media (max-width: 768px) {
+  .prose-journal h2[id]:hover::before,
+  .prose-journal h3[id]:hover::before { content: none; }
+}

@@ -236,3 +236,55 @@ export function productLd(
 
   return ld;
 }
+
+const absImg = (u: string) => (u.startsWith("http") ? u : absUrl(u));
+const isoDate = (d: Date | string) => new Date(d).toISOString();
+
+/** BlogPosting schema for a single journal article. */
+export function articleLd(p: {
+  slug: string;
+  title: string;
+  excerpt: string;
+  coverImage: string;
+  tags: string[];
+  authorName: string;
+  publishedAt: Date | string | null;
+  updatedAt: Date | string;
+}) {
+  const url = absUrl(`/journal/${p.slug}`);
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "@id": `${url}#article`,
+    headline: p.title.slice(0, 110),
+    description: p.excerpt,
+    image: [absImg(p.coverImage || "/opengraph-image.png")],
+    datePublished: isoDate(p.publishedAt ?? p.updatedAt),
+    dateModified: isoDate(p.updatedAt),
+    author: { "@type": "Organization", "@id": ORG_ID, name: p.authorName },
+    publisher: { "@id": ORG_ID },
+    mainEntityOfPage: url,
+    ...(p.tags.length ? { keywords: p.tags.join(", ") } : {}),
+    inLanguage: "en-ZA",
+  };
+}
+
+/** Blog schema for the /journal index (a list of its posts). */
+export function blogLd(posts: { slug: string; title: string; publishedAt: Date | string | null }[]) {
+  const url = absUrl("/journal");
+  return {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": `${url}#blog`,
+    name: `${site.name} Journal`,
+    url,
+    publisher: { "@id": ORG_ID },
+    inLanguage: "en-ZA",
+    blogPost: posts.slice(0, 20).map((p) => ({
+      "@type": "BlogPosting",
+      headline: p.title.slice(0, 110),
+      url: absUrl(`/journal/${p.slug}`),
+      ...(p.publishedAt ? { datePublished: isoDate(p.publishedAt) } : {}),
+    })),
+  };
+}
