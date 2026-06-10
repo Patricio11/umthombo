@@ -16,7 +16,7 @@ export const faqSeed: SeedFaq[] = [
     category: "Delivery & collection",
     question: "Can I collect my order instead?",
     answer:
-      "Absolutely. Choose Collection at checkout and we’ll arrange a time for you to pick up in Observatory, Cape Town.",
+      "Absolutely. Choose Collection at checkout and we’ll arrange a time for you to pick up in Woodstock, Cape Town.",
   },
   {
     category: "Delivery & collection",

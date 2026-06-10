@@ -23,12 +23,12 @@ Everything below serves that rule.
 | Attribute | Detail |
 |---|---|
 | Name | Umthombo Creations |
-| Location | Cape Town, South Africa (collection in Observatory) |
+| Location | Cape Town, South Africa (collection in Woodstock) |
 | Since | 2020 |
 | What | Handcrafted candles, soaps, body care, diffusers, hampers |
 | Values | Eco-conscious, recycled packaging, fully customisable, ethically made |
 | Differentiator | Personalisation + care; 10% discount for customers who bring/reuse containers |
-| Delivery | Nationwide delivery + local collection (Observatory, Cape Town) |
+| Delivery | Nationwide delivery + local collection (Woodstock, Cape Town) |
 | Categories | **Home · Body · Skin** (+ Hampers + Custom) |
 | Tagline | *Eco-conscious essentials, handcrafted with care.* |
 | Story line | *"What began as a creative outlet has grown into a soulful offering of handcrafted products that bring warmth and intention into your space."* |
@@ -132,7 +132,7 @@ On "Place your order" → centered **modal** with a multi-step feel (or one calm
 - **Name** (required)
 - **Email** (required, valid email)
 - **Phone** (required, ZA format friendly: `+27` or `0…`)
-- Optional: delivery vs. **collection in Observatory** toggle, optional note ("personalisation, scent, colour…").
+- Optional: delivery vs. **collection in Woodstock** toggle, optional note ("personalisation, scent, colour…").
 
 **On submit  choose ONE primary mechanism (recommended order):**
 
@@ -372,7 +372,7 @@ export const products: Product[] = [
 
 - **A11y:** Radix-based Dialog/Sheet (focus trap, ESC, ARIA). Colour contrast AA on cream. All interactive elements keyboard-reachable. `prefers-reduced-motion` gates every animation.
 - **Perf:** `next/image` everywhere, font subsetting via `next/font`, lazy-load below-the-fold, Lenis only on non-reduced-motion. Target Lighthouse ≥ 95.
-- **SEO:** per-route `metadata`, OpenGraph image, `JSON-LD` `Product` schema on product pages, sitemap + robots. Local-business schema with Cape Town / Observatory.
+- **SEO:** per-route `metadata`, OpenGraph image, `JSON-LD` `Product` schema on product pages, sitemap + robots. Local-business schema with Cape Town / Woodstock.
 
 ---
 

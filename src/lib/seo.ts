@@ -63,6 +63,11 @@ export function siteGraphLd(s: SiteSettings) {
     publisher: { "@id": ORG_ID },
   };
 
+  // Derive the suburb from the collection line ("Collection in Woodstock, Cape
+  // Town") so this address (what Google actually reads) stays in lock-step with
+  // the admin's setting and the footer - one source, no NAP drift.
+  const addressLocality = s.collection.match(/in\s+([^,]+)/i)?.[1]?.trim() || "Woodstock";
+
   const localBusiness = {
     "@type": "Store",
     "@id": `${site.url}/#localbusiness`,
@@ -77,7 +82,7 @@ export function siteGraphLd(s: SiteSettings) {
     parentOrganization: { "@id": ORG_ID },
     address: {
       "@type": "PostalAddress",
-      addressLocality: "Observatory",
+      addressLocality,
       addressRegion: "Western Cape",
       addressCountry: "ZA",
     },

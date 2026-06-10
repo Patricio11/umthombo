@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     "handmade gifts South Africa",
     "nationwide delivery South Africa",
     "Cape Town candles",
-    "Observatory Cape Town",
+    "Woodstock Cape Town",
     "Umthombo Creations",
   ],
   alternates: { canonical: "/" },

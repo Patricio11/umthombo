@@ -5,7 +5,7 @@ export const site = {
   story:
     "What began as a creative outlet has grown into a soulful offering of handcrafted products that bring warmth and intention into your space.",
   location: "Cape Town, South Africa",
-  collection: "Collection in Observatory, Cape Town",
+  collection: "Collection in Woodstock, Cape Town",
   since: 2020,
   url: "https://umthombocreations.co.za",
 

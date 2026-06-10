@@ -7,7 +7,7 @@ optimised for Google - plus the owner-side checklist to actually rank.
 
 ## 1. The brand
 
-**Umthombo Creations** - a Cape Town (Observatory) handcrafted-candle, soap,
+**Umthombo Creations** - a Cape Town (Woodstock) handcrafted-candle, soap,
 body-care and home-fragrance studio, est. **2020**. *Umthombo* is isiXhosa/isiZulu
 for **a spring / a fountain** - a source of renewal and flow. That idea drives the
 identity: water, calm, renewal, slow craft.
@@ -16,7 +16,7 @@ identity: water, calm, renewal, slow craft.
 - **Promise:** small-batch, real ingredients, fully customisable, made with intention.
 - **Range:** Candles · Body & Skin · Home (diffusers) · Gift Hampers · Custom/bespoke.
 - **Sells via:** this site (live BobGo shipping + YetoEFT online payment), collection
-  in Observatory, and WhatsApp.
+  in Woodstock, and WhatsApp.
 - **Voice:** warm, editorial, unhurried. Sensory and personal, never salesy. Lowercase
   ease, the occasional italic aside, generous white space.
 
@@ -132,10 +132,13 @@ Code gets you *indexable*; these get you *ranked*. Do them in order.
 1. **Google Search Console** - verify the domain (DNS TXT), then **submit
    `https://umthombocreations.co.za/sitemap.xml`**. Watch Coverage + Enhancements.
 2. **Bing Webmaster Tools** - same (powers Bing/DuckDuckGo); you can import from GSC.
-3. **Google Business Profile** - create/claim "Umthombo Creations", Observatory,
+3. **Google Business Profile** - create/claim "Umthombo Creations", Woodstock,
    Cape Town. Category: *Candle store* / *Gift shop*. Add hours, photos, the website,
    WhatsApp. **This is the single biggest local-SEO lever** - it gets you on Maps and
-   the local pack for "candles Cape Town / Observatory".
+   the local pack for "candles Cape Town / Woodstock". Keep the **NAP**
+   (name / address / phone) identical here, in the site footer, and in the
+   `Store` JSON-LD (`addressLocality: "Woodstock"`) - inconsistent suburbs split
+   your local signal.
 4. **Confirm `NEXT_PUBLIC_APP_URL`** = the real domain so canonical/OG/sitemap URLs are
    correct in production.
 5. **Validate** rich results: run a product URL + the homepage through
