@@ -181,21 +181,10 @@ export async function createBobgoOrder(
   config: BobgoConfig,
   input: CreateBobgoOrderInput
 ): Promise<{ id: string | null; raw: unknown }> {
-  // BobGo requires first name + surname split (mirrors the official Wix plugin).
-  // Prefer the explicit surname; otherwise derive it by splitting the full name.
-  const fullName = input.customerName.trim();
-  const parts = fullName.split(/\s+/);
-  const explicitSurname = (input.customerSurname ?? "").trim();
-  const customerSurname = explicitSurname || parts.slice(1).join(" ");
-  const customerName =
-    explicitSurname && fullName.toLowerCase().endsWith(explicitSurname.toLowerCase())
-      ? fullName.slice(0, fullName.length - explicitSurname.length).trim() || fullName
-      : parts[0] || fullName;
-
   const payload = {
     channel_order_number: input.channelOrderNumber,
-    customer_name: customerName,
-    customer_surname: customerSurname,
+    customer_name: input.customerName.trim(),
+    customer_surname: (input.customerSurname ?? "").trim(),
     customer_email: input.customerEmail,
     customer_phone: input.customerPhone,
     currency: "ZAR",

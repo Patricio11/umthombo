@@ -61,6 +61,7 @@ export const PAYMENT_STATUSES = [
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
 export const adminOrderSchema = orderSchema.extend({
+  surname: z.string().trim().min(1, "Enter the surname.").max(120),
   ownContainer: z.boolean().default(false),
   address: z.string().trim().max(400).optional().default(""),
   status: z.enum(ORDER_STATUSES),
