@@ -8,10 +8,12 @@ export const getSession = cache(async () => {
   return auth.api.getSession({ headers: await headers() });
 });
 
-/** The signed-in user, or null. */
+/** The signed-in user, or null. A disabled (banned) account reads as logged-out. */
 export async function getCurrentUser() {
   const session = await getSession();
-  return session?.user ?? null;
+  const u = session?.user as { banned?: boolean } | undefined;
+  if (!u || u.banned) return null;
+  return session!.user;
 }
 
 /**
@@ -20,9 +22,9 @@ export async function getCurrentUser() {
  */
 export async function requireAdmin() {
   const session = await getSession();
-  const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!session?.user || role !== "admin") redirect("/admin/login");
-  return session.user;
+  const u = session?.user as { role?: string; banned?: boolean } | undefined;
+  if (!u || u.banned || u.role !== "admin") redirect("/admin/login");
+  return session!.user;
 }
 
 /**
@@ -31,9 +33,10 @@ export async function requireAdmin() {
  */
 export async function requireUser(nextPath?: string) {
   const session = await getSession();
-  if (!session?.user) {
+  const u = session?.user as { banned?: boolean } | undefined;
+  if (!u || u.banned) {
     const next = nextPath ? `?next=${encodeURIComponent(nextPath)}` : "";
     redirect(`/login${next}`);
   }
-  return session.user;
+  return session!.user;
 }

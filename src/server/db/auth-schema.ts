@@ -13,6 +13,7 @@ export const user = pgTable("user", {
   role: text("role").notNull().default("customer"),
   phone: text("phone"),
   marketingOptIn: boolean("marketing_opt_in").notNull().default(false),
+  banned: boolean("banned").notNull().default(false), // admin can disable login
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -1,7 +1,9 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { captcha } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
+import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import {
   user,
@@ -37,6 +39,13 @@ export const auth = betterAuth({
         required: false,
         defaultValue: false,
         input: true,
+      },
+      // Admin-controlled: a disabled account can't sign in (see databaseHooks).
+      banned: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+        input: false,
       },
     },
   },
@@ -82,6 +91,26 @@ export const auth = betterAuth({
     // Secure only on real https origins  never on http://localhost, even in
     // a production build (Secure cookies aren't sent over http).
     useSecureCookies: (process.env.BETTER_AUTH_URL ?? "").startsWith("https"),
+  },
+  databaseHooks: {
+    // Block a disabled (banned) account from signing in: refuse the session.
+    session: {
+      create: {
+        before: async (sessionData) => {
+          const [u] = await db
+            .select({ banned: user.banned })
+            .from(user)
+            .where(eq(user.id, sessionData.userId))
+            .limit(1);
+          if (u?.banned) {
+            throw new APIError("FORBIDDEN", {
+              message: "This account has been disabled.",
+            });
+          }
+          return { data: sessionData };
+        },
+      },
+    },
   },
   plugins: [
     // Cloudflare Turnstile on /sign-in/email, /sign-up/email and
