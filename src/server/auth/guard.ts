@@ -3,9 +3,15 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth/auth";
 
-/** Current session (server). Cached per request. */
+/** Current session (server). Cached per request. Never throws — a transient
+ *  auth/DB error degrades to "logged out" so it can't crash the storefront. */
 export const getSession = cache(async () => {
-  return auth.api.getSession({ headers: await headers() });
+  try {
+    return await auth.api.getSession({ headers: await headers() });
+  } catch (err) {
+    console.error("[auth] getSession failed:", err);
+    return null;
+  }
 });
 
 /** The signed-in user, or null. A disabled (banned) account reads as logged-out. */

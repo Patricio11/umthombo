@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/server/db";
 import { orders, orderItems, products } from "@/server/db/schema";
 
@@ -60,7 +60,20 @@ export async function linkGuestOrdersByEmail(userId: string, email: string) {
     );
 }
 
-export async function getUserOrders(userId: string): Promise<AccountOrderRow[]> {
+export async function getUserOrders(
+  userId: string,
+  /** Admin view: also include guest orders placed with this email (read-only). */
+  email?: string
+): Promise<AccountOrderRow[]> {
+  const where = email
+    ? or(
+        eq(orders.userId, userId),
+        and(
+          isNull(orders.userId),
+          eq(sql`lower(${orders.customerEmail})`, email.toLowerCase())
+        )
+      )
+    : eq(orders.userId, userId);
   return db
     .select({
       id: orders.id,
@@ -82,7 +95,7 @@ export async function getUserOrders(userId: string): Promise<AccountOrderRow[]> 
     })
     .from(orders)
     .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
-    .where(eq(orders.userId, userId))
+    .where(where)
     .groupBy(orders.id)
     .orderBy(desc(orders.createdAt));
 }
