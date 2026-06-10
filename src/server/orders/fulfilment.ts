@@ -157,7 +157,9 @@ export async function createBobgoShipment(
       customerPhone: order.customerPhone,
       deliveryAddress: order.shippingAddressJson as unknown as DeliveryAddress,
       shippingCostZAR: order.deliveryFeeZAR,
-      shippingMethod: order.shippingServiceCode ?? "",
+      // BobGo's /orders wants the method NAME (per the official Wix plugin),
+      // e.g. "Express shipping" — not the internal service_code.
+      shippingMethod: order.shippingService ?? order.shippingServiceCode ?? "",
       items: shipItems,
     });
     if (created.id) {
@@ -165,11 +167,19 @@ export async function createBobgoShipment(
         .update(orders)
         .set({ bobgoOrderId: created.id })
         .where(eq(orders.id, order.id));
+      return { ok: true };
     }
-    return { ok: true };
+    // 200 but no id — surface what BobGo actually returned.
+    return {
+      ok: false,
+      error: `BobGo accepted the request but returned no order id: ${JSON.stringify(created.raw).slice(0, 400)}`,
+    };
   } catch (err) {
+    // Surface the real BobGo message (status + response body) so the admin can
+    // see exactly why it failed — same reason it would fail at checkout.
     console.error("[fulfilment] createBobgoShipment failed:", err);
-    return { ok: false, error: "Couldn’t create the BobGo shipment." };
+    const msg = err instanceof Error ? err.message : "Couldn’t create the BobGo shipment.";
+    return { ok: false, error: msg.slice(0, 500) };
   }
 }
 

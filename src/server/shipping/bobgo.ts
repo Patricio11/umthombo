@@ -180,9 +180,15 @@ export async function createBobgoOrder(
   config: BobgoConfig,
   input: CreateBobgoOrderInput
 ): Promise<{ id: string | null; raw: unknown }> {
+  // BobGo expects first name + surname split (mirrors the official Wix plugin).
+  const nameParts = input.customerName.trim().split(/\s+/);
+  const customerName = nameParts[0] || input.customerName;
+  const customerSurname = nameParts.slice(1).join(" ");
+
   const payload = {
     channel_order_number: input.channelOrderNumber,
-    customer_name: input.customerName,
+    customer_name: customerName,
+    customer_surname: customerSurname,
     customer_email: input.customerEmail,
     customer_phone: input.customerPhone,
     currency: "ZAR",
@@ -192,7 +198,8 @@ export async function createBobgoOrder(
     delivery_address: deliveryToBobgo(input.deliveryAddress),
     order_items: input.items.map((it) => ({
       description: it.description,
-      sku: it.sku || it.description,
+      vendor: "",
+      sku: it.sku || "",
       unit_price: it.priceZAR,
       qty: it.quantity,
       unit_weight_kg: it.weightKg ?? PARCEL_DEFAULTS.weightKg,
