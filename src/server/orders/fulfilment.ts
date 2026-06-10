@@ -1,7 +1,8 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/server/db";
 import { orders, orderItems, products } from "@/server/db/schema";
+import { user } from "@/server/db/auth-schema";
 import { getBobgoConfig } from "@/server/db/integrations";
 import { getSiteSettings } from "@/server/db/settings";
 import { createBobgoOrder, type ShipItem } from "@/server/shipping/bobgo";
@@ -86,8 +87,37 @@ function toEmailData(order: OrderRow, items: FulfilmentItem[]): OrderEmailData {
  * and (for a delivery order with BobGo on) create the courier order so the
  * owner can fulfil it. Best-effort  never throws into the webhook.
  */
+/**
+ * Link an unlinked (guest) order to a matching **verified** account by email,
+ * so it shows under the customer. Safe: only verified accounts can claim it.
+ */
+export async function linkOrderToAccount(orderId: string): Promise<void> {
+  const [o] = await db
+    .select({ userId: orders.userId, email: orders.customerEmail })
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1);
+  if (!o || o.userId) return;
+  const [u] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(
+      and(
+        eq(sql`lower(${user.email})`, o.email.toLowerCase()),
+        eq(user.emailVerified, true)
+      )
+    )
+    .limit(1);
+  if (u) {
+    await db.update(orders).set({ userId: u.id }).where(eq(orders.id, orderId));
+  }
+}
+
 export async function handleOrderPaid(orderId: string): Promise<void> {
   try {
+    // Link a guest order to a matching account (if any) the moment it's paid.
+    await linkOrderToAccount(orderId);
+
     const loaded = await loadOrderWithItems(orderId);
     if (!loaded) return;
     const { order, items } = loaded;

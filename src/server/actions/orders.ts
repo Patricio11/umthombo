@@ -6,7 +6,11 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/server/db";
 import { orders, orderItems, products } from "@/server/db/schema";
 import { requireAdmin } from "@/server/auth/guard";
-import { handleOrderPaid, createBobgoShipment } from "@/server/orders/fulfilment";
+import {
+  handleOrderPaid,
+  createBobgoShipment,
+  linkOrderToAccount,
+} from "@/server/orders/fulfilment";
 import {
   createOrderSchema,
   adminOrderSchema,
@@ -293,9 +297,11 @@ export async function markOrderPaid(id: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Admin: manually create the BobGo shipment for a paid delivery order. */
+/** Admin: manually create the BobGo order for a paid delivery order. */
 export async function createShipment(id: string): Promise<ActionResult> {
   await requireAdmin();
+  // Catch-up: link this order to a matching account (covers older guest orders).
+  await linkOrderToAccount(id);
   const res = await createBobgoShipment(id);
   if (!res.ok) return { ok: false, error: res.error ?? "Couldn’t create shipment." };
   revalidatePath("/admin", "layout");
