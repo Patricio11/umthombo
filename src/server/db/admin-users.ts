@@ -2,7 +2,11 @@ import "server-only";
 import { sql, desc, eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import { user, orders, reviews, products } from "@/server/db/schema";
-import { getUserOrders, type AccountOrderRow } from "@/server/db/account-orders";
+import {
+  getUserOrders,
+  linkGuestOrdersByEmail,
+  type AccountOrderRow,
+} from "@/server/db/account-orders";
 import { getUserAddresses } from "@/server/db/addresses";
 import {
   getUserCustomRequests,
@@ -31,11 +35,14 @@ export async function getAdminUsers(): Promise<AdminUserRow[]> {
       emailVerified: user.emailVerified,
       banned: user.banned,
       createdAt: user.createdAt,
-      orderCount: sql<number>`count(${orders.id})::int`,
+      // Count linked orders + guest orders placed with the same email.
+      orderCount: sql<number>`(
+        select count(*)::int from ${orders} o
+        where o.user_id = ${user.id}
+           or (o.user_id is null and lower(o.customer_email) = lower(${user.email}))
+      )`,
     })
     .from(user)
-    .leftJoin(orders, eq(orders.userId, user.id))
-    .groupBy(user.id)
     .orderBy(desc(user.createdAt));
 }
 
@@ -68,6 +75,12 @@ export interface AdminUserDetail {
 export async function getAdminUser(id: string): Promise<AdminUserDetail | null> {
   const [u] = await db.select().from(user).where(eq(user.id, id)).limit(1);
   if (!u) return null;
+
+  // Claim any guest orders placed with this (verified) email — links them to
+  // the account so they show here and in the customer's own dashboard.
+  if (u.emailVerified) {
+    await linkGuestOrdersByEmail(id, u.email);
+  }
 
   const [userOrders, requests, addresses, userReviews] = await Promise.all([
     getUserOrders(id),

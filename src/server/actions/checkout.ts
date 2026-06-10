@@ -19,7 +19,7 @@ import { getSiteSettings } from "@/server/db/settings";
 import { getOrderConfirmation } from "@/server/db/order-public";
 import { getCurrentUser } from "@/server/auth/guard";
 import {
-  createDeferredAccount,
+  resolveOrCreateUser,
   saveCheckoutAddress,
 } from "@/server/auth/account";
 import { ZA_PROVINCES } from "@/lib/integrations";
@@ -258,23 +258,39 @@ export async function placeOrder(
 
   // Account side-effects (best-effort; never block the order/payment).
   const sessionUser = await getCurrentUser();
+  let accountUserId: string | null = sessionUser?.id ?? null;
+  let createdNewAccount = false;
+
   if (!sessionUser && input.createAccount && input.email) {
-    await createDeferredAccount({
-      name: input.name,
+    // Resolve/create the account and link THIS order to it immediately, so it
+    // shows under the customer (no waiting for them to log in).
+    const resolved = await resolveOrCreateUser({
+      name: `${input.name} ${input.surname ?? ""}`.trim(),
       email: input.email,
       phone: input.phone,
     });
+    if (resolved?.id) {
+      accountUserId = resolved.id;
+      createdNewAccount = true;
+      await db
+        .update(orders)
+        .set({ userId: resolved.id })
+        .where(eq(orders.id, orderId));
+    }
   }
+
+  // Save the delivery address to the account: a logged-in customer who ticked
+  // "save", OR a guest who just created an account (so their account is complete).
   if (
-    sessionUser &&
-    input.saveAddress &&
+    accountUserId &&
     input.method === "delivery" &&
-    input.address
+    input.address &&
+    ((sessionUser && input.saveAddress) || createdNewAccount)
   ) {
     await saveCheckoutAddress(
-      sessionUser.id,
+      accountUserId,
       input.address as DeliveryAddress,
-      input.name,
+      `${input.name} ${input.surname ?? ""}`.trim(),
       input.phone ?? null
     );
   }
