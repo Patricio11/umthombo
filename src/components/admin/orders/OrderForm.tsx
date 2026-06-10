@@ -41,7 +41,11 @@ export function OrderForm({
     [products]
   );
 
-  const [name, setName] = useState(order?.customerName ?? "");
+  const nameParts = (order?.customerName ?? "").trim().split(/\s+/);
+  const [name, setName] = useState(nameParts[0] ?? "");
+  const [surname, setSurname] = useState(
+    order?.customerSurname ?? nameParts.slice(1).join(" ")
+  );
   const [email, setEmail] = useState(order?.customerEmail ?? "");
   const [phone, setPhone] = useState(order?.customerPhone ?? "");
   const [method, setMethod] = useState<"delivery" | "collection">(
@@ -91,6 +95,7 @@ export function OrderForm({
     }
     const input = {
       name,
+      surname,
       email,
       phone,
       method,
@@ -224,9 +229,14 @@ export function OrderForm({
       <div className="space-y-6">
         <Card className="space-y-4">
           <h2 className="font-display text-lg">Customer</h2>
-          <Field label="Name" required>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required />
-          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="First name" required>
+              <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            </Field>
+            <Field label="Surname" hint="Required by BobGo for delivery">
+              <Input value={surname} onChange={(e) => setSurname(e.target.value)} />
+            </Field>
+          </div>
           <Field label="Email" required>
             <Input
               type="email"

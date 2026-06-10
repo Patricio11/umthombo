@@ -5,6 +5,7 @@ const phoneRegex = /^(\+27|0)[\s-]?(\d[\s-]?){8,11}\d$/;
 
 export const orderSchema = z.object({
   name: z.string().min(2, "Please tell us your name."),
+  surname: z.string().trim().max(120).optional(),
   email: z.string().email("That email doesn't look quite right."),
   phone: z
     .string()

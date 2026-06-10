@@ -192,7 +192,8 @@ export async function createOrderAdmin(
     await tx.insert(orders).values({
       id,
       orderNumber: genOrderNumber(),
-      customerName: d.name,
+      customerName: `${d.name} ${d.surname ?? ""}`.trim(),
+      customerSurname: d.surname?.trim() || null,
       customerEmail: d.email,
       customerPhone: d.phone,
       method: d.method,
@@ -241,7 +242,8 @@ export async function updateOrderAdmin(
     await tx
       .update(orders)
       .set({
-        customerName: d.name,
+        customerName: `${d.name} ${d.surname ?? ""}`.trim(),
+        customerSurname: d.surname?.trim() || null,
         customerEmail: d.email,
         customerPhone: d.phone,
         method: d.method,
