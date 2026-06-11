@@ -297,3 +297,19 @@
   .prose-journal h2[id]:hover::before,
   .prose-journal h3[id]:hover::before { content: none; }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Admin sidebar — slim, quiet scrollbar (overrides the 10px global)  */
+/* ------------------------------------------------------------------ */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-cream-3) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar { width: 6px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-cream-3);
+  border-radius: 99px;
+  border: none;
+}
+.sidebar-scroll:hover::-webkit-scrollbar-thumb { background: var(--color-taupe); }

@@ -105,7 +105,7 @@ export function AdminShell({
         <span className="font-display text-lg leading-none">Admin</span>
       </Link>
 
-      <div className="mt-7 flex-1">
+      <div className="sidebar-scroll mt-7 min-h-0 flex-1 overflow-y-auto pr-1">
         <NavLinks />
       </div>
 
