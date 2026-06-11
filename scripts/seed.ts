@@ -195,13 +195,9 @@ async function seedIntegrations() {
   console.log(`  integrations: ${created} ensured`);
 }
 
-async function seedAdmin() {
-  const email = process.env.ADMIN_EMAIL;
-  const password = process.env.ADMIN_PASSWORD;
-  if (!email || !password) {
-    console.warn("  ! ADMIN_EMAIL/ADMIN_PASSWORD not set  skipping admin");
-    return;
-  }
+/** Create an admin if it doesn't exist yet. Idempotent (keyed on email). */
+async function ensureAdmin(email?: string, password?: string, name = "Admin") {
+  if (!email || !password) return;
   const existing = await db
     .select({ id: userTable.id })
     .from(userTable)
@@ -218,7 +214,7 @@ async function seedAdmin() {
   const userId = randomUUID();
   await db.insert(userTable).values({
     id: userId,
-    name: "Admin",
+    name,
     email,
     emailVerified: true,
     role: "admin",
@@ -231,6 +227,19 @@ async function seedAdmin() {
     password: hashed,
   });
   console.log(`  admin: ${email} (created)`);
+}
+
+async function seedAdmin() {
+  if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
+    console.warn("  ! ADMIN_EMAIL/ADMIN_PASSWORD not set  skipping admin");
+  }
+  // Primary admin, plus an optional second one (ADMIN_EMAIL_2/ADMIN_PASSWORD_2).
+  await ensureAdmin(process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD);
+  await ensureAdmin(
+    process.env.ADMIN_EMAIL_2,
+    process.env.ADMIN_PASSWORD_2,
+    process.env.ADMIN_NAME_2 || "Admin"
+  );
 }
 
 async function main() {

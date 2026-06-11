@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -11,10 +11,11 @@ import {
   Ban,
   CircleCheck,
   Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import type { AdminUserDetail } from "@/server/db/admin-users";
-import { Card } from "@/components/admin/primitives";
-import { StatusBadge, PaymentBadge } from "@/components/admin/primitives";
+import { Card, StatusBadge, PaymentBadge, inputClass } from "@/components/admin/primitives";
 import { StatusPill } from "@/components/admin/custom-requests/StatusPill";
 import { Stars } from "@/components/product/Stars";
 import { Button } from "@/components/ui/Button";
@@ -22,11 +23,13 @@ import { useToast } from "@/components/admin/Toast";
 import { useConfirm } from "@/components/admin/ConfirmDialog";
 import {
   sendUserPasswordLink,
+  setUserPassword,
   markUserVerified,
   setUserBanned,
   deleteUserAccount,
 } from "@/server/actions/users";
 import { formatZAR } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 const fmtDate = (d: Date | string) =>
   new Intl.DateTimeFormat("en-ZA", { dateStyle: "medium" }).format(new Date(d));
@@ -76,6 +79,8 @@ export function CustomerDetail({
   const toast = useToast();
   const confirm = useConfirm();
   const [pending, start] = useTransition();
+  const [pw, setPw] = useState("");
+  const [showPw, setShowPw] = useState(false);
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>, ok: string) =>
     start(async () => {
@@ -84,6 +89,24 @@ export function CustomerDetail({
       else toast.error(res.error ?? "Something went wrong.");
       router.refresh();
     });
+
+  const onSetPassword = () => {
+    if (pw.length < 8) {
+      toast.error("Use at least 8 characters.");
+      return;
+    }
+    start(async () => {
+      const res = await setUserPassword(detail.id, pw);
+      if (res.ok) {
+        toast.success("Password updated.");
+        setPw("");
+        setShowPw(false);
+      } else {
+        toast.error(res.error ?? "Couldn’t set the password.");
+      }
+      router.refresh();
+    });
+  };
 
   const onDelete = async () => {
     const yes = await confirm({
@@ -229,6 +252,56 @@ export function CustomerDetail({
               ))}
             </ul>
           </Section>
+
+          <Card className="space-y-3">
+            <div>
+              <h2 className="font-display text-lg">Set a new password</h2>
+              <p className="mt-1 text-xs text-ink-soft">
+                Applies immediately — no email needed.{" "}
+                {isSelf
+                  ? "You’ll stay signed in."
+                  : "Signs the user out of other devices."}
+              </p>
+            </div>
+            <div className="relative">
+              <input
+                type={showPw ? "text" : "password"}
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                placeholder="New password"
+                autoComplete="new-password"
+                className={cn(inputClass, "pr-10")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    onSetPassword();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                aria-label={showPw ? "Hide password" : "Show password"}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-ink-soft transition-colors hover:text-ink"
+              >
+                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={pending || pw.length < 8}
+              onClick={onSetPassword}
+            >
+              {pending ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : (
+                <KeyRound size={15} />
+              )}
+              Set password
+            </Button>
+          </Card>
 
           <Card className="space-y-2">
             <h2 className="font-display text-lg">Actions</h2>

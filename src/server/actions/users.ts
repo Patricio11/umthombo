@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { randomUUID } from "node:crypto";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/server/db";
 import { user, session, account } from "@/server/db/auth-schema";
@@ -12,6 +13,8 @@ export interface ActionResult {
   ok: boolean;
   error?: string;
 }
+
+const PASSWORD_MIN = 8;
 
 function revalidateUser(id: string) {
   revalidatePath("/admin/customers");
@@ -52,6 +55,63 @@ export async function sendUserPasswordLink(id: string): Promise<ActionResult> {
     console.error("[users] sendUserPasswordLink failed:", err);
     return { ok: false, error: "Couldn’t send the email." };
   }
+}
+
+/**
+ * Set a user's password directly (admin-driven reset — no email round-trip).
+ * Hashes with Better Auth's own hasher so login verifies, updating the existing
+ * credential row or creating one if the account never had a password. Resetting
+ * *another* user ends their sessions so the old password is locked out at once;
+ * resetting your own keeps you signed in.
+ */
+export async function setUserPassword(
+  id: string,
+  password: string
+): Promise<ActionResult> {
+  const me = await requireAdmin();
+  if (password.length < PASSWORD_MIN) {
+    return { ok: false, error: `Use at least ${PASSWORD_MIN} characters.` };
+  }
+  if (password.length > 128) {
+    return { ok: false, error: "That password is too long." };
+  }
+
+  const [u] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.id, id))
+    .limit(1);
+  if (!u) return { ok: false, error: "User not found." };
+
+  const ctx = await auth.$context;
+  const hashed = await ctx.password.hash(password);
+
+  const [cred] = await db
+    .select({ id: account.id })
+    .from(account)
+    .where(and(eq(account.userId, id), eq(account.providerId, "credential")))
+    .limit(1);
+
+  if (cred) {
+    await db
+      .update(account)
+      .set({ password: hashed, updatedAt: new Date() })
+      .where(eq(account.id, cred.id));
+  } else {
+    await db.insert(account).values({
+      id: randomUUID(),
+      accountId: id,
+      providerId: "credential",
+      userId: id,
+      password: hashed,
+    });
+  }
+
+  if (id !== me.id) {
+    await db.delete(session).where(eq(session.userId, id));
+  }
+  revalidateUser(id);
+  return { ok: true };
 }
 
 export async function markUserVerified(id: string): Promise<ActionResult> {
