@@ -36,7 +36,7 @@ export const createPendingOrderSchema = z
     // Honeypot - must stay empty; a value means a bot filled the decoy field.
     hp: z.string().optional(),
     // Customer's chosen gateway (only honoured when the admin offers a choice).
-    paymentProvider: z.enum(["yetopay", "yoco"]).optional(),
+    paymentProvider: z.enum(["yetopay", "yoco", "bobpay"]).optional(),
   })
   .refine((d) => d.method !== "delivery" || !!d.address, {
     message: "Please enter a delivery address.",

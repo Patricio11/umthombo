@@ -60,24 +60,28 @@ Mirrors the Yoco integration almost exactly. Touch points:
 ## Phases
 
 ### Phase 1 — Config + client
-- [ ] `BobpayConfig`, integration metadata, secret fields, configurable whitelist.
-- [ ] `getBobpayConfig()`; admin Integrations card (api key, sandbox toggle, source).
-- [ ] `bobpay.ts`: `createBobpayIntent` + `verifyBobpayWebhook` + rand formatter.
+- [x] `BobpayConfig`, integration metadata, secret fields, configurable whitelist.
+- [x] `getBobpayConfig()`; admin Integrations card (api key, sandbox toggle, source).
+- [x] `bobpay.ts`: `createBobpayIntent` + `verifyBobpayWebhook` + rand formatter.
 
 ### Phase 2 — Gateway + webhook
-- [ ] `startGatewayPayment` `bobpay` branch.
-- [ ] `/api/webhooks/bobpay` — echo-back verify, resolve by reference, idempotent mark-paid, fire order fulfilment / custom-request advance.
-- [ ] `payment_events` row per webhook (replay-safe).
+- [x] `startGatewayPayment` `bobpay` branch.
+- [x] `/api/webhooks/bobpay` — echo-back verify, resolve by reference, idempotent mark-paid, fire order fulfilment / custom-request advance.
+- [x] `payment_events` row per webhook (replay-safe).
 
 ### Phase 3 — Checkout UX
-- [ ] Add BobPay to the active-gateway selector + customer-choice options (3-way).
-- [ ] On select → redirect to `short_url` (the Yoco redirect path). Return via `success_url`; webhook is authoritative for paid.
+- [x] Add BobPay to the active-gateway selector + customer-choice options (3-way).
+- [x] On select → redirect to `short_url` (the Yoco redirect path). Return via `success_url`; webhook is authoritative for paid.
 
 ### Phase 4 — Custom requests + polish
-- [ ] Confirm deposits/balances route through BobPay (they use `startGatewayPayment`).
-- [ ] Docs (README integrations table + webhook URL `…/api/webhooks/bobpay`), `.env`/admin notes, sandbox test pass, green build.
+- [x] Confirm deposits/balances route through BobPay (they use `startGatewayPayment`).
+- [x] Docs (README integrations table + webhook URL `…/api/webhooks/bobpay`), `.env`/admin notes, sandbox test pass, green build.
 
 ---
+
+## Status
+
+**Code-complete ✓** — all phases built, green build. **Pending:** paste sandbox API key into `/admin/integrations → Bob Pay`, then one end-to-end sandbox test (create intent → pay → webhook → order flips to paid). No migration needed (provider columns are free-text).
 
 ## Resolved
 

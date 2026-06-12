@@ -1,11 +1,17 @@
 /** Client-safe integration metadata, config shapes, and secret-field map.
  *  No server imports  shared by the admin forms and the server layer. */
 
-export type IntegrationKey = "bobgo" | "yetopay" | "yoco" | "resend" | "whatsapp";
+export type IntegrationKey =
+  | "bobgo"
+  | "yetopay"
+  | "yoco"
+  | "bobpay"
+  | "resend"
+  | "whatsapp";
 export type IntegrationCategory = "shipping" | "payment" | "email" | "channel";
 
 /** The online payment gateways (the admin picks which one is live). */
-export type PaymentProvider = "yetopay" | "yoco";
+export type PaymentProvider = "yetopay" | "yoco" | "bobpay";
 
 /** Customer-facing presentation for each gateway at checkout. */
 export const PAYMENT_PRESENTATION: Record<
@@ -14,6 +20,7 @@ export const PAYMENT_PRESENTATION: Record<
 > = {
   yetopay: { label: "Pay by bank", sublabel: "Instant EFT · powered by YetoPay" },
   yoco: { label: "Card", sublabel: "Credit & debit card · powered by Yoco" },
+  bobpay: { label: "Bob Pay", sublabel: "Card, EFT & wallets · powered by Bob Pay" },
 };
 
 export interface CheckoutPaymentOption {
@@ -66,6 +73,15 @@ export interface YocoConfig {
   webhookSecret: string;
 }
 
+/** Bob Pay — a redirect/off-site gateway (one hosted page covers card, EFT,
+ *  Apple/Google Pay, Capitec, PayShap, Scan-to-Pay…). `apiKey` is a Bearer
+ *  token; webhooks are verified by echoing them back to Bob Pay's validate
+ *  endpoint (no signing secret). `sandbox` switches to the sandbox API. */
+export interface BobpayConfig {
+  apiKey: string;
+  sandbox: boolean;
+}
+
 export interface ResendConfig {
   apiKey: string;
   fromEmail: string;
@@ -77,6 +93,7 @@ export const SECRET_FIELDS: Record<IntegrationKey, string[]> = {
   bobgo: ["apiKey"],
   yetopay: ["apiKey", "apiSecret", "webhookSecret"],
   yoco: ["secretKey", "webhookSecret"],
+  bobpay: ["apiKey"],
   resend: ["apiKey"],
   whatsapp: [],
 };
@@ -99,6 +116,11 @@ export const INTEGRATION_META: Record<
     name: "Yoco",
     category: "payment",
     blurb: "Take card payments online via Yoco's hosted checkout.",
+  },
+  bobpay: {
+    name: "Bob Pay",
+    category: "payment",
+    blurb: "Card, EFT and wallet payments via Bob Pay's hosted checkout.",
   },
   resend: {
     name: "Resend",

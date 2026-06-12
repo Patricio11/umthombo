@@ -138,6 +138,11 @@ export function IntegrationForm({
         secretKey: secrets.secretKey,
         webhookSecret: secrets.webhookSecret,
       };
+    } else if (detail.key === "bobpay") {
+      config = {
+        apiKey: secrets.apiKey,
+        sandbox,
+      };
     } else if (detail.key === "resend") {
       config = {
         apiKey: secrets.apiKey,
@@ -384,6 +389,51 @@ export function IntegrationForm({
               )}
               Register webhook
             </Button>
+          </Card>
+        </>
+      )}
+
+      {/* Bob Pay */}
+      {detail.key === "bobpay" && (
+        <>
+          <Card className="space-y-5">
+            <h2 className="font-display text-lg">Credentials</h2>
+            <Field
+              label="API key"
+              hint="Bob Pay dashboard → Developer / API. Used as a Bearer token."
+            >
+              <Input
+                type="password"
+                value={secrets.apiKey}
+                onChange={(e) =>
+                  setSecrets((s) => ({ ...s, apiKey: e.target.value }))
+                }
+                placeholder={secretPlaceholder("apiKey")}
+                autoComplete="off"
+              />
+            </Field>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-sm font-medium">
+                Sandbox mode
+                <span className="mt-0.5 block text-xs font-normal text-ink-soft">
+                  Use Bob Pay&rsquo;s test environment
+                </span>
+              </span>
+              <Switch checked={sandbox} onChange={setSandbox} label="Sandbox" />
+            </label>
+          </Card>
+
+          <Card className="space-y-2">
+            <h2 className="font-display text-lg">Payment webhook</h2>
+            <p className="text-xs text-ink-soft">
+              No dashboard step needed — Bob Pay is told this URL with every
+              payment, and we verify each callback straight back with Bob Pay.
+            </p>
+            <div className="flex items-center gap-2 rounded-xl border border-cream-3 bg-cream-2/50 px-3 py-2.5">
+              <code className="min-w-0 flex-1 truncate text-xs text-ink">
+                {`${appUrl}/api/webhooks/bobpay`}
+              </code>
+            </div>
           </Card>
         </>
       )}

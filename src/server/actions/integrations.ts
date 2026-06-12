@@ -285,7 +285,8 @@ export async function setPaymentProvider(
   provider: PaymentProvider | null
 ): Promise<ActionResult> {
   await requireAdmin();
-  if (provider !== null && provider !== "yetopay" && provider !== "yoco") {
+  const VALID: PaymentProvider[] = ["yetopay", "yoco", "bobpay"];
+  if (provider !== null && !VALID.includes(provider)) {
     return { ok: false, error: "Unknown provider." };
   }
   await db

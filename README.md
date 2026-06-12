@@ -11,7 +11,7 @@ Everything is database-backed: the public catalogue, customer accounts and order
 - **PostgreSQL on Neon** + **Drizzle ORM** (migrations via drizzle-kit)
 - **Better Auth** — email/password for **customers and admins**, email verification, sessions in Postgres
 - **Supabase Storage** for product + reference images
-- **Payments:** YetoPay (instant EFT) **and** Yoco (card) — switchable, with optional customer choice
+- **Payments:** YetoPay (instant EFT), Yoco (card) **and** Bob Pay (card/EFT/wallets) — switchable, with optional customer choice
 - **Shipping:** BobGo (live rates, order creation, tracking)
 - **Email:** Resend (branded transactional templates)
 - **Cloudflare Turnstile** (optional, invisible bot protection) · **Vercel Analytics**
@@ -154,6 +154,7 @@ Configure everything in **/admin/integrations** — each provider is a card you 
 | **BobGo** | Live courier rates, order creation, tracking | API key, sandbox toggle, collection address |
 | **YetoEFT** (YetoPay) | Online payment (instant EFT) | Base URL, merchant ID, API key/secret, webhook secret, default method, **redirect or embedded iFrame** |
 | **Yoco** | Online payment (card) | Secret key, webhook signing secret (**one-click Register webhook** stores it) |
+| **Bob Pay** | Online payment (card, EFT & wallets — one hosted page) | API key, sandbox toggle (webhook is automatic) |
 | **Resend** | Transactional email | API key, from-email, from-name |
 | **WhatsApp** | Secondary "order over WhatsApp" fallback | on/off (number from Settings) |
 
@@ -163,6 +164,7 @@ The Integrations page also has an **Active payment gateway** picker and a **"let
 
 - **YetoPay** → `…/api/webhooks/yetopay` — authenticated per-delivery by the `X-Webhook-Signature` HMAC; idempotent via `payment_events`.
 - **Yoco** → `…/api/webhooks/yoco` — Standard Webhooks (`webhook-id/-timestamp/-signature`); use the in-admin **Register webhook** button to subscribe + store the secret.
+- **Bob Pay** → `…/api/webhooks/bobpay` — **no dashboard step**: the URL is sent with every payment (`notify_url`), and each callback is verified by echoing it back to Bob Pay's validate endpoint. Resolved by reference (`orderNumber` / `requestNumber`), idempotent via `payment_events`.
 - **BobGo** → `…/api/webhooks/bobgo` — a plain, trusted URL (no token/HMAC). Subscribe to the **fulfilment-update** event; it only updates an existing order matched by `channel_order_number`.
 
 ## Admin
@@ -200,6 +202,7 @@ Security: every admin mutation is guarded by `requireAdmin()` + Zod and customer
 | [`SYSTEM_BUILD_PLAN.md`](docs/SYSTEM_BUILD_PLAN.md) | Master build plan (DB + auth + orders) |
 | [`SHIPPING_PAYMENT_PLAN.md`](docs/SHIPPING_PAYMENT_PLAN.md) | BobGo + YetoPay + email + integrations |
 | [`YOCO_INTEGRATION.md`](docs/YOCO_INTEGRATION.md) | Second payment gateway + switching + customer choice |
+| [`BOBPAY_INTEGRATION.md`](docs/BOBPAY_INTEGRATION.md) | Third payment gateway (Bob Pay, redirect) |
 | [`CUSTOMER_ACCOUNTS_PLAN.md`](docs/CUSTOMER_ACCOUNTS_PLAN.md) | Accounts, reviews, FAQ |
 | [`CUSTOM_REQUESTS_PLAN.md`](docs/CUSTOM_REQUESTS_PLAN.md) | Bespoke commission pipeline |
 | [`USER_MANAGEMENT_PLAN.md`](docs/USER_MANAGEMENT_PLAN.md) | Admin customer management |

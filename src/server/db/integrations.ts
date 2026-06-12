@@ -12,6 +12,7 @@ import {
   type BobgoConfig,
   type YetopayConfig,
   type YocoConfig,
+  type BobpayConfig,
   type ResendConfig,
   type PaymentProvider,
   type CheckoutPaymentInfo,
@@ -59,6 +60,10 @@ export function isConfigured(key: IntegrationKey, config: Cfg): boolean {
     case "yoco": {
       const c = config as Partial<YocoConfig>;
       return !!c.secretKey;
+    }
+    case "bobpay": {
+      const c = config as Partial<BobpayConfig>;
+      return !!c.apiKey;
     }
     case "resend": {
       const c = config as Partial<ResendConfig>;
@@ -126,6 +131,17 @@ export async function getYocoConfig(): Promise<YocoConfig | null> {
   };
 }
 
+export async function getBobpayConfig(): Promise<BobpayConfig | null> {
+  const row = await getIntegrationRow("bobpay");
+  if (!row?.enabled) return null;
+  const c = (row.config ?? {}) as Partial<BobpayConfig>;
+  if (!isConfigured("bobpay", c)) return null;
+  return {
+    apiKey: str(c.apiKey),
+    sandbox: c.sandbox === true,
+  };
+}
+
 export async function getResendConfig(): Promise<ResendConfig | null> {
   const row = await getIntegrationRow("resend");
   if (!row?.enabled) return null;
@@ -146,20 +162,22 @@ export async function getResendConfig(): Promise<ResendConfig | null> {
  * may choose. Options are always ordered [Pay by bank, Card] for a stable UI.
  */
 export async function getCheckoutPayment(): Promise<CheckoutPaymentInfo> {
-  const [yeto, yoco, settings] = await Promise.all([
+  const [yeto, yoco, bobpay, settings] = await Promise.all([
     getYetopayConfig(),
     getYocoConfig(),
+    getBobpayConfig(),
     getSiteSettings(),
   ]);
   const ready: PaymentProvider[] = [];
   if (yeto) ready.push("yetopay");
   if (yoco) ready.push("yoco");
+  if (bobpay) ready.push("bobpay");
 
   const preferred = settings.paymentProvider;
   const defaultProvider: PaymentProvider | null =
     preferred && ready.includes(preferred) ? preferred : (ready[0] ?? null);
 
-  const order: PaymentProvider[] = ["yetopay", "yoco"];
+  const order: PaymentProvider[] = ["yetopay", "yoco", "bobpay"];
   const options = order
     .filter((p) => ready.includes(p))
     .map((provider) => ({ provider, ...PAYMENT_PRESENTATION[provider] }));

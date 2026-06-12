@@ -2,10 +2,12 @@ import "server-only";
 import {
   getYetopayConfig,
   getYocoConfig,
+  getBobpayConfig,
 } from "@/server/db/integrations";
 import { getSiteSettings } from "@/server/db/settings";
 import { createPaymentLink } from "@/server/payments/yetopay";
 import { createYocoCheckout } from "@/server/payments/yoco";
+import { createBobpayIntent } from "@/server/payments/bobpay";
 import type { PaymentProvider } from "@/lib/integrations";
 import { site } from "@/data/site";
 
@@ -39,12 +41,17 @@ export interface StartPaymentResult {
 export async function startGatewayPayment(
   input: StartPaymentInput
 ): Promise<StartPaymentResult> {
-  const [yeto, yoco, settings] = await Promise.all([
+  const [yeto, yoco, bobpay, settings] = await Promise.all([
     getYetopayConfig(),
     getYocoConfig(),
+    getBobpayConfig(),
     getSiteSettings(),
   ]);
-  const available: Record<PaymentProvider, unknown> = { yetopay: yeto, yoco };
+  const available: Record<PaymentProvider, unknown> = {
+    yetopay: yeto,
+    yoco,
+    bobpay,
+  };
   const preferred = settings.paymentProvider;
   const active: PaymentProvider | null =
     preferred && available[preferred]
@@ -53,7 +60,29 @@ export async function startGatewayPayment(
         ? "yetopay"
         : yoco
           ? "yoco"
-          : null;
+          : bobpay
+            ? "bobpay"
+            : null;
+
+  if (active === "bobpay" && bobpay) {
+    const c = await createBobpayIntent(bobpay, {
+      amountZAR: input.amountZAR,
+      reference: input.reference,
+      itemName: input.description ?? input.reference,
+      description: input.description,
+      customerEmail: input.customerEmail,
+      successUrl: input.successUrl,
+      cancelUrl: input.failureUrl,
+      notifyUrl: `${appUrl()}/api/webhooks/bobpay`,
+    });
+    if (!c.ok || !c.redirectUrl) return { ok: false, error: c.error };
+    return {
+      ok: true,
+      redirectUrl: c.redirectUrl,
+      provider: "bobpay",
+      reference: c.paymentId,
+    };
+  }
 
   if (active === "yoco" && yoco) {
     const c = await createYocoCheckout(yoco, {

@@ -9,11 +9,13 @@ import {
   getBobgoConfig,
   getYetopayConfig,
   getYocoConfig,
+  getBobpayConfig,
   isIntegrationEnabled,
 } from "@/server/db/integrations";
 import { getRatesAtCheckout, type ShipItem } from "@/server/shipping/bobgo";
 import { createPaymentLink } from "@/server/payments/yetopay";
 import { createYocoCheckout } from "@/server/payments/yoco";
+import { createBobpayIntent } from "@/server/payments/bobpay";
 import type { PaymentProvider } from "@/lib/integrations";
 import { getSiteSettings } from "@/server/db/settings";
 import { getOrderConfirmation } from "@/server/db/order-public";
@@ -298,12 +300,17 @@ export async function placeOrder(
   // 1. Online payment. Two gateways can be configured + enabled at once; the
   //    admin's chosen provider is live, with automatic fallback to the other
   //    if the chosen one is off/unconfigured.
-  const [yeto, yoco, settings] = await Promise.all([
+  const [yeto, yoco, bobpay, settings] = await Promise.all([
     getYetopayConfig(),
     getYocoConfig(),
+    getBobpayConfig(),
     getSiteSettings(),
   ]);
-  const available: Record<PaymentProvider, unknown> = { yetopay: yeto, yoco };
+  const available: Record<PaymentProvider, unknown> = {
+    yetopay: yeto,
+    yoco,
+    bobpay,
+  };
   const preferred = settings.paymentProvider;
   // The customer's pick is only honoured when the admin offers a choice and the
   // gateway is actually ready - otherwise fall back to the admin's default.
@@ -317,7 +324,39 @@ export async function placeOrder(
           ? "yetopay"
           : yoco
             ? "yoco"
-            : null;
+            : bobpay
+              ? "bobpay"
+              : null;
+
+  if (active === "bobpay" && bobpay) {
+    const intent = await createBobpayIntent(bobpay, {
+      amountZAR: total,
+      reference: orderNumber,
+      itemName: `Umthombo Creations order ${orderNumber}`,
+      customerEmail: input.email,
+      customerPhone: input.phone,
+      successUrl: `${appUrl()}/checkout/success?order=${orderNumber}`,
+      cancelUrl: `${appUrl()}/checkout/cancelled?order=${orderNumber}`,
+      notifyUrl: `${appUrl()}/api/webhooks/bobpay`,
+    });
+    if (!intent.ok || !intent.redirectUrl) {
+      return { ok: false, error: intent.error ?? "Couldn’t start payment." };
+    }
+    await db
+      .update(orders)
+      .set({
+        paymentProvider: "bobpay",
+        paymentReference: intent.paymentId ?? null,
+      })
+      .where(eq(orders.id, orderId));
+    return {
+      ok: true,
+      mode: "payment",
+      redirectUrl: intent.redirectUrl,
+      paymentDisplay: "redirect", // Bob Pay's hosted page is redirect-only
+      orderNumber,
+    };
+  }
 
   if (active === "yoco" && yoco) {
     const checkout = await createYocoCheckout(yoco, {
