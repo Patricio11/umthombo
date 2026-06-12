@@ -7,7 +7,13 @@ import { site } from "@/data/site";
 
 export const dynamic = "force-dynamic";
 
-const CONFIGURABLE: IntegrationKey[] = ["bobgo", "yetopay", "yoco", "resend"];
+const CONFIGURABLE: IntegrationKey[] = [
+  "bobgo",
+  "yetopay",
+  "yoco",
+  "bobpay",
+  "resend",
+];
 
 export async function generateMetadata({
   params,
