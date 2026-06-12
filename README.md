@@ -167,6 +167,8 @@ The Integrations page also has an **Active payment gateway** picker and a **"let
 - **Bob Pay** → `…/api/webhooks/bobpay` — **no dashboard step**: the URL is sent with every payment (`notify_url`), and each callback is verified by echoing it back to Bob Pay's validate endpoint. Resolved by reference (`orderNumber` / `requestNumber`), idempotent via `payment_events`.
 - **BobGo** → `…/api/webhooks/bobgo` — a plain, trusted URL (no token/HMAC). Subscribe to the **fulfilment-update** event; it only updates an existing order matched by `channel_order_number`.
 
+> **Adding another payment gateway?** Follow [`docs/ADDING_A_PAYMENT_GATEWAY.md`](docs/ADDING_A_PAYMENT_GATEWAY.md) — every touch point in order, including the two non-type-checked allowlists (`CONFIGURABLE`, `VALID`) that otherwise 404 the config page.
+
 ## Admin
 
 `/admin` (sign in with the seeded credentials). Fully responsive, brand-consistent, with toasts, confirm dialogs and reduced-motion-safe motion.
@@ -203,6 +205,7 @@ Security: every admin mutation is guarded by `requireAdmin()` + Zod and customer
 | [`SHIPPING_PAYMENT_PLAN.md`](docs/SHIPPING_PAYMENT_PLAN.md) | BobGo + YetoPay + email + integrations |
 | [`YOCO_INTEGRATION.md`](docs/YOCO_INTEGRATION.md) | Second payment gateway + switching + customer choice |
 | [`BOBPAY_INTEGRATION.md`](docs/BOBPAY_INTEGRATION.md) | Third payment gateway (Bob Pay, redirect) |
+| [`ADDING_A_PAYMENT_GATEWAY.md`](docs/ADDING_A_PAYMENT_GATEWAY.md) | **Reusable checklist** for wiring a new gateway (every touch point) |
 | [`CUSTOMER_ACCOUNTS_PLAN.md`](docs/CUSTOMER_ACCOUNTS_PLAN.md) | Accounts, reviews, FAQ |
 | [`CUSTOM_REQUESTS_PLAN.md`](docs/CUSTOM_REQUESTS_PLAN.md) | Bespoke commission pipeline |
 | [`USER_MANAGEMENT_PLAN.md`](docs/USER_MANAGEMENT_PLAN.md) | Admin customer management |

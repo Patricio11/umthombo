@@ -42,7 +42,9 @@ Add **BobPay** (bobpay.co.za, the Bob Group's payments arm — same family as th
 
 ## How it slots into the existing gateway architecture
 
-Mirrors the Yoco integration almost exactly. Touch points:
+Mirrors the Yoco integration almost exactly. **The complete, reusable step list
+lives in [`ADDING_A_PAYMENT_GATEWAY.md`](ADDING_A_PAYMENT_GATEWAY.md)** — follow
+that for any new gateway. Bob Pay's specific touch points:
 
 | File | Change |
 |---|---|
@@ -51,9 +53,12 @@ Mirrors the Yoco integration almost exactly. Touch points:
 | `server/payments/bobpay.ts` *(new)* | `createBobpayIntent(config, input)` → `short_url`; `verifyBobpayWebhook(config, rawBody)` → echo-back to `/payments/intents/validate`; rand formatter; sandbox URL switch. |
 | `server/payments/gateway.ts` | Add `bobpay` to the available map + a `bobpay` branch in `startGatewayPayment` (so custom-request deposits/balances work through it too). |
 | `app/api/webhooks/bobpay/route.ts` *(new)* | Receive → verify (echo-back) → resolve by `custom_payment_id` (order vs custom request by prefix) → mark paid idempotently → fire fulfilment (emails + BobGo order) / custom-request advance. |
-| `db/settings` + Integrations UI | `paymentProvider` active-gateway picker gains a 3rd option; "let customers choose" lists all *ready* gateways. |
+| `db/settings` + Integrations UI | `paymentProvider` active-gateway picker gains a 3rd option; "let customers choose" lists all *ready* gateways. (Data-driven — automatic once the types + meta include `bobpay`.) |
 | Checkout (`CheckoutClient`, payment options) | Add BobPay as a provider option; on select, redirect to `short_url` (exactly the Yoco redirect path — no iframe). |
-| Admin integration card | BobPay config form (api key, sandbox, source) + register/test. |
+| Admin integration card | BobPay config form (api key, sandbox). |
+| **`CONFIGURABLE`** array (`admin/(panel)/integrations/[key]/page.tsx`) | ⚠️ Add `"bobpay"` or its config page **404s** (the exact gap that bit Yoco). Not type-checked. |
+| **`VALID`** array (`setPaymentProvider`) | ⚠️ Add `"bobpay"` or setting it Live errors "Unknown provider." Not type-checked. |
+| `checkout-schema.ts` | Add `"bobpay"` to the `paymentProvider` enum. |
 
 ---
 

@@ -54,6 +54,12 @@ YetoPay's method to **Instant EFT**.
 
 ## Architecture (mirrors YetoPay)
 
+> **Adding *another* gateway?** Follow the complete, reusable step list in
+> [`ADDING_A_PAYMENT_GATEWAY.md`](ADDING_A_PAYMENT_GATEWAY.md). In particular it
+> flags the two allowlists that aren't type-checked and bite with a 404 /
+> "Unknown provider" — Yoco's config page itself 404'd once because `yoco` was
+> missing from the `CONFIGURABLE` array.
+
 | Concern | File |
 |---|---|
 | Config shape + secrets | `src/lib/integrations.ts` (`YocoConfig`, key `yoco`) |
@@ -63,6 +69,8 @@ YetoPay's method to **Instant EFT**.
 | Webhook handler | `src/app/api/webhooks/yoco/route.ts` |
 | Admin save/test/register | `src/server/actions/integrations.ts` |
 | Admin UI | `IntegrationForm.tsx`, `IntegrationsList.tsx` |
+| Detail-page allowlist ⚠️ | `admin/(panel)/integrations/[key]/page.tsx` (`CONFIGURABLE`) |
+| Active-gateway allowlist ⚠️ | `setPaymentProvider` `VALID` array |
 | Active-gateway setting | `settings.payment_provider` (migration `0017`) |
 
 ### Checkout API
