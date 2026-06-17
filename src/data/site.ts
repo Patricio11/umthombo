@@ -1,6 +1,6 @@
 export const site = {
   name: "Umthombo Creations",
-  meaning: "Umthombo means a spring, a fountain  a source of renewal and flow.",
+  meaning: "Umthombo is an isiXhosa word meaning a spring or fountain. It speaks to renewal, creativity, and the steady flow of life that inspires everything we create.",
   tagline: "Eco-conscious essentials, handcrafted with care.",
   story:
     "What began as a creative outlet has grown into a soulful offering of handcrafted products that bring warmth and intention into your space.",

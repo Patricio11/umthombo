@@ -30,7 +30,7 @@ export default async function ContactPage() {
       <PageHeader
         eyebrow="Talk to us"
         title="We'd love to hear from you."
-        blurb="The fastest way to reach us is a WhatsApp  but a note here works just as well. We read everything."
+        blurb="The quickest way to reach us is via WhatsApp, but a note here works just as well. We read and respond to every message."
       />
 
       <section className="px-5 py-12 sm:px-8 lg:py-16">
