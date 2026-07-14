@@ -91,3 +91,27 @@ export function computeDiscount(
 /** Customer-facing label, e.g. "Own container · 10% off". */
 export const discountLabel = (rule: DiscountRule) =>
   `Own container · ${rule.percent}% off`;
+
+/** The percent as copy, e.g. "10%". */
+export const discountPercentLabel = (rule: DiscountRule) => `${rule.percent}%`;
+
+/**
+ * Fill `{discount}` tokens in any copy with the configured percent, so marketing
+ * text follows the admin's rule instead of hardcoding "10%". Works in plain
+ * text, Markdown and FAQ answers.
+ *
+ *   "Bring your jar and we'll take {discount} off." → "…take 10% off."
+ */
+export function fillDiscountCopy(text: string, rule: DiscountRule): string {
+  return text.replace(/\{discount\}/g, discountPercentLabel(rule));
+}
+
+/** A commitment's copy — the discount sentence is only included while the rule
+ *  is on, so turning the discount off silently removes the promise everywhere. */
+export function commitmentCopy(
+  c: { body: string; discountBody?: string },
+  rule: DiscountRule
+): string {
+  if (!rule.enabled || !c.discountBody) return c.body;
+  return `${c.body} ${fillDiscountCopy(c.discountBody, rule)}`;
+}

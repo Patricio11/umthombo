@@ -53,7 +53,7 @@ When about **1 cm of wax** remains, retire the candle. Burning to the very botto
 
 Our vessels are made to be kept. Once the candle is finished, pop it in the freezer for an hour and the last of the wax will lift out cleanly. Wash with warm soapy water and you have a little pot for plants, brushes, trinkets or a small bunch of stems.
 
-> Bring a clean vessel back to us for a refill and we’ll take **10% off** — kinder on the planet, and on your pocket.
+> Bring a clean vessel back to us for a refill and we’ll take **{discount} off** — kinder on the planet, and on your pocket.
 
 Small rituals, a longer life. That’s rather the whole idea.`,
   },

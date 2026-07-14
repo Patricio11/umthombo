@@ -14,6 +14,8 @@ import { Reveal } from "@/components/motion/Reveal";
 import { formatDate } from "@/lib/format";
 import { tagSlug } from "@/lib/journal";
 import { getPostBySlug, getRelatedPosts } from "@/server/db/journal";
+import { getSiteSettings } from "@/server/db/settings";
+import { fillDiscountCopy } from "@/lib/discount";
 
 export const revalidate = 300;
 
@@ -60,8 +62,13 @@ export default async function ArticlePage({
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const related = await getRelatedPosts(post.slug, post.tags, 3);
+  const [related, settings] = await Promise.all([
+    getRelatedPosts(post.slug, post.tags, 3),
+    getSiteSettings(),
+  ]);
   const url = absUrl(`/journal/${post.slug}`);
+  // Posts may use a `{discount}` token so the copy follows the admin's rule.
+  const body = fillDiscountCopy(post.body, settings.containerDiscount);
 
   const jsonLd = articleLd(post);
   const breadcrumb = breadcrumbLd([
@@ -133,7 +140,7 @@ export default async function ArticlePage({
         )}
 
         <Reveal delay={0.05} className="mt-12">
-          <Markdown>{post.body}</Markdown>
+          <Markdown>{body}</Markdown>
         </Reveal>
 
         {/* Tags + share */}

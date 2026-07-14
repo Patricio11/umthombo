@@ -241,7 +241,9 @@ export function PostForm({ post }: { post?: Post }) {
                   )}
                 />
                 <p className="text-xs text-ink-soft">
-                  Markdown supported · ~{readingMinutes(body)} min read
+                  Markdown supported · ~{readingMinutes(body)} min read ·{" "}
+                  <code className="rounded bg-cream-2 px-1">{"{discount}"}</code>{" "}
+                  becomes your current bring-back discount
                 </p>
               </>
             ) : (

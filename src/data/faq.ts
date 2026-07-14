@@ -64,6 +64,6 @@ export const faqSeed: SeedFaq[] = [
     category: "Care",
     question: "Are your products eco-conscious?",
     answer:
-      "Yes - small batches, thoughtfully chosen ingredients and eco-friendly packaging. Bring your own clean jar and mention it for 10% off your refill.",
+      "Yes - small batches, thoughtfully chosen ingredients and eco-friendly packaging. Bring your own clean jar and mention it for {discount} off your refill.",
   },
 ];

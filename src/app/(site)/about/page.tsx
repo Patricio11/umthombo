@@ -5,6 +5,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ContactBlock } from "@/components/home/ContactBlock";
 import { commitments } from "@/data/site";
+import { commitmentCopy } from "@/lib/discount";
 import { getSiteSettings } from "@/server/db/settings";
 
 export const metadata: Metadata = {
@@ -87,7 +88,9 @@ export default async function AboutPage() {
                   0{i + 1}
                 </span>
                 <h3 className="mt-2 font-display text-2xl">{c.title}</h3>
-                <p className="mt-2 leading-relaxed text-ink-soft">{c.body}</p>
+                <p className="mt-2 leading-relaxed text-ink-soft">
+                  {commitmentCopy(c, site.containerDiscount)}
+                </p>
               </Reveal>
             ))}
           </div>

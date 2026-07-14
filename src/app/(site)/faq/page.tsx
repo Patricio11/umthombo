@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { ChevronDown } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { getPublishedFaqs } from "@/server/db/faqs";
+import { getSiteSettings } from "@/server/db/settings";
+import { fillDiscountCopy } from "@/lib/discount";
 import { faqLd, canonical } from "@/lib/seo";
 import type { Faq } from "@/server/db/schema";
 
@@ -21,7 +23,15 @@ export const metadata: Metadata = {
 };
 
 export default async function FaqPage() {
-  const items = await getPublishedFaqs();
+  const [raw, settings] = await Promise.all([
+    getPublishedFaqs(),
+    getSiteSettings(),
+  ]);
+  // Answers may use a `{discount}` token so the copy follows the admin's rule.
+  const items = raw.map((f) => ({
+    ...f,
+    answer: fillDiscountCopy(f.answer, settings.containerDiscount),
+  }));
 
   // Group by category, preserving order; uncategorised items go in "".
   const groups: { category: string; items: Faq[] }[] = [];

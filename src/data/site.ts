@@ -36,8 +36,16 @@ export const nav = [
   { label: "Contact", href: "/contact" },
 ] as const;
 
+export interface Commitment {
+  title: string;
+  body: string;
+  /** Appended only while the bring-back discount is on. `{discount}` → the
+   *  admin's configured percent, so the copy never contradicts the rule. */
+  discountBody?: string;
+}
+
 /** The brand promises  "Our commitment to you". */
-export const commitments = [
+export const commitments: Commitment[] = [
   {
     title: "Diverse size range",
     body: "From a quiet single candle to a generous gift box  a size for every space and budget.",
@@ -52,10 +60,11 @@ export const commitments = [
   },
   {
     title: "Fully customisable",
-    body: "Choose your scent, colour and vessel. Bring your own jar and we'll take 10% off.",
+    body: "Choose your scent, colour and vessel.",
+    discountBody: "Bring your own jar and we'll take {discount} off.",
   },
   {
     title: "A unique range",
     body: "Sculptural pyramids, potjie-pots, gemstone intentions  small batches, never mass-made.",
   },
-] as const;
+];

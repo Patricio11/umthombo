@@ -3,6 +3,8 @@
 import { motion, useReducedMotion } from "motion/react";
 import { Reveal } from "@/components/motion/Reveal";
 import { commitments } from "@/data/site";
+import { useSiteSettings } from "@/components/SiteSettingsProvider";
+import { commitmentCopy, discountPercentLabel } from "@/lib/discount";
 
 /** A small line-drawn leaf that draws on as the item reveals. */
 function Leaf() {
@@ -36,6 +38,7 @@ function Leaf() {
 }
 
 export function Philosophy() {
+  const { containerDiscount: rule } = useSiteSettings();
   return (
     <section className="bg-cream-2 px-5 py-20 sm:px-8 lg:py-28">
       <div className="mx-auto max-w-7xl">
@@ -52,21 +55,28 @@ export function Philosophy() {
               <div className="flex flex-col">
                 <Leaf />
                 <h3 className="mt-4 font-display text-2xl">{c.title}</h3>
-                <p className="mt-2 leading-relaxed text-ink-soft">{c.body}</p>
+                <p className="mt-2 leading-relaxed text-ink-soft">
+                  {commitmentCopy(c, rule)}
+                </p>
               </div>
             </Reveal>
           ))}
 
-          {/* the 10% pledge as a quiet final card */}
-          <Reveal delay={0.12}>
-            <div className="flex h-full flex-col justify-center rounded-3xl bg-olive/10 p-7">
-              <p className="font-display text-3xl text-olive">10% off</p>
-              <p className="mt-2 leading-relaxed text-ink-soft">
-                Bring or reuse your own container and we&rsquo;ll take 10% off 
-                a small thank-you for a smaller footprint.
-              </p>
-            </div>
-          </Reveal>
+          {/* The bring-back pledge as a quiet final card - only while it's on. */}
+          {rule.enabled && (
+            <Reveal delay={0.12}>
+              <div className="flex h-full flex-col justify-center rounded-3xl bg-olive/10 p-7">
+                <p className="font-display text-3xl text-olive">
+                  {discountPercentLabel(rule)} off
+                </p>
+                <p className="mt-2 leading-relaxed text-ink-soft">
+                  Bring or reuse your own container and we&rsquo;ll take{" "}
+                  {discountPercentLabel(rule)} off  a small thank-you for a
+                  smaller footprint.
+                </p>
+              </div>
+            </Reveal>
+          )}
         </div>
       </div>
     </section>

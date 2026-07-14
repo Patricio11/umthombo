@@ -195,7 +195,10 @@ function FaqForm({ initial, onDone }: { initial?: Faq; onDone: () => void }) {
         <Field label="Question">
           <Input value={question} onChange={(e) => setQuestion(e.target.value)} required />
         </Field>
-        <Field label="Answer">
+        <Field
+          label="Answer"
+          hint="Tip: write {discount} and it becomes your current bring-back discount (set in Discounts)."
+        >
           <Textarea
             rows={4}
             value={answer}
