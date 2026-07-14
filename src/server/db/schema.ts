@@ -97,6 +97,8 @@ export const products = pgTable("products", {
   priceMaxZAR: integer("price_max_zar"),
   packPriceZAR: integer("pack_price_zar"),
   customisable: boolean("customisable").notNull().default(false),
+  /** Comes in a returnable jar/bottle/tub → can earn the bring-back discount. */
+  containerEligible: boolean("container_eligible").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
   // Shipping dimensions for live BobGo rates (null = not yet captured)
   weightKg: real("weight_kg"),
@@ -136,8 +138,12 @@ export const orders = pgTable("orders", {
     Record<string, unknown>
   >(),
   note: text("note"),
+  /** Legacy: the old order-wide 10% tick. Kept so historic orders still read
+   *  correctly; new orders use per-line `containers_returned` + `discount_zar`. */
   ownContainer: boolean("own_container").notNull().default(false),
   subtotalZAR: integer("subtotal_zar").notNull().default(0),
+  /** Total bring-back discount across the lines (snapshot). */
+  discountZAR: integer("discount_zar").notNull().default(0),
   deliveryFeeZAR: integer("delivery_fee_zar").notNull().default(0),
   totalZAR: integer("total_zar").notNull().default(0),
   status: orderStatusEnum("status").notNull().default("new"),
@@ -169,6 +175,10 @@ export const orderItems = pgTable("order_items", {
   qty: integer("qty").notNull().default(1),
   unitPriceZAR: integer("unit_price_zar").notNull(),
   lineTotalZAR: integer("line_total_zar").notNull(),
+  /** How many containers the customer brought back for this line (≤ qty). */
+  containersReturned: integer("containers_returned").notNull().default(0),
+  /** This line's bring-back discount (snapshot, already reflected in the order). */
+  discountZAR: integer("discount_zar").notNull().default(0),
 });
 
 /* ------------------------------------------------------------------ */
@@ -224,6 +234,10 @@ export const settings = pgTable("settings", {
   email: text("email"),
   paymentProvider: text("payment_provider"), // active/default gateway: yetopay | yoco | null (auto)
   offerBothGateways: boolean("offer_both_gateways"), // let customers pick a gateway at checkout
+  // Bring-back (reusable container) discount rule. Null = the default below.
+  containerDiscountEnabled: boolean("container_discount_enabled"), // null = on
+  containerDiscountPercent: integer("container_discount_percent"), // null = 10
+  containerDiscountScope: text("container_discount_scope"), // "selected" (null) | "all"
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()

@@ -30,6 +30,7 @@ import {
   type CreatePendingOrderInput,
 } from "@/lib/checkout-schema";
 import { formatZAR } from "@/lib/format";
+import { computeLineDiscount } from "@/lib/discount";
 import { isHoneypotFilled } from "@/lib/honeypot";
 import { site } from "@/data/site";
 import type { DeliveryAddress } from "@/lib/shipping";
@@ -89,15 +90,17 @@ export async function createPendingOrder(
 
   // 1. Re-price every line from the DB.
   const slugs = [...new Set(data.items.map((i) => i.slug))];
-  const rows = await db
-    .select()
-    .from(products)
-    .where(inArray(products.slug, slugs));
+  const [rows, ruleSettings] = await Promise.all([
+    db.select().from(products).where(inArray(products.slug, slugs)),
+    getSiteSettings(),
+  ]);
   const bySlug = new Map(rows.map((r) => [r.slug, r]));
+  const rule = ruleSettings.containerDiscount;
 
   const lines: (typeof orderItems.$inferInsert)[] = [];
   const shipItems: ShipItem[] = [];
   let subtotal = 0;
+  let discountTotal = 0;
 
   for (const it of data.items) {
     const p = bySlug.get(it.slug);
@@ -118,6 +121,20 @@ export async function createPendingOrder(
     }
     const lineTotal = unit * it.qty;
     subtotal += lineTotal;
+
+    // Bring-back discount: eligibility comes from the DB (never the client) and
+    // the container count is clamped to this line's quantity.
+    const { jars, discountZAR: lineDiscount } = computeLineDiscount(
+      {
+        unitPriceZAR: unit,
+        qty: it.qty,
+        containerEligible: p.containerEligible,
+        containersReturned: it.containersReturned ?? 0,
+      },
+      rule
+    );
+    discountTotal += lineDiscount;
+
     lines.push({
       orderId: "", // set in tx
       productId: p.id,
@@ -126,6 +143,8 @@ export async function createPendingOrder(
       qty: it.qty,
       unitPriceZAR: unit,
       lineTotalZAR: lineTotal,
+      containersReturned: jars,
+      discountZAR: lineDiscount,
     });
     shipItems.push({
       description: p.name,
@@ -139,7 +158,7 @@ export async function createPendingOrder(
     });
   }
 
-  const goodsTotal = data.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const goodsTotal = subtotal - discountTotal;
 
   // 2. Delivery: re-verify the chosen rate against BobGo.
   let deliveryFee = 0;
@@ -202,8 +221,8 @@ export async function createPendingOrder(
         shippingAddressJson:
           (shippingAddressJson as Record<string, unknown> | null) ?? undefined,
         note: data.note ?? null,
-        ownContainer: data.ownContainer,
         subtotalZAR: subtotal,
+        discountZAR: discountTotal,
         deliveryFeeZAR: deliveryFee,
         totalZAR: total,
         status: "new",

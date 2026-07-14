@@ -127,10 +127,19 @@ function itemsTable(d: OrderEmailData): string {
         }</td><td style="padding:5px 0;font-size:14px;color:${SOFT};text-align:right;">${formatZAR(d.deliveryFeeZAR)}</td></tr>`
       : `<tr><td style="padding:5px 0;font-size:14px;color:${SOFT};">Collection</td><td style="padding:5px 0;font-size:14px;color:${SOFT};text-align:right;">Free</td></tr>`;
 
+  // Derived, so it reads correctly for both per-line and legacy order-wide
+  // discounts — otherwise the totals appear not to add up.
+  const discountZAR = d.subtotalZAR - (d.totalZAR - d.deliveryFeeZAR);
+  const discountLine =
+    discountZAR > 0
+      ? `<tr><td style="padding:4px 0;font-size:14px;color:${OLIVE};">Own container discount</td><td style="padding:4px 0;font-size:14px;color:${OLIVE};text-align:right;">−${formatZAR(discountZAR)}</td></tr>`
+      : "";
+
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
     ${rows}
     <tr><td colspan="2" style="border-top:1px solid ${LINE};padding-top:10px;"></td></tr>
     <tr><td style="padding:4px 0;font-size:14px;color:${SOFT};">Subtotal</td><td style="padding:4px 0;font-size:14px;color:${SOFT};text-align:right;">${formatZAR(d.subtotalZAR)}</td></tr>
+    ${discountLine}
     ${deliveryLine}
     <tr>
       <td style="padding:10px 0 0;font-size:18px;color:${INK};">Total</td>

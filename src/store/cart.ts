@@ -10,12 +10,15 @@ export interface CartItem {
   qty: number;
   unitPriceZAR: number;
   image: string;
+  /** Does this product come in a returnable container? (from the product) */
+  containerEligible?: boolean;
+  /** How many containers the customer is bringing back for this line (≤ qty). */
+  containersReturned?: number;
 }
 
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
-  ownContainer: boolean; // 10% reusable-container discount
   lastAdded: number; // timestamp-ish counter to trigger the badge pop
   addItem: (
     item: Omit<CartItem, "qty">,
@@ -24,11 +27,16 @@ interface CartState {
   ) => void;
   removeItem: (slug: string, variant?: string) => void;
   setQty: (slug: string, variant: string | undefined, qty: number) => void;
+  /** Set how many containers are coming back for a line (clamped to its qty). */
+  setContainers: (
+    slug: string,
+    variant: string | undefined,
+    n: number
+  ) => void;
   clear: () => void;
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
-  setOwnContainer: (v: boolean) => void;
 }
 
 const sameLine = (a: CartItem, slug: string, variant?: string) =>
@@ -39,7 +47,6 @@ export const useCart = create<CartState>()(
     (set) => ({
       items: [],
       isOpen: false,
-      ownContainer: false,
       lastAdded: 0,
 
       addItem: (item, qty = 1, opts) =>
@@ -70,20 +77,41 @@ export const useCart = create<CartState>()(
         set((state) => ({
           items: state.items
             .map((i) =>
-              sameLine(i, slug, variant) ? { ...i, qty: Math.max(0, qty) } : i
+              sameLine(i, slug, variant)
+                ? {
+                    ...i,
+                    qty: Math.max(0, qty),
+                    // Never let jars outlive the quantity they belong to.
+                    containersReturned: Math.min(
+                      i.containersReturned ?? 0,
+                      Math.max(0, qty)
+                    ),
+                  }
+                : i
             )
             .filter((i) => i.qty > 0),
+        })),
+
+      setContainers: (slug, variant, n) =>
+        set((state) => ({
+          items: state.items.map((i) =>
+            sameLine(i, slug, variant)
+              ? {
+                  ...i,
+                  containersReturned: Math.min(Math.max(0, Math.trunc(n)), i.qty),
+                }
+              : i
+          ),
         })),
 
       clear: () => set({ items: [] }),
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((s) => ({ isOpen: !s.isOpen })),
-      setOwnContainer: (v) => set({ ownContainer: v }),
     }),
     {
       name: "umthombo-selection",
-      partialize: (s) => ({ items: s.items, ownContainer: s.ownContainer }),
+      partialize: (s) => ({ items: s.items }),
     }
   )
 );
@@ -95,7 +123,13 @@ export const selectCount = (s: CartState) =>
 export const selectSubtotal = (s: CartState) =>
   s.items.reduce((n, i) => n + i.qty * i.unitPriceZAR, 0);
 
-export const selectTotal = (s: CartState) => {
-  const sub = selectSubtotal(s);
-  return s.ownContainer ? Math.round(sub * 0.9) : sub;
-};
+/** Cart lines in the shape `lib/discount` expects. The discount itself is NOT
+ *  computed here — it depends on the admin's rule, which comes from the server;
+ *  callers pass both to `computeDiscount`. The server re-computes before charging. */
+export const selectDiscountLines = (s: CartState) =>
+  s.items.map((i) => ({
+    unitPriceZAR: i.unitPriceZAR,
+    qty: i.qty,
+    containerEligible: !!i.containerEligible,
+    containersReturned: i.containersReturned ?? 0,
+  }));

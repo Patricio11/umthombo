@@ -16,6 +16,9 @@ export const checkoutItemSchema = z.object({
   variant: z.string().nullable().optional(),
   qty: z.number().int().min(1).max(99),
   unitPriceZAR: z.number().int().min(0),
+  /** Containers the customer says they're bringing back for this line. The
+   *  server re-checks eligibility against the DB and clamps this to `qty`. */
+  containersReturned: z.number().int().min(0).max(99).optional().default(0),
 });
 
 export const createPendingOrderSchema = z
@@ -28,7 +31,6 @@ export const createPendingOrderSchema = z
     address: deliveryAddressSchema.optional(),
     serviceCode: z.string().trim().max(80).optional(),
     note: z.string().trim().max(500).optional(),
-    ownContainer: z.boolean().default(false),
     // Account hooks (logged-out: offer account creation; logged-in: save address)
     createAccount: z.boolean().optional().default(false),
     saveAddress: z.boolean().optional().default(false),

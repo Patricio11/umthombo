@@ -59,6 +59,8 @@ export const productSchema = z.object({
   priceMaxZAR: optionalInt,
   packPriceZAR: optionalInt,
   customisable: z.boolean().default(false),
+  /** Comes in a returnable jar/bottle/tub → can earn the bring-back discount. */
+  containerEligible: z.boolean().default(false),
   featured: z.boolean().default(false),
   weightKg: optionalFloat,
   lengthCm: optionalFloat,

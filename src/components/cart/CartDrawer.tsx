@@ -10,18 +10,27 @@ import { X } from "lucide-react";
 import {
   useCart,
   selectSubtotal,
-  selectTotal,
+  selectDiscountLines,
   selectCount,
 } from "@/store/cart";
 import { formatZAR } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { CartLine } from "@/components/cart/CartLine";
-import { Checkbox } from "@/components/ui/Checkbox";
 import { lockScroll, unlockScroll } from "@/lib/lenis";
+import {
+  computeDiscount,
+  discountLabel,
+  DEFAULT_DISCOUNT_RULE,
+  type DiscountRule,
+} from "@/lib/discount";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-export function CartDrawer() {
+export function CartDrawer({
+  rule = DEFAULT_DISCOUNT_RULE,
+}: {
+  rule?: DiscountRule;
+}) {
   const router = useRouter();
   const reduce = useReducedMotion();
   const isOpen = useCart((s) => s.isOpen);
@@ -29,9 +38,9 @@ export function CartDrawer() {
   const items = useCart((s) => s.items);
   const count = useCart(selectCount);
   const subtotal = useCart(selectSubtotal);
-  const total = useCart(selectTotal);
-  const ownContainer = useCart((s) => s.ownContainer);
-  const setOwnContainer = useCart((s) => s.setOwnContainer);
+  const discountLines = useCart(selectDiscountLines);
+  const discount = computeDiscount(discountLines, rule).totalZAR;
+  const total = subtotal - discount;
 
   const goToCheckout = () => {
     closeCart();
@@ -114,7 +123,7 @@ export function CartDrawer() {
                             exit={reduce ? { opacity: 0 } : { opacity: 0, height: 0 }}
                             transition={{ duration: 0.35, ease: EASE }}
                           >
-                            <CartLine item={item} />
+                            <CartLine item={item} rule={rule} />
                           </motion.div>
                         ))}
                       </AnimatePresence>
@@ -124,25 +133,11 @@ export function CartDrawer() {
                   {/* Footer */}
                   {mounted && items.length > 0 && (
                     <footer className="border-t border-cream-2 px-6 py-5">
-                      <label className="flex cursor-pointer items-start gap-3 rounded-2xl bg-cream-2 p-3.5 text-sm">
-                        <Checkbox
-                          checked={ownContainer}
-                          onChange={setOwnContainer}
-                          className="mt-0.5"
-                        />
-                        <span className="text-ink-soft">
-                          Bringing your own jar?{" "}
-                          <span className="text-ink">Mention it  10% off.</span>
-                        </span>
-                      </label>
-
-                      <div className="mt-4 flex items-baseline justify-between">
-                        <span className="text-sm text-ink-soft">
-                          {ownContainer ? "Subtotal" : "Subtotal"}
-                        </span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-sm text-ink-soft">Subtotal</span>
                         <span
                           className={
-                            ownContainer
+                            discount > 0
                               ? "text-sm text-ink-soft line-through"
                               : "font-display text-2xl"
                           }
@@ -150,13 +145,23 @@ export function CartDrawer() {
                           {formatZAR(subtotal)}
                         </span>
                       </div>
-                      {ownContainer && (
-                        <div className="mt-1 flex items-baseline justify-between">
-                          <span className="text-sm text-olive">With 10% off</span>
-                          <span className="font-display text-2xl">
-                            {formatZAR(total)}
-                          </span>
-                        </div>
+                      {discount > 0 && (
+                        <>
+                          <div className="mt-1 flex items-baseline justify-between">
+                            <span className="text-sm text-olive">
+                              {discountLabel(rule)}
+                            </span>
+                            <span className="text-sm text-olive">
+                              −{formatZAR(discount)}
+                            </span>
+                          </div>
+                          <div className="mt-1 flex items-baseline justify-between">
+                            <span className="text-sm text-ink-soft">Total</span>
+                            <span className="font-display text-2xl">
+                              {formatZAR(total)}
+                            </span>
+                          </div>
+                        </>
                       )}
 
                       <Button

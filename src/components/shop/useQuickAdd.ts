@@ -10,6 +10,7 @@ type QuickAddProduct = {
   variants?: string[] | null;
   priceZAR: number;
   image: string;
+  containerEligible?: boolean;
 };
 
 /**
@@ -29,6 +30,7 @@ export function useQuickAdd(product: QuickAddProduct) {
         variant: product.variants?.[0],
         unitPriceZAR: product.priceZAR,
         image: product.image,
+        containerEligible: product.containerEligible,
       },
       1,
       { open: false }

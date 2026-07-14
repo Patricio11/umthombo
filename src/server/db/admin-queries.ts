@@ -251,6 +251,8 @@ export type AdminOrderDetail = typeof orders.$inferSelect & {
     qty: number;
     unitPriceZAR: number;
     lineTotalZAR: number;
+    containersReturned: number;
+    discountZAR: number;
     image: string | null;
   }[];
 };
@@ -269,6 +271,8 @@ export async function getAdminOrder(
       qty: orderItems.qty,
       unitPriceZAR: orderItems.unitPriceZAR,
       lineTotalZAR: orderItems.lineTotalZAR,
+      containersReturned: orderItems.containersReturned,
+      discountZAR: orderItems.discountZAR,
       image: products.image,
     })
     .from(orderItems)
@@ -282,6 +286,7 @@ export interface OrderableProduct {
   name: string;
   priceZAR: number;
   variants: string[];
+  containerEligible: boolean;
 }
 
 export async function getOrderableProducts(): Promise<OrderableProduct[]> {
@@ -291,6 +296,7 @@ export async function getOrderableProducts(): Promise<OrderableProduct[]> {
       name: products.name,
       priceZAR: products.priceZAR,
       variants: products.variants,
+      containerEligible: products.containerEligible,
     })
     .from(products)
     .where(eq(products.status, "active"))

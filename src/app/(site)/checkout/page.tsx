@@ -38,6 +38,7 @@ export default async function CheckoutPage() {
       account={account}
       savedAddresses={savedAddresses}
       payment={payment}
+      rule={settings.containerDiscount}
     />
   );
 }

@@ -4,8 +4,16 @@ import Image from "next/image";
 import { Minus, Plus, X } from "lucide-react";
 import { useCart, type CartItem } from "@/store/cart";
 import { formatZAR } from "@/lib/format";
+import type { DiscountRule } from "@/lib/discount";
+import { ContainerStepper } from "@/components/cart/ContainerStepper";
 
-export function CartLine({ item }: { item: CartItem }) {
+export function CartLine({
+  item,
+  rule,
+}: {
+  item: CartItem;
+  rule?: DiscountRule;
+}) {
   const setQty = useCart((s) => s.setQty);
   const removeItem = useCart((s) => s.removeItem);
 
@@ -67,6 +75,8 @@ export function CartLine({ item }: { item: CartItem }) {
             {formatZAR(item.unitPriceZAR * item.qty)}
           </span>
         </div>
+
+        {rule && <ContainerStepper item={item} rule={rule} />}
       </div>
     </div>
   );

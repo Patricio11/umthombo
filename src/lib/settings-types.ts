@@ -1,4 +1,5 @@
 import type { PaymentProvider } from "@/lib/integrations";
+import type { DiscountRule } from "@/lib/discount";
 
 /** Resolved site settings (DB overrides merged over data/site defaults).
  *  Client-safe  no server imports. */
@@ -19,4 +20,6 @@ export interface SiteSettings {
   paymentProvider: PaymentProvider | null;
   /** Let customers choose their payment gateway at checkout (when both are ready). */
   offerBothGateways: boolean;
+  /** The admin-configured bring-back (reusable container) discount rule. */
+  containerDiscount: DiscountRule;
 }

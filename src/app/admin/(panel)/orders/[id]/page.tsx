@@ -91,9 +91,9 @@ export default async function OrderDetailPage({
               <span>Subtotal</span>
               <span className="tabular-nums">{formatZAR(order.subtotalZAR)}</span>
             </div>
-            {order.ownContainer && (
+            {order.subtotalZAR - (order.totalZAR - order.deliveryFeeZAR) > 0 && (
               <div className="flex justify-between text-olive">
-                <span>Own container · 10% off</span>
+                <span>Own container discount</span>
                 <span className="tabular-nums">
                   −
                   {formatZAR(

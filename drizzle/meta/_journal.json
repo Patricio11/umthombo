@@ -169,6 +169,13 @@
       "when": 1781113204657,
       "tag": "0023_daily_magneto",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1784033104710,
+      "tag": "0024_mighty_the_spike",
+      "breakpoints": true
     }
   ]
 }

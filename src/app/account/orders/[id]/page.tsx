@@ -89,8 +89,12 @@ export default async function AccountOrderDetailPage({
           </ul>
           <div className="mt-4 space-y-1.5 border-t border-cream-2 pt-4 text-sm">
             <Row label="Subtotal" value={formatZAR(order.subtotalZAR)} muted />
-            {order.ownContainer && discount > 0 && (
-              <Row label="Own container · 10% off" value={`−${formatZAR(discount)}`} accent />
+            {discount > 0 && (
+              <Row
+                label="Own container discount"
+                value={`−${formatZAR(discount)}`}
+                accent
+              />
             )}
             {order.method === "delivery" && (
               <Row

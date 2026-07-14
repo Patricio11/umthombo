@@ -180,6 +180,7 @@ The Integrations page also has an **Active payment gateway** picker and a **"let
 - **Journal** — Markdown editor with live preview, cover upload, tags, publish/draft + feature toggles (see [Journal](#journal))
 - **Customers** — list + detail with the customer's orders / requests / addresses / reviews; **send a password link**, **mark verified**, **disable login** (a `banned` flag enforced at sign-in) or **delete** (keeps orders; guards self + last admin)
 - **Products** — search/filter, full editor (variants, gallery, shipping dimensions, featured/draft) with **drag-and-drop Supabase uploads**, an **eye toggle** to show/hide, and a **notify past buyers** action for new products
+- **Discounts** — the **bring-back (reusable container) discount**: on/off, the percent, and scope (all products / only ticked ones) with a searchable product picker. Applied **per line, per container returned** (capped at the line's qty) — never order-wide — and always recomputed server-side from the DB
 - **Categories / Testimonials / Reviews / FAQ** — CRUD + moderation/reorder
 - **Integrations / Settings** — providers, social toggles, active gateway, business details
 
@@ -206,6 +207,7 @@ Security: every admin mutation is guarded by `requireAdmin()` + Zod and customer
 | [`YOCO_INTEGRATION.md`](docs/YOCO_INTEGRATION.md) | Second payment gateway + switching + customer choice |
 | [`BOBPAY_INTEGRATION.md`](docs/BOBPAY_INTEGRATION.md) | Third payment gateway (Bob Pay, redirect) |
 | [`ADDING_A_PAYMENT_GATEWAY.md`](docs/ADDING_A_PAYMENT_GATEWAY.md) | **Reusable checklist** for wiring a new gateway (every touch point) |
+| [`CONTAINER_DISCOUNT_PLAN.md`](docs/CONTAINER_DISCOUNT_PLAN.md) | The bring-back discount: per-line rule + admin config |
 | [`CUSTOMER_ACCOUNTS_PLAN.md`](docs/CUSTOMER_ACCOUNTS_PLAN.md) | Accounts, reviews, FAQ |
 | [`CUSTOM_REQUESTS_PLAN.md`](docs/CUSTOM_REQUESTS_PLAN.md) | Bespoke commission pipeline |
 | [`USER_MANAGEMENT_PLAN.md`](docs/USER_MANAGEMENT_PLAN.md) | Admin customer management |

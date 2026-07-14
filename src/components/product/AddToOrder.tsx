@@ -31,6 +31,7 @@ export function AddToOrder({ product }: { product: ProductView }) {
         variant,
         unitPriceZAR: unitPrice,
         image: product.image,
+        containerEligible: product.containerEligible,
       },
       qty
     );

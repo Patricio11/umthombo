@@ -37,6 +37,7 @@ function toProductView(row: ProductRow): ProductView {
     priceZAR: row.priceZAR,
     priceMaxZAR: row.priceMaxZAR,
     packPriceZAR: row.packPriceZAR,
+    containerEligible: row.containerEligible,
     customisable: row.customisable,
     featured: row.featured,
     status: row.status,

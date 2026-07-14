@@ -18,19 +18,29 @@ import { useToast } from "@/components/admin/Toast";
 import { ORDER_STATUSES, PAYMENT_STATUSES } from "@/lib/order-schema";
 import { createOrderAdmin, updateOrderAdmin } from "@/server/actions/orders";
 import { formatZAR } from "@/lib/format";
+import {
+  computeDiscount,
+  discountLabel,
+  isLineEligible,
+  DEFAULT_DISCOUNT_RULE,
+  type DiscountRule,
+} from "@/lib/discount";
 
 interface ItemRow {
   productId: string;
   variant: string;
   qty: number;
+  containersReturned: number;
 }
 
 export function OrderForm({
   order,
   products,
+  rule = DEFAULT_DISCOUNT_RULE,
 }: {
   order?: AdminOrderDetail;
   products: OrderableProduct[];
+  rule?: DiscountRule;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -50,7 +60,6 @@ export function OrderForm({
   );
   const [note, setNote] = useState(order?.note ?? "");
   const [address, setAddress] = useState(order?.shippingAddress ?? "");
-  const [ownContainer, setOwnContainer] = useState(order?.ownContainer ?? false);
   const [shipping, setShipping] = useState(
     order?.deliveryFeeZAR ? String(order.deliveryFeeZAR) : ""
   );
@@ -67,8 +76,9 @@ export function OrderForm({
           productId: i.productId ?? "",
           variant: i.variant ?? "",
           qty: i.qty,
+          containersReturned: i.containersReturned ?? 0,
         }))
-      : [{ productId: "", variant: "", qty: 1 }]
+      : [{ productId: "", variant: "", qty: 1, containersReturned: 0 }]
   );
 
   const setItem = (i: number, patch: Partial<ItemRow>) =>
@@ -78,7 +88,21 @@ export function OrderForm({
     const p = byId.get(it.productId);
     return sum + (p ? p.priceZAR * it.qty : 0);
   }, 0);
-  const goods = ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const discount = computeDiscount(
+    items
+      .filter((it) => it.productId)
+      .map((it) => {
+        const p = byId.get(it.productId);
+        return {
+          unitPriceZAR: p?.priceZAR ?? 0,
+          qty: it.qty,
+          containerEligible: !!p?.containerEligible,
+          containersReturned: it.containersReturned,
+        };
+      }),
+    rule
+  ).totalZAR;
+  const goods = subtotal - discount;
   const deliveryFee =
     method === "delivery" ? Math.max(0, parseInt(shipping) || 0) : 0;
   const total = goods + deliveryFee;
@@ -98,7 +122,6 @@ export function OrderForm({
       method,
       address: method === "delivery" ? address : "",
       note: note || undefined,
-      ownContainer,
       status,
       paymentStatus,
       deliveryFeeZAR: deliveryFee,
@@ -107,6 +130,7 @@ export function OrderForm({
         productId: it.productId,
         variant: it.variant || null,
         qty: it.qty,
+        containersReturned: it.containersReturned,
       })),
     };
     startTransition(async () => {
@@ -163,13 +187,37 @@ export function OrderForm({
                   <Input
                     inputMode="numeric"
                     value={String(it.qty)}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const qty = Math.max(1, parseInt(e.target.value) || 1);
                       setItem(i, {
-                        qty: Math.max(1, parseInt(e.target.value) || 1),
-                      })
-                    }
+                        qty,
+                        // jars can never outlive the qty they belong to
+                        containersReturned: Math.min(it.containersReturned, qty),
+                      });
+                    }}
                   />
                 </Field>
+
+                {p && isLineEligible(rule, p.containerEligible) && (
+                  <Field
+                    label="Jars back"
+                    className="w-24"
+                    hint={`${rule.percent}% × each`}
+                  >
+                    <Input
+                      inputMode="numeric"
+                      value={String(it.containersReturned)}
+                      onChange={(e) =>
+                        setItem(i, {
+                          containersReturned: Math.min(
+                            Math.max(0, parseInt(e.target.value) || 0),
+                            it.qty
+                          ),
+                        })
+                      }
+                    />
+                  </Field>
+                )}
 
                 <div className="flex items-center gap-2 pb-2.5">
                   <span className="w-20 text-right text-sm tabular-nums">
@@ -190,7 +238,7 @@ export function OrderForm({
           <button
             type="button"
             onClick={() =>
-              setItems([...items, { productId: "", variant: "", qty: 1 }])
+              setItems([...items, { productId: "", variant: "", qty: 1, containersReturned: 0 }])
             }
             className="inline-flex items-center gap-1.5 text-sm text-olive transition-colors hover:text-olive-soft"
           >
@@ -202,10 +250,10 @@ export function OrderForm({
               <span>Subtotal</span>
               <span className="tabular-nums">{formatZAR(subtotal)}</span>
             </div>
-            {ownContainer && (
+            {discount > 0 && (
               <div className="flex justify-between text-olive">
-                <span>Own container · 10% off</span>
-                <span className="tabular-nums">−{formatZAR(subtotal - goods)}</span>
+                <span>{discountLabel(rule)}</span>
+                <span className="tabular-nums">−{formatZAR(discount)}</span>
               </div>
             )}
             {method === "delivery" && deliveryFee > 0 && (
@@ -323,14 +371,6 @@ export function OrderForm({
               }))}
             />
           </Field>
-          <label className="flex items-center justify-between gap-3">
-            <span className="text-sm font-medium">Own container (10% off)</span>
-            <Switch
-              checked={ownContainer}
-              onChange={setOwnContainer}
-              label="Own container"
-            />
-          </label>
         </Card>
 
         <div className="flex items-center gap-3">

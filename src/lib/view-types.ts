@@ -20,6 +20,8 @@ export interface ProductView {
   priceMaxZAR: number | null;
   packPriceZAR: number | null;
   customisable: boolean;
+  /** Comes in a returnable container → can earn the bring-back discount. */
+  containerEligible: boolean;
   featured: boolean;
   status: "draft" | "active";
   image: string;

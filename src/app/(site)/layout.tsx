@@ -23,7 +23,7 @@ export default async function SiteLayout({
       <Header />
       <main id="main">{children}</main>
       <Footer />
-      <CartDrawer />
+      <CartDrawer rule={s.containerDiscount} />
     </SiteSettingsProvider>
   );
 }

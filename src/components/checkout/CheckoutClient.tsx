@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Truck, Store, Check, X, Plus } from "lucide-react";
-import { useCart, selectSubtotal, selectTotal } from "@/store/cart";
+import { useCart, selectSubtotal, selectDiscountLines } from "@/store/cart";
+import {
+  computeDiscount,
+  discountLabel,
+  DEFAULT_DISCOUNT_RULE,
+  type DiscountRule,
+} from "@/lib/discount";
 import {
   ZA_PROVINCES,
   type CheckoutPaymentInfo,
@@ -58,19 +64,23 @@ export function CheckoutClient({
   account,
   savedAddresses,
   payment,
+  rule = DEFAULT_DISCOUNT_RULE,
 }: {
   deliveryEnabled: boolean;
   collectionInfo: string;
   account: { name: string; email: string; phone: string } | null;
   savedAddresses: AddressView[];
   payment: CheckoutPaymentInfo;
+  rule?: DiscountRule;
 }) {
   const router = useRouter();
   const items = useCart((s) => s.items);
-  const ownContainer = useCart((s) => s.ownContainer);
   const clearCart = useCart((s) => s.clear);
   const subtotal = useCart(selectSubtotal);
-  const goodsTotal = useCart(selectTotal); // after own-container discount
+  const discountLines = useCart(selectDiscountLines);
+  // Mirrors the server exactly (same helper); the server re-computes before charging.
+  const discount = computeDiscount(discountLines, rule).totalZAR;
+  const goodsTotal = subtotal - discount;
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -263,7 +273,6 @@ export function CheckoutClient({
         method === "delivery" ? effectiveAddress ?? undefined : undefined,
       serviceCode: method === "delivery" ? serviceCode ?? undefined : undefined,
       note: note.trim() || undefined,
-      ownContainer,
       createAccount: !account && createAccount,
       saveAddress: !!account && addrMode === "new" && saveAddress,
       hp,
@@ -273,6 +282,7 @@ export function CheckoutClient({
         variant: i.variant ?? null,
         qty: i.qty,
         unitPriceZAR: i.unitPriceZAR,
+        containersReturned: i.containersReturned ?? 0,
       })),
     });
     if (!res.ok) {
@@ -585,10 +595,10 @@ export function CheckoutClient({
 
               <div className="space-y-2 py-5 text-sm">
                 <Row label="Subtotal" value={formatZAR(subtotal)} muted />
-                {ownContainer && (
+                {discount > 0 && (
                   <Row
-                    label="Own container · 10% off"
-                    value={`−${formatZAR(subtotal - goodsTotal)}`}
+                    label={discountLabel(rule)}
+                    value={`−${formatZAR(discount)}`}
                     accent
                   />
                 )}

@@ -7,6 +7,7 @@ import {
 } from "@/server/db/admin-queries";
 import { AdminPageHeader } from "@/components/admin/primitives";
 import { OrderForm } from "@/components/admin/orders/OrderForm";
+import { getSiteSettings } from "@/server/db/settings";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit order" };
@@ -17,9 +18,10 @@ export default async function EditOrderPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [order, products] = await Promise.all([
+  const [order, products, settings] = await Promise.all([
     getAdminOrder(id),
     getOrderableProducts(),
+    getSiteSettings(),
   ]);
   if (!order) notFound();
 
@@ -32,7 +34,7 @@ export default async function EditOrderPage({
         <ArrowLeft size={16} /> {order.orderNumber}
       </Link>
       <AdminPageHeader title="Edit order" subtitle="Update items, customer or status." />
-      <OrderForm order={order} products={products} />
+      <OrderForm order={order} products={products} rule={settings.containerDiscount} />
     </>
   );
 }

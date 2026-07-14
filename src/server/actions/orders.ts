@@ -12,13 +12,13 @@ import {
   linkOrderToAccount,
 } from "@/server/orders/fulfilment";
 import {
-  createOrderSchema,
   adminOrderSchema,
   ORDER_STATUSES,
-  type CreateOrderInput,
   type AdminOrderInput,
   type OrderStatus,
 } from "@/lib/order-schema";
+import { getSiteSettings } from "@/server/db/settings";
+import { computeLineDiscount } from "@/lib/discount";
 
 export interface ActionResult {
   ok: boolean;
@@ -35,110 +35,6 @@ function genOrderNumber(): string {
   return `UMT-${ymd}-${rand}`;
 }
 
-/**
- * Public: create an order. Prices are re-validated against the DB (never
- * trust the client), order + items written in one transaction.
- */
-export interface OrderReceiptTotals {
-  orderNumber: string;
-  subtotal: number;
-  discount: number;
-  deliveryFee: number;
-  total: number;
-}
-
-export async function createOrder(
-  input: CreateOrderInput
-): Promise<ActionResult & { receipt?: OrderReceiptTotals }> {
-  const parsed = createOrderSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
-  }
-  const data = parsed.data;
-
-  const slugs = [...new Set(data.items.map((i) => i.slug))];
-  const rows = await db
-    .select()
-    .from(products)
-    .where(inArray(products.slug, slugs));
-  const bySlug = new Map(rows.map((r) => [r.slug, r]));
-
-  const lines: (typeof orderItems.$inferInsert)[] = [];
-  let subtotal = 0;
-
-  for (const it of data.items) {
-    const p = bySlug.get(it.slug);
-    if (!p || p.status !== "active") {
-      return { ok: false, error: `"${it.slug}" is no longer available.` };
-    }
-    // Accept only a price the product actually allows (base, pack, or range).
-    let unit = p.priceZAR;
-    const allowed = new Set<number>([p.priceZAR]);
-    if (p.packPriceZAR != null) allowed.add(p.packPriceZAR);
-    if (allowed.has(it.unitPriceZAR)) {
-      unit = it.unitPriceZAR;
-    } else if (
-      p.priceMaxZAR != null &&
-      it.unitPriceZAR >= p.priceZAR &&
-      it.unitPriceZAR <= p.priceMaxZAR
-    ) {
-      unit = it.unitPriceZAR;
-    }
-    const lineTotal = unit * it.qty;
-    subtotal += lineTotal;
-    lines.push({
-      orderId: "", // set in tx
-      productId: p.id,
-      name: p.name,
-      variant: it.variant ?? null,
-      qty: it.qty,
-      unitPriceZAR: unit,
-      lineTotalZAR: lineTotal,
-    });
-  }
-
-  const goodsTotal = data.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
-  const discount = subtotal - goodsTotal;
-  // Real delivery cost is quoted live via BobGo at the dedicated checkout;
-  // the WhatsApp order flow leaves it to be confirmed in the conversation.
-  const deliveryFee = 0;
-  const total = goodsTotal + deliveryFee;
-  const orderNumber = genOrderNumber();
-  const orderId = randomUUID();
-
-  try {
-    await db.transaction(async (tx) => {
-      await tx.insert(orders).values({
-        id: orderId,
-        orderNumber,
-        customerName: data.name,
-        customerEmail: data.email,
-        customerPhone: data.phone,
-        method: data.method,
-        shippingAddress:
-          data.method === "delivery" ? data.address.trim() : null,
-        note: data.note ?? null,
-        ownContainer: data.ownContainer,
-        subtotalZAR: subtotal,
-        deliveryFeeZAR: deliveryFee,
-        totalZAR: total,
-        status: "new",
-      });
-      await tx
-        .insert(orderItems)
-        .values(lines.map((l) => ({ ...l, orderId })));
-    });
-  } catch {
-    return { ok: false, error: "We couldn't save your order. Please try again." };
-  }
-
-  revalidatePath("/admin", "layout");
-  return {
-    ok: true,
-    receipt: { orderNumber, subtotal, discount, deliveryFee, total },
-  };
-}
-
 /** Admin: move an order through its lifecycle. */
 export async function updateOrderStatus(
   id: string,
@@ -153,18 +49,37 @@ export async function updateOrderStatus(
   return { ok: true };
 }
 
-/** Price admin order items from the DB and build the insertable lines. */
+/** Price admin order items from the DB and build the insertable lines, applying
+ *  the bring-back discount per line (eligibility + prices always from the DB). */
 async function buildLines(items: AdminOrderInput["items"]) {
   const ids = [...new Set(items.map((i) => i.productId))];
-  const rows = await db.select().from(products).where(inArray(products.id, ids));
+  const [rows, settings] = await Promise.all([
+    db.select().from(products).where(inArray(products.id, ids)),
+    getSiteSettings(),
+  ]);
   const byId = new Map(rows.map((r) => [r.id, r]));
+  const rule = settings.containerDiscount;
+
   const lines: Omit<typeof orderItems.$inferInsert, "orderId">[] = [];
   let subtotal = 0;
+  let discount = 0;
   for (const it of items) {
     const p = byId.get(it.productId);
     if (!p) throw new Error("A selected product no longer exists.");
     const lineTotal = p.priceZAR * it.qty;
     subtotal += lineTotal;
+
+    const { jars, discountZAR } = computeLineDiscount(
+      {
+        unitPriceZAR: p.priceZAR,
+        qty: it.qty,
+        containerEligible: p.containerEligible,
+        containersReturned: it.containersReturned ?? 0,
+      },
+      rule
+    );
+    discount += discountZAR;
+
     lines.push({
       productId: p.id,
       name: p.name,
@@ -172,9 +87,11 @@ async function buildLines(items: AdminOrderInput["items"]) {
       qty: it.qty,
       unitPriceZAR: p.priceZAR,
       lineTotalZAR: lineTotal,
+      containersReturned: jars,
+      discountZAR,
     });
   }
-  return { lines, subtotal };
+  return { lines, subtotal, discount };
 }
 
 /** Admin: create an order manually (e.g. a phone or walk-in order). */
@@ -187,8 +104,8 @@ export async function createOrderAdmin(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
   }
   const d = parsed.data;
-  const { lines, subtotal } = await buildLines(d.items);
-  const goods = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const { lines, subtotal, discount } = await buildLines(d.items);
+  const goods = subtotal - discount;
   const deliveryFee = d.method === "delivery" ? d.deliveryFeeZAR : 0;
   const total = goods + deliveryFee;
   const id = randomUUID();
@@ -203,8 +120,8 @@ export async function createOrderAdmin(
       method: d.method,
       shippingAddress: d.method === "delivery" ? d.address.trim() || null : null,
       note: d.note ?? null,
-      ownContainer: d.ownContainer,
       subtotalZAR: subtotal,
+      discountZAR: discount,
       deliveryFeeZAR: deliveryFee,
       totalZAR: total,
       status: d.status,
@@ -231,8 +148,8 @@ export async function updateOrderAdmin(
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid order." };
   }
   const d = parsed.data;
-  const { lines, subtotal } = await buildLines(d.items);
-  const goods = d.ownContainer ? Math.round(subtotal * 0.9) : subtotal;
+  const { lines, subtotal, discount } = await buildLines(d.items);
+  const goods = subtotal - discount;
   const deliveryFee = d.method === "delivery" ? d.deliveryFeeZAR : 0;
   const total = goods + deliveryFee;
   const [existing] = await db
@@ -253,8 +170,8 @@ export async function updateOrderAdmin(
         method: d.method,
         shippingAddress: d.method === "delivery" ? d.address.trim() || null : null,
         note: d.note ?? null,
-        ownContainer: d.ownContainer,
         subtotalZAR: subtotal,
+        discountZAR: discount,
         deliveryFeeZAR: deliveryFee,
         totalZAR: total,
         status: d.status,

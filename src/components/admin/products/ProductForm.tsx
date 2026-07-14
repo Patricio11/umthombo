@@ -80,6 +80,9 @@ export function ProductForm({
   const [customisable, setCustomisable] = useState(
     product?.customisable ?? false
   );
+  const [containerEligible, setContainerEligible] = useState(
+    product?.containerEligible ?? false
+  );
   const [image, setImage] = useState(product?.image ?? "");
   const [gallery, setGallery] = useState<string[]>(product?.gallery ?? []);
   const [featured, setFeatured] = useState(product?.featured ?? false);
@@ -111,6 +114,7 @@ export function ProductForm({
       widthCm: numF(widthCm),
       heightCm: numF(heightCm),
       customisable,
+      containerEligible,
       featured,
       status,
       image,
@@ -227,6 +231,20 @@ export function ProductForm({
             <label className="flex items-center justify-between gap-3">
               <span className="text-sm font-medium">Customisable</span>
               <Switch checked={customisable} onChange={setCustomisable} label="Customisable" />
+            </label>
+            <label className="flex items-center justify-between gap-3">
+              <span className="text-sm font-medium">
+                Reusable container
+                <span className="mt-0.5 block text-xs font-normal text-ink-soft">
+                  Comes in a jar/bottle/tub a customer can bring back — earns the
+                  discount set in Discounts
+                </span>
+              </span>
+              <Switch
+                checked={containerEligible}
+                onChange={setContainerEligible}
+                label="Reusable container"
+              />
             </label>
           </Card>
 
