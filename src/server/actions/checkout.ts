@@ -4,7 +4,12 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "@/server/db";
-import { orders, orderItems, products } from "@/server/db/schema";
+import {
+  orders,
+  orderItems,
+  products,
+  promotionRedemptions,
+} from "@/server/db/schema";
 import {
   getBobgoConfig,
   getYetopayConfig,
@@ -31,6 +36,8 @@ import {
 } from "@/lib/checkout-schema";
 import { formatZAR } from "@/lib/format";
 import { computeLineDiscount } from "@/lib/discount";
+import { resolveTotals } from "@/lib/promotions";
+import { resolvePromotion } from "@/server/payments/promo-resolver";
 import { isHoneypotFilled } from "@/lib/honeypot";
 import { site } from "@/data/site";
 import type { DeliveryAddress } from "@/lib/shipping";
@@ -201,7 +208,48 @@ export async function createPendingOrder(
     shippingAddressText = flattenAddress(address);
   }
 
-  const total = goodsTotal + deliveryFee;
+  // 3. Promotions: resolve authoritatively from the DB — a typed code, else the
+  //    best automatic offer. `deliveryFee` here is the REAL courier cost.
+  const promoRes = await resolvePromotion(
+    {
+      subtotalZAR: subtotal,
+      containerDiscountZAR: discountTotal,
+      deliveryFeeZAR: deliveryFee,
+      method: data.method,
+      usageCount: 0, // the resolver reads the real count per promotion
+      now: new Date(),
+    },
+    data.couponCode
+  );
+  // A code that no longer applies must never be charged around silently.
+  if (data.couponCode?.trim() && !promoRes.applied) {
+    return { ok: false, error: promoRes.codeError ?? "That code doesn’t apply." };
+  }
+
+  const applied = promoRes.applied;
+  const totals = resolveTotals({
+    subtotalZAR: subtotal,
+    containerDiscountZAR: discountTotal,
+    deliveryFeeZAR: deliveryFee,
+    promo: applied
+      ? {
+          stackable: applied.promo.stackable,
+          valueZAR: applied.evaluation.valueZAR,
+          freeShipping: applied.evaluation.freeShipping,
+        }
+      : null,
+  });
+
+  // If a coupon displaced the bring-back discount, the stored lines must agree
+  // with the order total — otherwise the per-line numbers wouldn't add up.
+  if (totals.containerDiscountZAR === 0 && discountTotal > 0) {
+    for (const l of lines) {
+      l.discountZAR = 0;
+      l.containersReturned = 0;
+    }
+  }
+
+  const total = totals.totalZAR;
   const orderNumber = genOrderNumber();
   const orderId = randomUUID();
   const sessionUser = await getCurrentUser();
@@ -222,8 +270,12 @@ export async function createPendingOrder(
           (shippingAddressJson as Record<string, unknown> | null) ?? undefined,
         note: data.note ?? null,
         subtotalZAR: subtotal,
-        discountZAR: discountTotal,
-        deliveryFeeZAR: deliveryFee,
+        discountZAR: totals.containerDiscountZAR,
+        promotionId: applied?.promo.id ?? null,
+        couponCode: applied?.promo.code ?? null,
+        promoDiscountZAR: totals.promoDiscountZAR,
+        deliveryFeeZAR: totals.chargedDeliveryZAR,
+        shippingCostZAR: totals.shippingCostZAR,
         totalZAR: total,
         status: "new",
         shippingService,

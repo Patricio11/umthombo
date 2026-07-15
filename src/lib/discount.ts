@@ -12,12 +12,15 @@ export interface DiscountRule {
   percent: number;
   /** "selected" = only products flagged `containerEligible`; "all" = every product. */
   scope: DiscountScope;
+  /** What customers see this discount called. Admin-set — nothing hardcoded. */
+  label: string;
 }
 
 export const DEFAULT_DISCOUNT_RULE: DiscountRule = {
   enabled: true,
   percent: 10,
   scope: "selected",
+  label: "Own container",
 };
 
 export interface DiscountLine {
@@ -88,9 +91,9 @@ export function computeDiscount(
   };
 }
 
-/** Customer-facing label, e.g. "Own container · 10% off". */
+/** Customer-facing label, e.g. "Own container · 10% off" — both halves admin-set. */
 export const discountLabel = (rule: DiscountRule) =>
-  `Own container · ${rule.percent}% off`;
+  `${rule.label} · ${rule.percent}% off`;
 
 /** The percent as copy, e.g. "10%". */
 export const discountPercentLabel = (rule: DiscountRule) => `${rule.percent}%`;

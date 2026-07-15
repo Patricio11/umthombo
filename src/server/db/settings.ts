@@ -58,6 +58,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
       enabled: row?.containerDiscountEnabled ?? DEFAULT_DISCOUNT_RULE.enabled,
       percent: clampPercent(row?.containerDiscountPercent),
       scope: row?.containerDiscountScope === "all" ? "all" : "selected",
+      label: pick(row?.containerDiscountLabel, DEFAULT_DISCOUNT_RULE.label),
     },
   };
 });

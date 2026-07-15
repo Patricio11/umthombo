@@ -33,6 +33,7 @@ export function DiscountManager({
   const [enabled, setEnabled] = useState(rule.enabled);
   const [percent, setPercent] = useState(String(rule.percent));
   const [scope, setScope] = useState<DiscountScope>(rule.scope);
+  const [label, setLabel] = useState(rule.label);
 
   const [picked, setPicked] = useState<Set<string>>(
     () => new Set(products.filter((p) => p.containerEligible).map((p) => p.id))
@@ -70,7 +71,7 @@ export function DiscountManager({
 
   const onSaveRule = () =>
     startRule(async () => {
-      const res = await updateDiscountRule({ enabled, percent: pct, scope });
+      const res = await updateDiscountRule({ enabled, percent: pct, scope, label });
       if (res.ok) toast.success("Discount rule saved.");
       else toast.error(res.error ?? "Couldn’t save.");
     });
@@ -110,6 +111,20 @@ export function DiscountManager({
           </span>
           <Switch checked={enabled} onChange={setEnabled} label="Enabled" />
         </label>
+
+        <Field
+          label="What customers call it"
+          htmlFor="label"
+          hint={`Shown at checkout as “${label.trim() || "Own container"} · ${pct}% off”`}
+        >
+          <Input
+            id="label"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            maxLength={60}
+            placeholder="Own container"
+          />
+        </Field>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Discount" htmlFor="percent" hint="% off one unit, per container">

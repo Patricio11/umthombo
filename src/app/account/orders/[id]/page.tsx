@@ -91,7 +91,7 @@ export default async function AccountOrderDetailPage({
             <Row label="Subtotal" value={formatZAR(order.subtotalZAR)} muted />
             {discount > 0 && (
               <Row
-                label="Own container discount"
+                label="Discount"
                 value={`−${formatZAR(discount)}`}
                 accent
               />

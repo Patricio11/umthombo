@@ -31,6 +31,8 @@ export const createPendingOrderSchema = z
     address: deliveryAddressSchema.optional(),
     serviceCode: z.string().trim().max(80).optional(),
     note: z.string().trim().max(500).optional(),
+    /** Coupon the customer typed. Re-validated server-side before charging. */
+    couponCode: z.string().trim().max(40).optional(),
     // Account hooks (logged-out: offer account creation; logged-in: save address)
     createAccount: z.boolean().optional().default(false),
     saveAddress: z.boolean().optional().default(false),

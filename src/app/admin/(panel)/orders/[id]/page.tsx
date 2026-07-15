@@ -91,14 +91,31 @@ export default async function OrderDetailPage({
               <span>Subtotal</span>
               <span className="tabular-nums">{formatZAR(order.subtotalZAR)}</span>
             </div>
-            {order.subtotalZAR - (order.totalZAR - order.deliveryFeeZAR) > 0 && (
+            {order.discountZAR > 0 && (
               <div className="flex justify-between text-olive">
                 <span>Own container discount</span>
+                <span className="tabular-nums">−{formatZAR(order.discountZAR)}</span>
+              </div>
+            )}
+            {order.promoDiscountZAR > 0 && (
+              <div className="flex justify-between text-olive">
+                <span>
+                  {order.couponCode ? `Coupon ${order.couponCode}` : "Promotion"}
+                </span>
+                <span className="tabular-nums">−{formatZAR(order.promoDiscountZAR)}</span>
+              </div>
+            )}
+            {order.shippingCostZAR > order.deliveryFeeZAR && (
+              <div className="flex justify-between text-olive">
+                <span>
+                  Free delivery
+                  {order.couponCode ? ` · ${order.couponCode}` : ""}
+                  <span className="ml-1 text-taupe">
+                    (courier costs you {formatZAR(order.shippingCostZAR)})
+                  </span>
+                </span>
                 <span className="tabular-nums">
-                  −
-                  {formatZAR(
-                    order.subtotalZAR - (order.totalZAR - order.deliveryFeeZAR)
-                  )}
+                  −{formatZAR(order.shippingCostZAR - order.deliveryFeeZAR)}
                 </span>
               </div>
             )}

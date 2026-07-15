@@ -127,12 +127,13 @@ function itemsTable(d: OrderEmailData): string {
         }</td><td style="padding:5px 0;font-size:14px;color:${SOFT};text-align:right;">${formatZAR(d.deliveryFeeZAR)}</td></tr>`
       : `<tr><td style="padding:5px 0;font-size:14px;color:${SOFT};">Collection</td><td style="padding:5px 0;font-size:14px;color:${SOFT};text-align:right;">Free</td></tr>`;
 
-  // Derived, so it reads correctly for both per-line and legacy order-wide
-  // discounts — otherwise the totals appear not to add up.
+  // Derived, so it covers the bring-back discount, a coupon, both, or a legacy
+  // order-wide discount — otherwise the totals appear not to add up. Labelled
+  // generically because the parts aren't distinguishable from these numbers.
   const discountZAR = d.subtotalZAR - (d.totalZAR - d.deliveryFeeZAR);
   const discountLine =
     discountZAR > 0
-      ? `<tr><td style="padding:4px 0;font-size:14px;color:${OLIVE};">Own container discount</td><td style="padding:4px 0;font-size:14px;color:${OLIVE};text-align:right;">−${formatZAR(discountZAR)}</td></tr>`
+      ? `<tr><td style="padding:4px 0;font-size:14px;color:${OLIVE};">Discount</td><td style="padding:4px 0;font-size:14px;color:${OLIVE};text-align:right;">−${formatZAR(discountZAR)}</td></tr>`
       : "";
 
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">

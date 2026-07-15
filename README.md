@@ -180,7 +180,10 @@ The Integrations page also has an **Active payment gateway** picker and a **"let
 - **Journal** — Markdown editor with live preview, cover upload, tags, publish/draft + feature toggles (see [Journal](#journal))
 - **Customers** — list + detail with the customer's orders / requests / addresses / reviews; **send a password link**, **mark verified**, **disable login** (a `banned` flag enforced at sign-in) or **delete** (keeps orders; guards self + last admin)
 - **Products** — search/filter, full editor (variants, gallery, shipping dimensions, featured/draft) with **drag-and-drop Supabase uploads**, an **eye toggle** to show/hide, and a **notify past buyers** action for new products
-- **Discounts** — the **bring-back (reusable container) discount**: on/off, the percent, and scope (all products / only ticked ones) with a searchable product picker. Applied **per line, per container returned** (capped at the line's qty) — never order-wide — and always recomputed server-side from the DB
+- **Discounts** — two tabs, everything admin-configured (nothing hardcoded):
+  - *Bring-back* — the reusable-container discount: on/off, the percent, its customer-facing label, and scope (all products / only ticked ones) with a searchable product picker. Applied **per line, per container returned** (capped at the line's qty), never order-wide
+  - *Coupons & offers* — **coupon codes and automatic rules** (leave the code blank → it applies itself, e.g. free delivery over R350). Types: % off / R off / free delivery. Conditions: minimum spend, date window, usage limit, and a per-coupon **"can combine with the bring-back discount"** switch (off = whichever saves the customer more wins)
+  - Both are always recomputed server-side from the DB — the client can never set a price. Free delivery records the **real courier cost** separately from what you charged, so it shows up as a cost rather than vanishing
 - **Categories / Testimonials / Reviews / FAQ** — CRUD + moderation/reorder
 - **Integrations / Settings** — providers, social toggles, active gateway, business details
 
@@ -208,6 +211,7 @@ Security: every admin mutation is guarded by `requireAdmin()` + Zod and customer
 | [`BOBPAY_INTEGRATION.md`](docs/BOBPAY_INTEGRATION.md) | Third payment gateway (Bob Pay, redirect) |
 | [`ADDING_A_PAYMENT_GATEWAY.md`](docs/ADDING_A_PAYMENT_GATEWAY.md) | **Reusable checklist** for wiring a new gateway (every touch point) |
 | [`CONTAINER_DISCOUNT_PLAN.md`](docs/CONTAINER_DISCOUNT_PLAN.md) | The bring-back discount: per-line rule + admin config |
+| [`PROMOTIONS_PLAN.md`](docs/PROMOTIONS_PLAN.md) | Coupons + automatic offers (free delivery, min spend) |
 | [`CUSTOMER_ACCOUNTS_PLAN.md`](docs/CUSTOMER_ACCOUNTS_PLAN.md) | Accounts, reviews, FAQ |
 | [`CUSTOM_REQUESTS_PLAN.md`](docs/CUSTOM_REQUESTS_PLAN.md) | Bespoke commission pipeline |
 | [`USER_MANAGEMENT_PLAN.md`](docs/USER_MANAGEMENT_PLAN.md) | Admin customer management |

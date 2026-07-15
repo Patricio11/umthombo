@@ -43,6 +43,11 @@ export const reviewStatusEnum = pgEnum("review_status", [
   "rejected",
 ]);
 export const postStatusEnum = pgEnum("post_status", ["draft", "published"]);
+export const promotionTypeEnum = pgEnum("promotion_type", [
+  "percent", // % off the goods
+  "fixed", // rand off the goods
+  "free_shipping", // waive the delivery fee (we still pay the courier)
+]);
 export const customRequestStatusEnum = pgEnum("custom_request_status", [
   "pending", // submitted, awaiting admin
   "quoted", // accepted: price + ETA (+ optional deposit); awaiting deposit/start
@@ -144,7 +149,15 @@ export const orders = pgTable("orders", {
   subtotalZAR: integer("subtotal_zar").notNull().default(0),
   /** Total bring-back discount across the lines (snapshot). */
   discountZAR: integer("discount_zar").notNull().default(0),
+  /** Promotion/coupon applied to this order (snapshot of code + rand value). */
+  promotionId: uuid("promotion_id"),
+  couponCode: text("coupon_code"),
+  promoDiscountZAR: integer("promo_discount_zar").notNull().default(0),
+  /** What we CHARGED the customer for delivery (0 when shipping is free). */
   deliveryFeeZAR: integer("delivery_fee_zar").notNull().default(0),
+  /** What the courier actually COSTS us — kept separate from what we charged so
+   *  free delivery shows up as a real cost instead of vanishing from reports. */
+  shippingCostZAR: integer("shipping_cost_zar").notNull().default(0),
   totalZAR: integer("total_zar").notNull().default(0),
   status: orderStatusEnum("status").notNull().default("new"),
   // Shipping (BobGo)  selected at checkout, tracking filled by the webhook
@@ -238,6 +251,7 @@ export const settings = pgTable("settings", {
   containerDiscountEnabled: boolean("container_discount_enabled"), // null = on
   containerDiscountPercent: integer("container_discount_percent"), // null = 10
   containerDiscountScope: text("container_discount_scope"), // "selected" (null) | "all"
+  containerDiscountLabel: text("container_discount_label"), // null = "Own container"
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow()
@@ -399,6 +413,50 @@ export const posts = pgTable("posts", {
 });
 
 export type Post = typeof posts.$inferSelect;
+
+/* ------------------------------------------------------------------ */
+/*  Promotions (coupon codes + automatic rules)                        */
+/* ------------------------------------------------------------------ */
+export const promotions = pgTable("promotions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  /** Admin label, e.g. "Free delivery over R350". */
+  name: text("name").notNull(),
+  /** The code a customer types. NULL = applies automatically, no code needed.
+   *  (Postgres allows many NULLs under a unique index, so several automatic
+   *  promotions can coexist.) */
+  code: text("code").unique(),
+  type: promotionTypeEnum("type").notNull(),
+  /** percent (10 = 10%) or rand (50 = R50). Ignored for free_shipping. */
+  value: integer("value").notNull().default(0),
+  /** Minimum cart subtotal (pre-discount) to qualify. NULL = no minimum. */
+  minSubtotalZAR: integer("min_subtotal_zar"),
+  /** free_shipping only: the most we'll absorb. NULL = the whole courier fee;
+   *  set a value and the customer pays any excess. */
+  freeShippingCapZAR: integer("free_shipping_cap_zar"),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
+  /** Total redemptions allowed across all customers. NULL = unlimited. */
+  usageLimit: integer("usage_limit"),
+  /** May this combine with the bring-back discount? Off = best-one-wins. */
+  stackable: boolean("stackable").notNull().default(false),
+  enabled: boolean("enabled").notNull().default(true),
+  ...timestamps,
+});
+
+export type Promotion = typeof promotions.$inferSelect;
+
+/** One row per successful use — usage counts derive from here (audit trail). */
+export const promotionRedemptions = pgTable("promotion_redemptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  promotionId: uuid("promotion_id")
+    .notNull()
+    .references(() => promotions.id, { onDelete: "cascade" }),
+  orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+  email: text("email"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 /* ------------------------------------------------------------------ */
 /*  Relations                                                         */

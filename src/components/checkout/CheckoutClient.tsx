@@ -19,6 +19,8 @@ import {
 import { rateEta, type DeliveryAddress, type RateOption } from "@/lib/shipping";
 import type { AddressView } from "@/lib/address-schema";
 import { getDeliveryRates } from "@/server/actions/shipping";
+import { CouponField, type AppliedCoupon } from "@/components/checkout/CouponField";
+import { previewCoupon } from "@/server/actions/promotions";
 import { placeOrder } from "@/server/actions/checkout";
 import {
   loadCheckoutDraft,
@@ -80,7 +82,14 @@ export function CheckoutClient({
   const discountLines = useCart(selectDiscountLines);
   // Mirrors the server exactly (same helper); the server re-computes before charging.
   const discount = computeDiscount(discountLines, rule).totalZAR;
-  const goodsTotal = subtotal - discount;
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  // Mirrors the server: a non-stacking coupon displaces the jar discount when
+  // it is worth more. The server re-resolves this before charging.
+  const couponValue = coupon?.ok ? coupon.valueZAR ?? 0 : 0;
+  const couponIsFreeShip = !!coupon?.ok && !!coupon.freeShipping;
+  const promoGoods = couponIsFreeShip ? 0 : couponValue;
+  const appliedJar = discount;
+  const goodsTotal = Math.max(0, subtotal - appliedJar - promoGoods);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -201,7 +210,48 @@ export function CheckoutClient({
   const selectedRate = rates?.find((r) => r.serviceCode === serviceCode) ?? null;
   const deliveryFee =
     method === "delivery" ? selectedRate?.priceZAR ?? 0 : 0;
-  const total = goodsTotal + deliveryFee;
+  // A free-delivery coupon waives up to its value; we still pay the courier.
+  const chargedDelivery = couponIsFreeShip
+    ? Math.max(0, deliveryFee - couponValue)
+    : deliveryFee;
+  const total = goodsTotal + chargedDelivery;
+
+  const couponItems = items.map((i) => ({
+    slug: i.slug,
+    qty: i.qty,
+    containersReturned: i.containersReturned ?? 0,
+  }));
+
+  // An applied code's worth depends on the cart and the courier fee, so re-check
+  // it whenever either moves — otherwise the summary could show a stale value or
+  // keep a code that no longer qualifies. (The server is still authoritative.)
+  const couponCode = coupon?.ok ? coupon.code : null;
+  const cartKey = items
+    .map((i) => `${i.slug}:${i.variant ?? ""}:${i.qty}:${i.containersReturned ?? 0}`)
+    .join("|");
+  useEffect(() => {
+    if (!couponCode) return;
+    let cancelled = false;
+    (async () => {
+      const res = await previewCoupon({
+        code: couponCode,
+        method,
+        deliveryFeeZAR: deliveryFee,
+        items: items.map((i) => ({
+          slug: i.slug,
+          qty: i.qty,
+          containersReturned: i.containersReturned ?? 0,
+        })),
+      });
+      if (cancelled) return;
+      setCoupon(res.ok ? { ...res, code: couponCode } : null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [couponCode, cartKey, deliveryFee, method]);
+
 
   const addressReady =
     method === "delivery" &&
@@ -273,6 +323,7 @@ export function CheckoutClient({
         method === "delivery" ? effectiveAddress ?? undefined : undefined,
       serviceCode: method === "delivery" ? serviceCode ?? undefined : undefined,
       note: note.trim() || undefined,
+      couponCode: coupon?.ok ? coupon.code : undefined,
       createAccount: !account && createAccount,
       saveAddress: !!account && addrMode === "new" && saveAddress,
       hp,
@@ -602,17 +653,37 @@ export function CheckoutClient({
                     accent
                   />
                 )}
+                {coupon?.ok && !coupon.freeShipping && (
+                  <Row
+                    label={coupon.name ?? "Discount"}
+                    value={`−${formatZAR(couponValue)}`}
+                    accent
+                  />
+                )}
                 {method === "delivery" && (
                   <Row
                     label="Delivery"
                     value={
-                      selectedRate
-                        ? formatZAR(deliveryFee)
-                        : rates
-                        ? "Select an option"
-                        : "Enter address"
+                      !selectedRate ? (
+                        rates ? (
+                          "Select an option"
+                        ) : (
+                          "Enter address"
+                        )
+                      ) : couponIsFreeShip ? (
+                        <span className="text-olive">
+                          <span className="mr-1.5 text-ink-soft line-through">
+                            {formatZAR(deliveryFee)}
+                          </span>
+                          {chargedDelivery === 0
+                            ? "Free"
+                            : formatZAR(chargedDelivery)}
+                        </span>
+                      ) : (
+                        formatZAR(deliveryFee)
+                      )
                     }
-                    muted
+                    muted={!couponIsFreeShip}
                   />
                 )}
                 {method === "collection" && (
@@ -624,6 +695,14 @@ export function CheckoutClient({
                 <span className="font-medium text-ink">Total</span>
                 <span className="font-display text-3xl">{formatZAR(total)}</span>
               </div>
+
+              <CouponField
+                method={method}
+                deliveryFeeZAR={deliveryFee}
+                items={couponItems}
+                applied={coupon}
+                onApplied={setCoupon}
+              />
 
               {payment.choose && (
                 <fieldset className="mt-5">
@@ -988,7 +1067,7 @@ function Row({
   accent,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   muted?: boolean;
   accent?: boolean;
 }) {
