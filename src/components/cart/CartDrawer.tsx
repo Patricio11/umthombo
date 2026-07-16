@@ -10,7 +10,7 @@ import { X } from "lucide-react";
 import {
   useCart,
   selectSubtotal,
-  selectDiscountLines,
+  toDiscountLines,
   selectCount,
 } from "@/store/cart";
 import { formatZAR } from "@/lib/format";
@@ -38,8 +38,8 @@ export function CartDrawer({
   const items = useCart((s) => s.items);
   const count = useCart(selectCount);
   const subtotal = useCart(selectSubtotal);
-  const discountLines = useCart(selectDiscountLines);
-  const discount = computeDiscount(discountLines, rule).totalZAR;
+  // Derive from the already-selected `items` — never a new-array useCart selector.
+  const discount = computeDiscount(toDiscountLines(items), rule).totalZAR;
   const total = subtotal - discount;
 
   const goToCheckout = () => {

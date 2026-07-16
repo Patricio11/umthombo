@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Truck, Store, Check, X, Plus } from "lucide-react";
-import { useCart, selectSubtotal, selectDiscountLines } from "@/store/cart";
+import { useCart, selectSubtotal, toDiscountLines } from "@/store/cart";
 import {
   computeDiscount,
   discountLabel,
@@ -79,9 +79,9 @@ export function CheckoutClient({
   const items = useCart((s) => s.items);
   const clearCart = useCart((s) => s.clear);
   const subtotal = useCart(selectSubtotal);
-  const discountLines = useCart(selectDiscountLines);
-  // Mirrors the server exactly (same helper); the server re-computes before charging.
-  const discount = computeDiscount(discountLines, rule).totalZAR;
+  // Derive from the already-selected `items` — never a new-array useCart selector
+  // (Zustand v5 doesn't memoise selectors, so that would loop forever → #185).
+  const discount = computeDiscount(toDiscountLines(items), rule).totalZAR;
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   // Mirrors the server: a non-stacking coupon displaces the jar discount when
   // it is worth more. The server re-resolves this before charging.

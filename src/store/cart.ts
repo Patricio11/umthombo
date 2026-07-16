@@ -125,9 +125,13 @@ export const selectSubtotal = (s: CartState) =>
 
 /** Cart lines in the shape `lib/discount` expects. The discount itself is NOT
  *  computed here — it depends on the admin's rule, which comes from the server;
- *  callers pass both to `computeDiscount`. The server re-computes before charging. */
-export const selectDiscountLines = (s: CartState) =>
-  s.items.map((i) => ({
+ *  callers pass both to `computeDiscount`. The server re-computes before charging.
+ *
+ *  NOTE: this is a **plain helper**, not a `useCart` selector. It returns a new
+ *  array each call, which under Zustand v5 (no selector memoisation) would loop
+ *  forever if used as a selector. Call it with the already-selected `items`. */
+export const toDiscountLines = (items: CartItem[]) =>
+  items.map((i) => ({
     unitPriceZAR: i.unitPriceZAR,
     qty: i.qty,
     containerEligible: !!i.containerEligible,
